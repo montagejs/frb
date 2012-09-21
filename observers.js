@@ -1,10 +1,10 @@
 
 // TODO reversed
 
-require("collections/observable-object"); // property change listeners
-require("collections/observable-array"); // content change listeners
 require("collections/array-shim"); // forEach, map
 require("collections/array"); // swap, set, sum
+require("./object"); // property change listeners
+require("./array"); // content change listeners
 
 // primitives
 
