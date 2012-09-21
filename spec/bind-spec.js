@@ -60,7 +60,7 @@ describe("bind", function () {
 
     describe("sum", function () {
         var object = {values: [1,2,3]};
-        var cancel = bind(object, "sum", {"<-": "values.sum()"});
+        var cancel = bind(object, "sum", {"<-": "values.sum{}"});
         expect(object.sum).toBe(6);
         object.values.push(4);
         expect(object.sum).toBe(10);
@@ -71,7 +71,7 @@ describe("bind", function () {
 
     describe("average", function () {
         var object = {values: [1,2,3]};
-        var cancel = bind(object, "average", {"<-": "values.average()"});
+        var cancel = bind(object, "average", {"<-": "values.average{}"});
         expect(object.average).toBe(2);
         object.values.push(4);
         expect(object.average).toBe(2.5);
@@ -82,7 +82,7 @@ describe("bind", function () {
 
     describe("reversed", function () {
         var object = {foo: [1,2,3]};
-        var cancel = bind(object, "bar", {"<-": "foo.reversed()"});
+        var cancel = bind(object, "bar", {"<-": "foo.reversed{}"});
         expect(object.bar).toEqual([3, 2, 1]);
         object.foo.push(4);
         expect(object.bar).toEqual([4, 3, 2, 1]);
@@ -93,12 +93,27 @@ describe("bind", function () {
         expect(object.bar).toEqual([4, 3, 'c', 'b', 'a', 2, 1]);
     });
 
+    describe("tuple", function () {
+        var object = {a: 10, b: 20, c: 30};
+        var cancel = bind(object, "d", {"<-": "(a,b,c)"});
+        expect(object.d).toEqual([10, 20, 30]);
+        cancel();
+        object.c = 40;
+        expect(object.d).toEqual([10, 20, 30]);
+    });
+
+    describe("literals", function () {
+        var object = {};
+        var cancel = bind(object, "literals", {"<-": "(#0, 'foo bar')"});
+        expect(object.literals).toEqual([0, "foo bar"]);
+    });
+
     describe("map", function () {
         var object = {
             foo: [{bar: 10}, {bar: 20}, {bar: 30}]
         };
         var cancel = bind(object, "baz", {
-            "<-": "foo.map(bar)"
+            "<-": "foo.map{bar}"
         });
         expect(object.baz).toEqual([10, 20, 30]);
         object.foo.push({bar: 40});
@@ -110,7 +125,7 @@ describe("bind", function () {
             foo: [[1], [2, 3], [4]]
         };
         var cancel = bind(object, "baz", {
-            "<-": "foo.flatten()"
+            "<-": "foo.flatten{}"
         });
         expect(object.baz).toEqual([1, 2, 3, 4]);
 
@@ -137,7 +152,7 @@ describe("bind", function () {
             foo: [{bar: [1]}, {bar: [2, 3]}, {bar: [4]}]
         };
         var cancel = bind(object, "baz", {
-            "<-": "foo.flatten(bar)"
+            "<-": "foo.flatten{bar}"
         });
         expect(object.baz).toEqual([1, 2, 3, 4]);
 

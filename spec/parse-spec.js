@@ -30,7 +30,38 @@ describe("parse", function () {
         },
 
         {
-            input: "map()",
+            input: "()",
+            output: {type: "tuple", args: [
+            ]}
+        },
+
+        {
+            input: "(,)",
+            output: {type: "tuple", args: [
+                {type: "value"}
+            ]}
+        },
+
+        {
+            input: "(,,)",
+            output: {type: "tuple", args: [
+                {type: "value"},
+                {type: "value"}
+            ]}
+        },
+
+        {
+            input: "(a)",
+            output: {type: "tuple", args: [
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "a"}
+                ]}
+            ]}
+        },
+
+        {
+            input: "map{}",
             output: {type: "map", args: [
                 {type: "value"},
                 {type: "value"}
@@ -38,7 +69,7 @@ describe("parse", function () {
         },
 
         {
-            input: "a.map()",
+            input: "a.map{}",
             output: {type: "map", args: [
                 {type: "property", args: [
                     {type: "value"},
@@ -49,7 +80,7 @@ describe("parse", function () {
         },
 
         {
-            input: "a.map(b)",
+            input: "a.map{b}",
             output: {type: "map", args: [
                 {type: "property", args: [
                     {type: "value"},
@@ -66,23 +97,34 @@ describe("parse", function () {
             input: "flatten()",
             output: {type: "flatten", args: [
                 {type: "value"},
-                {type: "value"}
+                {type: "tuple", args: [
+                ]}
             ]}
         },
 
         {
-            input: "a.flatten()",
+            input: "flatten{}",
+            output: {type: "flatten", args: [
+                {type: "value"},
+                {type: "tuple", args: [
+                ]}
+            ]}
+        },
+
+        {
+            input: "a.flatten{}",
             output: {type: "flatten", args: [
                 {type: "property", args: [
                     {type: "value"},
                     {type: "literal", value: "a"}
                 ]},
-                {type: "value"}
+                {type: "tuple", args: [
+                ]}
             ]}
         },
 
         {
-            input: "a.flatten(b)",
+            input: "a.flatten{b}",
             output: {type: "flatten", args: [
                 {type: "map", args: [
                     {type: "property", args: [
@@ -93,6 +135,19 @@ describe("parse", function () {
                         {type: "value"},
                         {type: "literal", value: "b"}
                     ]}
+                ]},
+                {type: "tuple", args: [
+                ]}
+            ]}
+        },
+
+        {
+            input: "function(#0, '\\'')",
+            output: {type: "function", args: [
+                {type: "value"},
+                {type: "tuple", args: [
+                    {type: "literal", value: 0},
+                    {type: "literal", value: "'"}
                 ]}
             ]}
         }

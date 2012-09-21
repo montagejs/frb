@@ -36,15 +36,27 @@ parse.semantics = {
         return this.parsePrevious;
     },
 
-    parseBegin: Parser.makeExpect("("),
-    parseEnd: Parser.makeExpect(")"),
+    parseBlockBegin: Parser.makeExpect("{"),
+    parseBlockEnd: Parser.makeExpect("}"),
+    parseTupleBegin: Parser.makeExpect("("),
+    parseTupleEnd: Parser.makeExpect(")"),
     parseDot: Parser.makeExpect("."),
 
-    parseIdentifier: function parseIdentifier(callback, word) {
+    skipWhiteSpace: function skipWhiteSpace(callback) {
+        return function (character) {
+            if (character === " ") {
+                return skipWhiteSpace(callback);
+            } else {
+                return callback()(character);
+            }
+        };
+    },
+
+    parseWord: function parseWord(callback, word) {
         word = word || "";
         return function (character, loc) {
             if (/[\w\d]/.test(character)) {
-                return parseIdentifier(callback, word + character);
+                return parseWord(callback, word + character);
             } else if (word !== "") {
                 return callback(word)(character, loc);
             } else {
@@ -53,45 +65,108 @@ parse.semantics = {
         };
     },
 
-    parsePrimary: function (callback, previous) {
+    parseStringTail: function parseStringTail(callback, string) {
+        var self = this;
+        return function (character) {
+            if (character === "'") {
+                return callback({
+                    type: "literal",
+                    value: string
+                });
+            } else if (character === "\\") {
+                return function (character) {
+                    return self.parseStringTail(callback, string + character);
+                };
+            } else {
+                return self.parseStringTail(callback, string + character);
+            }
+        };
+    },
+
+    parsePrimary: function parsePrimary(callback, previous) {
         var self = this;
         previous = previous || {type: "value"};
-        return self.parseIdentifier(function (identifier) {
+        return function (character) {
+            if (character === "#") {
+                return self.parseNumber(callback);
+            // TODO @ for index of current position
+            } else if (character === "'") {
+                return self.parseStringTail(callback, "");
+            } else if (character === "(") {
+                return self.parseTuple(callback)(character);
+            } else {
+                return self.parseValue(callback, previous)(character);
+            }
+        };
+    },
+
+    parseNumber: function parseNumber(callback) {
+        var self = this;
+        return self.parseWord(function (word) {
+            return callback({
+                type: 'literal',
+                value: +word
+            });
+        })
+    },
+
+    parseValue: function parseValue(callback, previous) {
+        var self = this;
+        return self.parseWord(function (identifier) {
             if (identifier) {
-                return self.parseBlock(function (expression) {
-                    if (expression) {
-                        if (identifier === "map") {
-                            return self.parseTail(callback, {
-                                type: "map",
-                                args: [
-                                    previous,
-                                    expression
-                                ]
-                            });
-                        } else {
-                            if (expression.type === "value") {
+                return function (character) {
+                    if (character === '{') {
+                        return self.parseBlock(function (expression) {
+                            if (identifier === "map") {
                                 return self.parseTail(callback, {
-                                    type: identifier,
+                                    type: "map",
                                     args: [
                                         previous,
                                         expression
                                     ]
                                 });
                             } else {
-                                return self.parseTail(callback, {
-                                    type: identifier,
-                                    args: [
-                                        {
-                                            type: "map",
-                                            args: [
-                                                previous,
-                                                expression
-                                            ]
-                                        }
-                                    ]
-                                });
+                                if (expression.type === "value") {
+                                    return self.parseTail(callback, {
+                                        type: identifier,
+                                        args: [
+                                            previous,
+                                            {
+                                                type: "tuple",
+                                                args: []
+                                            }
+                                        ]
+                                    });
+                                } else {
+                                    return self.parseTail(callback, {
+                                        type: identifier,
+                                        args: [
+                                            {
+                                                type: "map",
+                                                args: [
+                                                    previous,
+                                                    expression
+                                                ]
+                                            },
+                                            {
+                                                type: "tuple",
+                                                args: []
+                                            }
+                                        ]
+                                    });
+                                }
                             }
-                        }
+                        })(character);
+                    } else if (character === '(') {
+                        return self.parseTuple(function (tuple) {
+                            return self.parseTail(callback, {
+                                type: identifier,
+                                args: [
+                                    previous,
+                                    tuple
+                                ]
+                            });
+                        }, previous)(character);
                     } else {
                         return self.parseTail(callback, {
                             type: "property",
@@ -102,15 +177,14 @@ parse.semantics = {
                                     value: identifier
                                 }
                             ]
-                        });
+                        })(character);
                     }
-                });
+                };
             } else {
                 return callback(previous);
             }
         });
     },
-
     parseTail: function (callback, previous) {
         var self = this;
         return self.parseDot(function (dot) {
@@ -124,10 +198,10 @@ parse.semantics = {
 
     parseBlock: function (callback) {
         var self = this;
-        return self.parseBegin(function (begin) {
+        return self.parseBlockBegin(function (begin) {
             if (begin) {
                 return self.parseExpression(function (expression) {
-                    return self.parseEnd(function (end, loc) {
+                    return self.parseBlockEnd(function (end, loc) {
                         if (end) {
                             return callback(expression);
                         } else {
@@ -141,6 +215,53 @@ parse.semantics = {
                 return callback();
             }
         });
+    },
+
+    parseTuple: function (callback) {
+        var self = this;
+        return self.parseTupleBegin(function (begin) {
+            if (begin) {
+                return self.parseTupleInternal(function (args) {
+                    return self.parseTupleEnd(function (end, loc) {
+                        if (end) {
+                            return callback({
+                                type: "tuple",
+                                args: args
+                            });
+                        } else {
+                            var error = new Error("Expected \")\"");
+                            error.loc = loc;
+                            throw error;
+                        }
+                    });
+                });
+            } else {
+                return callback();
+            }
+        });
+    },
+
+    parseTupleInternal: function (callback, args) {
+        var self = this;
+        args = args || [];
+        return function (character) {
+            if (character === ")") {
+                return callback(args)(character);
+            } else {
+                return self.parseExpression(function (expression) {
+                    args.push(expression);
+                    return function (character) {
+                        if (character === ",") {
+                            return self.skipWhiteSpace(function () {
+                                return self.parseTupleInternal(callback, args);
+                            });
+                        } else {
+                            return callback(args)(character);
+                        }
+                    };
+                })(character);
+            }
+        };
     }
 
 };

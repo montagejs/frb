@@ -76,6 +76,11 @@ function makeReplacingMapObserver(observeArray, observeRelation) {
     };
 }
 
+exports.makeTupleObserver = makeTupleObserver;
+function makeTupleObserver() {
+    return makeObserversObserver(Array.prototype.slice.call(arguments));
+}
+
 // accepts an array of observers and emits an array of the corresponding
 // values, incrementally updated
 exports.makeObserversObserver = makeObserversObserver;

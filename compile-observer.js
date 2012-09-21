@@ -14,7 +14,8 @@ compile.semantics = {
         reversed: Observers.makeReversedObserver,
         flatten: Observers.makeFlattenObserver,
         sum: Observers.makeSumObserver,
-        average: Observers.makeAverageObserver
+        average: Observers.makeAverageObserver,
+        tuple: Observers.makeTupleObserver
     },
 
     compile: function (syntax) {
