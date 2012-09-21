@@ -1,6 +1,4 @@
 
-// TODO reversed
-
 require("collections/array-shim"); // forEach, map
 require("collections/array"); // swap, set, sum
 require("./object"); // property change listeners
@@ -109,6 +107,30 @@ function observeEach(array, observeRelation, emit, value, parameters) {
     });
     emit(output);
     return cancelers;
+}
+
+// calculating the reflected index for an incremental change:
+// [0, 1, 2, 3]  length 4
+//     -------  -4 (1+3)
+// --------    0-  (outer.length - index - inner.length)
+exports.makeReversedObserver = makeNonReplacing(makeReplacingReversedObserver);
+function makeReplacingReversedObserver(observeArray) {
+    return function observeReversed(emit, value, parameters) {
+        return observeArray(autoCancelPrevious(function (input) {
+            var output = [];
+            function contentChange(plus, minus, index) {
+                var reflected = output.length - index - minus.length;
+                output.swap(reflected, minus.length, plus.reversed());
+            };
+            contentChange(input, [], 0);
+            var cancel = emit(output);
+            input.addContentChangeListener(contentChange);
+            return once(function cancelReversedObserver() {
+                cancel();
+                input.removeContentChangeListener(contentChange);
+            });
+        }), value, parameters);
+    };
 }
 
 exports.makeWindowObserver = makeNonReplacing(makeReplacingWindowObserver);

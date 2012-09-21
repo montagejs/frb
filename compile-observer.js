@@ -11,7 +11,10 @@ compile.semantics = {
     compilers: {
         property: Observers.makePropertyObserver,
         map: Observers.makeMapObserver,
-        flatten: Observers.makeFlattenObserver
+        reversed: Observers.makeReversedObserver,
+        flatten: Observers.makeFlattenObserver,
+        sum: Observers.makeSumObserver,
+        average: Observers.makeAverageObserver
     },
 
     compile: function (syntax) {

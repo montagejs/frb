@@ -7,10 +7,12 @@ describe("observe flatten", function () {
 
         var input = [[1, 2, 3], [7, 8, 9]];
         var output;
+        var calls = 0;
 
         var cancel = O.makeFlattenObserver(O.makeLiteralObserver(input))
         (function (_output) {
             output = _output;
+            calls++;
         });
 
         input.swap(1, 0, [[4, 5, 6]]);
@@ -46,6 +48,8 @@ describe("observe flatten", function () {
         input[0].unshift(0);
         //expect(input).toEqual([[0, 1, 2, 3, 4, 5, 6], [7, 8, 9], [10], [11]]);
         expect(output).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+        expect(calls).toBe(1);
 
     });
 

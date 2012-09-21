@@ -58,6 +58,41 @@ describe("bind", function () {
 
     });
 
+    describe("sum", function () {
+        var object = {values: [1,2,3]};
+        var cancel = bind(object, "sum", {"<-": "values.sum()"});
+        expect(object.sum).toBe(6);
+        object.values.push(4);
+        expect(object.sum).toBe(10);
+        cancel();
+        object.values.unshift();
+        expect(object.sum).toBe(10);
+    });
+
+    describe("average", function () {
+        var object = {values: [1,2,3]};
+        var cancel = bind(object, "average", {"<-": "values.average()"});
+        expect(object.average).toBe(2);
+        object.values.push(4);
+        expect(object.average).toBe(2.5);
+        cancel();
+        object.values.unshift();
+        expect(object.average).toBe(2.5);
+    });
+
+    describe("reversed", function () {
+        var object = {foo: [1,2,3]};
+        var cancel = bind(object, "bar", {"<-": "foo.reversed()"});
+        expect(object.bar).toEqual([3, 2, 1]);
+        object.foo.push(4);
+        expect(object.bar).toEqual([4, 3, 2, 1]);
+        object.foo.swap(2, 0, ['a', 'b', 'c']);
+        expect(object.bar).toEqual([4, 3, 'c', 'b', 'a', 2, 1]);
+        cancel();
+        object.foo.splice(2, 3);
+        expect(object.bar).toEqual([4, 3, 'c', 'b', 'a', 2, 1]);
+    });
+
     describe("map", function () {
         var object = {
             foo: [{bar: 10}, {bar: 20}, {bar: 30}]
