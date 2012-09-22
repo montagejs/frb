@@ -275,21 +275,21 @@ function makeArrayObserverMaker(setup) {
             emit = makeUniq(emit);
             return observeArray(function (array) {
                 var handler = setup(array, emit);
-                array.addContentChangeListener(handler.update);
+                array.addContentChangeListener(handler.contentChange);
                 return once(function () {
                     handler.cancel();
-                    array.removeContentChangeListener(handler.update);
+                    array.removeContentChangeListener(handler.contentChange);
                 });
             }, value, parameters);
         };
     };
 }
 
-exports.makeSumObserver = makeArrayObserverMaker(function init(array, emit) {
+exports.makeSumObserver = makeArrayObserverMaker(function setup(array, emit) {
     var sum = array.sum();
     var cancel = emit(sum) || noop;
     return {
-        update: function update(plus, minus, index) {
+        contentChange: function contentChange(plus, minus, index) {
             sum += plus.sum() - minus.sum();
             cancel = emit(sum);
         },
@@ -297,12 +297,12 @@ exports.makeSumObserver = makeArrayObserverMaker(function init(array, emit) {
     };
 });
 
-exports.makeAverageObserver = makeArrayObserverMaker(function init(array, emit) {
+exports.makeAverageObserver = makeArrayObserverMaker(function setup(array, emit) {
     var sum = array.sum();
     var count = array.length;
     var cancel = emit(sum / count) || noop;
     return {
-        update: function update(plus, minus, index) {
+        contentChange: function contentChange(plus, minus, index) {
             sum += plus.sum() - minus.sum();
             count += plus.length - minus.length;
             cancel = emit(sum / count);

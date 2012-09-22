@@ -1,5 +1,6 @@
 {
     "name": "frb",
+    "main": "frb",
     "version": "0.0.0",
     "dependencies": {
         "collections": "0.0.x"

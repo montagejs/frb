@@ -90,6 +90,7 @@ parse.semantics = {
             if (character === "#") {
                 return self.parseNumber(callback);
             // TODO @ for index of current position
+            // TODO $ for parameters
             } else if (character === "'") {
                 return self.parseStringTail(callback, "");
             } else if (character === "(") {
