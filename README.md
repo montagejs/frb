@@ -1,6 +1,10 @@
 
 # Functional Reactive Bindings
 
+Two-way bindings for JavaScript as a CommonJS package.
+
+Architecture, from the bottom up:
+
 -   **property and content change events** for objects and arrays using
     getters and setters for observable objects and either prototype
     swapping or method override for observable arrays.  Other collection
@@ -160,55 +164,6 @@ values are added or replaced, the observer produces a new canceler.  The
 cancel function returned by `observe` commands the entire underlying
 tree.
 
-### Observer Makers
-
-The `observers` module contains functions for making all of the
-different types of observers, and utilities for creating new ones.
-All of these functions are or return an observer function of the form
-`observe(emit, value, parameters)` which in turn returns `cancel()`.
-
--   `observeValue`
--   `observeParameters`
--   `makeLiteralObserver(value)`
--   `makeRelationObserver(callback, thisp)` is unavailable through the
-    property binding language, translates a value through a JavaScript
-    function.
--   `makePropertyObserver(observeObject, observeKey)`
--   `makeMapObserver(observeArray, observeRelation)`
--   `makeTupleObserver(...observers)`
--   `makeObserversObserver(observers)`
--   `makeReversedObserver(observeArrayh)`
--   `makeWindowObserver` is not presently available through the language
-    and is subject to change.  It is for watching a length from an array
-    starting at an observable index.
--   `makeFlattenObserver(observeArray)`
--   `makeSumObserver(observeArray)`
--   `makeAverageObserver(observeArray)`
-
-These are utilities for making observer functions.
-
--   `makeNonReplacing(observe)` accepts an array observer (the emitted
-    values must be arrays) and returns an array observer that will only
-    emit the target once and then incrementally update that target.  All
-    array observers use this decorator to handle the case where the
-    source value gets replaced.
--   `makeArrayObserverMaker(setup)` generates an observer that uses an
-    array as its source and then incrementally updates a target value,
-    like `sum` and `average`.  The `setup(source, emit)` function must
-    return an object of the form `{contentChange, cancel}` and arrange
-    for `emit` to be called with new values when `contentChange(plus,
-    minus, index)` receives incremental updates.
--   `makeUniq(callback)` wraps an emitter callback such that it only
-    forwards new values.  So, if a value is repeated, subsequent calls
-    are ignored.
--   `autoCancelPrevious(callback)` accepts an observer callback and
-    returns an observer callback.  Observer callbacks may return
-    cancelation functions, so this decorator arranges for the previous
-    canceler to be called before producing a new one, and arranges for
-    the last canceler to be called when the whole tree is done.
--   `once(callback)` accepts a canceler function and ensures that the
-    cancelation routine is only called once.
-
 
 ## The Language
 
@@ -223,7 +178,8 @@ brute force.
     name** *or* **function call** *or* **block call**
 -   **property name** = ( **non space character** )+
 -   **block name** = **function name** *or* `map`
--   **function name** = `flatten` *or* `reversed` *or* `sum` *or* `average`
+-   **function name** = `flatten` *or* `reversed` *or* `sum` *or*
+    `average` *or* `has`
 -   **function call** = **function name** `(` **tuple** `)`
 -   **block call** = **function name** `{` **expression** `}`
 -   **tuple** = **expression** *delimited by* `,`
@@ -232,12 +188,18 @@ brute force.
 -   **string literal** = `'` ( **non quote character** *or* `\`
     **character** )* `'`
 
+All of this grammar can be used on the right hand side of a binding.
+The left hand side of a binding permits a strict subset.
+
+-   **last term** = **property name** *or* **has call**
+-   **has call** = `has(` **expression** `)`
+
 ### Semantics
 
 An expression is observed with a source value and emits a target
 one or more times.  All expressions emit an initial value.  Array
-targets are always updated incrementally.  Numbers are emited anew each
-time their value changes.
+targets are always updated incrementally.  Numbers and boolean are
+emited anew each time their value changes.
 
 -   The first term is evaluated with the source value.
 -   Each subsequent term uses the target of the previous as its source.
@@ -268,10 +230,27 @@ time their value changes.
     of the spliced values, added and removed.
 -   An "average" function call observes the average of the input values,
     much like "sum".
+-   A "has" function call observes the source collection for whether it
+    contains an observed value.
 -   A "tuple" expression observes a source value and emits a single
     target array with elements corresponding to the respective
     expression in the tuple.  Each inner expression is evaluated with
     the same source value as the outer expression.
+
+On the left hand side of a binding, the last term has alternate
+semantics.  Binders receive a target as well as a source.
+
+-   A "property" observes an object and a property name from the target,
+    and a value from the source.  When any of these change, the binder
+    upates the value for the property name of the object.
+-   A "has" function call observes a boolean value from the source, and
+    an collection and a sought value from the target.  When the value is
+    true and the value is absent in the collection, the binder uses the
+    `add` method of the collection (provided by a shim for arrays) to
+    make it true that the collection contains the sought value.  When
+    the value is false and the value does appear in the collection one
+    or more times, the binder uses the `delete` or `remove` method of
+    the collection to remove all occurrences of the sought value.
 
 ### Interface
 
@@ -320,6 +299,63 @@ presently ignored.
 -   `flatten`
 -   `sum`
 -   `average`
+
+
+## Observers and Binders
+
+The `observers` module contains functions for making all of the
+different types of observers, and utilities for creating new ones.
+All of these functions are or return an observer function of the form
+`observe(emit, value, parameters)` which in turn returns `cancel()`.
+
+-   `observeValue`
+-   `observeParameters`
+-   `makeLiteralObserver(value)`
+-   `makeRelationObserver(callback, thisp)` is unavailable through the
+    property binding language, translates a value through a JavaScript
+    function.
+-   `makePropertyObserver(observeObject, observeKey)`
+-   `makeMapObserver(observeArray, observeRelation)`
+-   `makeTupleObserver(...observers)`
+-   `makeObserversObserver(observers)`
+-   `makeReversedObserver(observeArrayh)`
+-   `makeWindowObserver` is not presently available through the language
+    and is subject to change.  It is for watching a length from an array
+    starting at an observable index.
+-   `makeFlattenObserver(observeArray)`
+-   `makeSumObserver(observeArray)`
+-   `makeAverageObserver(observeArray)`
+
+These are utilities for making observer functions.
+
+-   `makeNonReplacing(observe)` accepts an array observer (the emitted
+    values must be arrays) and returns an array observer that will only
+    emit the target once and then incrementally update that target.  All
+    array observers use this decorator to handle the case where the
+    source value gets replaced.
+-   `makeArrayObserverMaker(setup)` generates an observer that uses an
+    array as its source and then incrementally updates a target value,
+    like `sum` and `average`.  The `setup(source, emit)` function must
+    return an object of the form `{contentChange, cancel}` and arrange
+    for `emit` to be called with new values when `contentChange(plus,
+    minus, index)` receives incremental updates.
+-   `makeUniq(callback)` wraps an emitter callback such that it only
+    forwards new values.  So, if a value is repeated, subsequent calls
+    are ignored.
+-   `autoCancelPrevious(callback)` accepts an observer callback and
+    returns an observer callback.  Observer callbacks may return
+    cancelation functions, so this decorator arranges for the previous
+    canceler to be called before producing a new one, and arranges for
+    the last canceler to be called when the whole tree is done.
+-   `once(callback)` accepts a canceler function and ensures that the
+    cancelation routine is only called once.
+
+The `binders` module contains similar functions for binding an observed
+value to a bound value.  All binders are of the form `bind(observeValue,
+source, target, parameters)` and return a `cancel()` function.
+
+-   `makePropertyBinder(observeObject, observeKey)`
+-   `makeHasBinder(observeCollection, observeValue)`
 
 
 ## Change Events

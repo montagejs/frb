@@ -1,6 +1,7 @@
 
 var compileObserver = require("./compile-observer");
 var Observers = require("./observers");
+var Binders = require("./binders");
 
 module.exports = compile;
 function compile(syntax) {
@@ -10,19 +11,8 @@ function compile(syntax) {
 compile.semantics = {
 
     compilers: {
-
-        property: function (observeObject, observeKey) {
-            return function (observeValue, source, target, parameters) {
-                return observeObject(Observers.autoCancelPrevious(function (object) {
-                    return observeKey(Observers.autoCancelPrevious(function (key) {
-                        return observeValue(Observers.autoCancelPrevious(function (value) {
-                            object[key] = value;
-                        }), source, parameters);
-                    }), target, parameters);
-                }), target, parameters);
-            };
-        }
-
+        property: Binders.makePropertyBinder,
+        has: Binders.makeHasBinder
     },
 
     compile: function (syntax) {

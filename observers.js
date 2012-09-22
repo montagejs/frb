@@ -47,6 +47,28 @@ function makePropertyObserver(observeObject, observeKey) {
     };
 }
 
+exports.makeHasObserver = makeHasObserver;
+function makeHasObserver(observeSet, observeValue) {
+    return function observeHas(emit, value, parameters) {
+        emit = makeUniq(emit);
+        return observeValue(autoCancelPrevious(function replaceValue(sought) {
+            return observeSet(autoCancelPrevious(function replaceSet(set) {
+                var cancel = noop;
+                function contentChange() {
+                    cancel();
+                    cancel = emit(set.has(sought)) || noop;
+                }
+                contentChange();
+                set.addContentChangeListener(contentChange);
+                return once(function cancelHasObserver() {
+                    cancel();
+                    set.removeContentChangeListener(contentChange);
+                });
+            }), value, parameters);
+        }), value, parameters);
+    };
+}
+
 // compound
 
 exports.makeMapObserver = makeNonReplacing(makeReplacingMapObserver);

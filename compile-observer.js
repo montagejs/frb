@@ -14,6 +14,7 @@ compile.semantics = {
         reversed: Observers.makeReversedObserver,
         flatten: Observers.makeFlattenObserver,
         sum: Observers.makeSumObserver,
+        has: Observers.makeHasObserver,
         average: Observers.makeAverageObserver,
         tuple: Observers.makeTupleObserver
     },

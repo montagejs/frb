@@ -108,6 +108,44 @@ describe("bind", function () {
         expect(object.literals).toEqual([0, "foo bar"]);
     });
 
+    describe("has", function () {
+        var object = {set: [1, 2, 3], sought: 2};
+        var cancel = bind(object, "has", {"<-": "set.has(sought)"});
+
+        expect(object.has).toBe(true);
+        expect(object.set.slice()).toEqual([1, 2, 3]);
+
+        object.sought = 4;
+        expect(object.has).toBe(false);
+        expect(object.set.slice()).toEqual([1, 2, 3]);
+
+        object.set.push(4);
+        expect(object.has).toBe(true);
+        expect(object.set.slice()).toEqual([1, 2, 3, 4]);
+
+        object.set.pop();
+        expect(object.has).toBe(false);
+        expect(object.set.slice()).toEqual([1, 2, 3]);
+
+        cancel();
+        object.set.push(4);
+        expect(object.has).toBe(false);
+        expect(object.set.slice()).toEqual([1, 2, 3, 4]);
+    });
+
+    describe("has <-", function () {
+        var object = {set: [1, 2, 3], sought: 2};
+        var cancel = bind(object, "set.has(sought)", {"<->": "has"});
+
+        expect(object.set.slice()).toEqual([1, 2, 3]);
+        object.has = false;
+        expect(object.set.slice()).toEqual([1, 3]);
+        object.set.push(2);
+        expect(object.has).toEqual(true);
+        expect(object.set.slice()).toEqual([1, 3, 2]);
+
+    });
+
     describe("map", function () {
         var object = {
             foo: [{bar: 10}, {bar: 20}, {bar: 30}]

@@ -96,18 +96,14 @@ describe("parse", function () {
         {
             input: "flatten()",
             output: {type: "flatten", args: [
-                {type: "value"},
-                {type: "tuple", args: [
-                ]}
+                {type: "value"}
             ]}
         },
 
         {
             input: "flatten{}",
             output: {type: "flatten", args: [
-                {type: "value"},
-                {type: "tuple", args: [
-                ]}
+                {type: "value"}
             ]}
         },
 
@@ -117,8 +113,6 @@ describe("parse", function () {
                 {type: "property", args: [
                     {type: "value"},
                     {type: "literal", value: "a"}
-                ]},
-                {type: "tuple", args: [
                 ]}
             ]}
         },
@@ -135,8 +129,6 @@ describe("parse", function () {
                         {type: "value"},
                         {type: "literal", value: "b"}
                     ]}
-                ]},
-                {type: "tuple", args: [
                 ]}
             ]}
         },
@@ -145,10 +137,8 @@ describe("parse", function () {
             input: "function(#0, '\\'')",
             output: {type: "function", args: [
                 {type: "value"},
-                {type: "tuple", args: [
-                    {type: "literal", value: 0},
-                    {type: "literal", value: "'"}
-                ]}
+                {type: "literal", value: 0},
+                {type: "literal", value: "'"}
             ]}
         }
 

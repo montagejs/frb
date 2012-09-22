@@ -130,13 +130,7 @@ parse.semantics = {
                                 if (expression.type === "value") {
                                     return self.parseTail(callback, {
                                         type: identifier,
-                                        args: [
-                                            previous,
-                                            {
-                                                type: "tuple",
-                                                args: []
-                                            }
-                                        ]
+                                        args: [previous]
                                     });
                                 } else {
                                     return self.parseTail(callback, {
@@ -148,10 +142,6 @@ parse.semantics = {
                                                     previous,
                                                     expression
                                                 ]
-                                            },
-                                            {
-                                                type: "tuple",
-                                                args: []
                                             }
                                         ]
                                     });
@@ -162,10 +152,7 @@ parse.semantics = {
                         return self.parseTuple(function (tuple) {
                             return self.parseTail(callback, {
                                 type: identifier,
-                                args: [
-                                    previous,
-                                    tuple
-                                ]
+                                args: [previous].concat(tuple.args)
                             });
                         }, previous)(character);
                     } else {
