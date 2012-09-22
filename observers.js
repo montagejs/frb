@@ -53,10 +53,13 @@ function makeHasObserver(observeSet, observeValue) {
         emit = makeUniq(emit);
         return observeValue(autoCancelPrevious(function replaceValue(sought) {
             return observeSet(autoCancelPrevious(function replaceSet(set) {
+                // this could be done incrementally if there were guarantees of
+                // uniqueness, but if there are guarantees of uniqueness, the
+                // data structure can probably efficiently check
                 var cancel = noop;
                 function contentChange() {
                     cancel();
-                    cancel = emit(set.has(sought)) || noop;
+                    cancel = emit((set.has || set.contains).call(set, sought)) || noop;
                 }
                 contentChange();
                 set.addContentChangeListener(contentChange);

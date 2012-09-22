@@ -25,11 +25,11 @@ function makeHasBinder(observeSet, observeSought) {
                     // other-way binding
                     if (value === undefined) {
                     } else if (value) { // should be in set
-                        if (!set.has(sought)) {
+                        if (!(set.has || set.contains).call(set, sought)) {
                             set.add(sought);
                         }
                     } else { // should not be in set
-                        while (set.has(sought)) {
+                        while ((set.has || set.contains).call(set, sought)) {
                             (set.remove || set['delete']).call(set, sought);
                         }
                     }

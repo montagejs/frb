@@ -9,7 +9,7 @@ function bind(target, targetPath, descriptor) {
     var source = descriptor.source || target;
     var sourcePath = descriptor["<-"] || descriptor["<->"];
     var value = descriptor.value;
-    var parameters = descriptor.parameters;
+    var parameters = descriptor.parameters || source;
 
     var sourceSyntax = parse(sourcePath);
     var targetSyntax = parse(targetPath);
