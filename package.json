@@ -1,6 +1,6 @@
 {
     "name": "frb",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "Functional reactive bindings",
     "keywords": [
         "functional",
@@ -29,7 +29,7 @@
     },
     "main": "frb",
     "dependencies": {
-        "collections": ">=0.0.5"
+        "collections": ">=0.0.6"
     },
     "devDependencies": {
         "jasmine-node": "1.x.x"
