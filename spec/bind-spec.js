@@ -80,6 +80,20 @@ describe("bind", function () {
         expect(object.average).toBe(2.5);
     });
 
+    describe("content", function () {
+        var foo = [1, 2, 3];
+        var bar = [];
+        var object = {foo: foo, bar: bar};
+        var cancel = bind(object, "bar.*", {"<->": "foo.*"});
+        expect(object.bar.slice()).toEqual([1, 2, 3]);
+        foo.push(4);
+        bar.push(5);
+        expect(object.foo.slice()).toEqual([1, 2, 3, 4, 5]);
+        expect(object.bar.slice()).toEqual([1, 2, 3, 4, 5]);
+        expect(object.foo).toBe(foo);
+        expect(object.bar).toBe(bar);
+    });
+
     describe("reversed", function () {
         var object = {foo: [1,2,3]};
         var cancel = bind(object, "bar", {"<-": "foo.reversed{}"});
@@ -93,6 +107,24 @@ describe("bind", function () {
         expect(object.bar).toEqual([4, 3, 'c', 'b', 'a', 2, 1]);
     });
 
+    describe("reversed left hand side", function () {
+        var object = {foo: [1,2,3]};
+        var cancel = bind(object, "bar", {"<->": "foo.reversed()"});
+        // object.bar has to be sliced since observable arrays are not equal to plain arrays in jasmine,
+        // because of a differing prototype
+        expect(object.bar.slice()).toEqual([3, 2, 1]);
+        object.foo.push(4);
+        expect(object.bar.slice()).toEqual([4, 3, 2, 1]);
+        object.foo.swap(2, 0, ['a', 'b', 'c']);
+        expect(object.bar.slice()).toEqual([4, 3, 'c', 'b', 'a', 2, 1]);
+        object.bar.pop();
+        expect(object.bar.slice()).toEqual([4, 3, 'c', 'b', 'a', 2]);
+        expect(object.foo.slice()).toEqual([2, 'a', 'b', 'c', 3, 4]);
+        cancel();
+        object.foo.splice(2, 3);
+        expect(object.bar.slice()).toEqual([4, 3, 'c', 'b', 'a', 2]);
+    });
+
     describe("tuple", function () {
         var object = {a: 10, b: 20, c: 30};
         var cancel = bind(object, "d", {"<-": "(a,b,c)"});
@@ -100,6 +132,36 @@ describe("bind", function () {
         cancel();
         object.c = 40;
         expect(object.d).toEqual([10, 20, 30]);
+    });
+
+    describe("record", function () {
+        var object = {foo: 10, bar: 20};
+        var cancel = bind(object, "record", {"<-": "{a: foo, b: bar}"});
+        expect(object.record).toEqual({a: 10, b: 20});
+        object.foo = 20;
+        expect(object.record).toEqual({a: 20, b: 20});
+        cancel();
+        object.foo = 10;
+        expect(object.record).toEqual({a: 20, b: 20});
+    });
+
+    describe("record map", function () {
+        var object = {arrays: [[1, 2, 3], [4, 5, 6]]};
+        var cancel = bind(object, "summaries", {
+            "<-": "arrays.map{{length: length, sum: sum()}}"
+        });
+        expect(object.summaries).toEqual([
+            {length: 3, sum: 6},
+            {length: 3, sum: 15}
+        ]);
+        object.arrays.pop();
+        expect(object.summaries).toEqual([
+            {length: 3, sum: 6}
+        ]);
+        object.arrays[0].push(4);
+        expect(object.summaries).toEqual([
+            {length: 4, sum: 10}
+        ]);
     });
 
     describe("literals", function () {
@@ -223,6 +285,22 @@ describe("bind", function () {
         expect(object.foo.bar.baz).toEqual(20);
         object.foo.bar.baz = 30;
         expect(object.qux).toEqual(30);
+    });
+
+    describe("parameters", function () {
+        var object = {};
+        var parameters = {a: 10, b: 20, c: 30};
+        var source = [1, 2, 3];
+        var cancel = bind(object, "foo", {
+            "<-": "($a, $b, map($c))",
+            parameters: parameters,
+            source: source
+        });
+        expect(object.foo).toEqual([10, 20, [30, 30, 30]]);
+        parameters.a = 0;
+        expect(object.foo).toEqual([0, 20, [30, 30, 30]]);
+        source.push(4);
+        expect(object.foo).toEqual([0, 20, [30, 30, 30, 30]]);
     });
 
 });

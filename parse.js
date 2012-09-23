@@ -36,11 +36,14 @@ parse.semantics = {
         return this.parsePrevious;
     },
 
+    parseDot: Parser.makeExpect("."),
     parseBlockBegin: Parser.makeExpect("{"),
     parseBlockEnd: Parser.makeExpect("}"),
     parseTupleBegin: Parser.makeExpect("("),
     parseTupleEnd: Parser.makeExpect(")"),
-    parseDot: Parser.makeExpect("."),
+    parseRecordBegin: Parser.makeExpect("{"),
+    parseRecordEnd: Parser.makeExpect("}"),
+    parseColon: Parser.makeExpect(":"),
 
     skipWhiteSpace: function skipWhiteSpace(callback) {
         return function (character) {
@@ -89,12 +92,21 @@ parse.semantics = {
         return function (character) {
             if (character === "#") {
                 return self.parseNumber(callback);
-            // TODO @ for index of current position
-            // TODO $ for parameters
+            } else if (character === "*") {
+                return callback({
+                    type: "content",
+                    args: [previous]
+                });
+            } else if (character === "$") {
+                return self.parsePrimary(callback, {
+                    type: "parameters"
+                });
             } else if (character === "'") {
                 return self.parseStringTail(callback, "");
             } else if (character === "(") {
                 return self.parseTuple(callback)(character);
+            } else if (character === "{") {
+                return self.parseRecord(callback)(character);
             } else {
                 return self.parseValue(callback, previous)(character);
             }
@@ -250,6 +262,54 @@ parse.semantics = {
                 })(character);
             }
         };
+    },
+
+    parseRecord: function (callback) {
+        var self = this;
+        return self.parseRecordBegin(function (begin) {
+            if (begin) {
+                return self.parseRecordInternal(function (args) {
+                    return self.parseRecordEnd(function (end, loc) {
+                        if (end) {
+                            return callback({
+                                type: "record",
+                                args: args
+                            });
+                        } else {
+                            var error = new Error("Expected \"}\"");
+                            error.loc = loc;
+                            throw error;
+                        }
+                    });
+                });
+            } else {
+                return callback();
+            }
+        });
+    },
+
+    parseRecordInternal: function (callback, args) {
+        var self = this;
+        args = args || {};
+        return self.parseWord(function (key) {
+            // TODO eponymous key/value
+            return self.parseColon(function (colon) {
+                return self.skipWhiteSpace(function () {
+                    return self.parseExpression(function (value) {
+                        args[key] = value;
+                        return function (character) {
+                            if (character === ",") {
+                                return self.skipWhiteSpace(function () {
+                                    return self.parseRecordInternal(callback, args);
+                                });
+                            } else {
+                                return callback(args)(character);
+                            }
+                        };
+                    });
+                });
+            });
+        });
     }
 
 };

@@ -14,10 +14,8 @@ function bind(target, targetPath, descriptor) {
     var sourceSyntax = parse(sourcePath);
     var targetSyntax = parse(targetPath);
 
-    var observeSource = compileObserver(sourceSyntax);
-    var observeTarget = compileObserver(targetSyntax);
-
     // <-
+    var observeSource = compileObserver(sourceSyntax);
     var bindTarget = compileBinder(targetSyntax);
     var cancelSourceToTarget = bindTarget(
         observeSource, source, target, parameters
@@ -26,6 +24,7 @@ function bind(target, targetPath, descriptor) {
     // ->
     var cancelTargetToSource = noop;
     if ("<->" in descriptor) {
+        var observeTarget = compileObserver(targetSyntax);
         var bindSource = compileBinder(sourceSyntax);
         var cancelTargetToSource = bindSource(
             observeTarget, source, target, parameters

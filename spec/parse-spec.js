@@ -140,6 +140,21 @@ describe("parse", function () {
                 {type: "literal", value: 0},
                 {type: "literal", value: "'"}
             ]}
+        },
+
+        {
+            input: "$foo",
+            output: {type: "property", args: [
+                {type: "parameters"},
+                {type: "literal", value: "foo"}
+            ]}
+        },
+
+        {
+            input: "{a: #10}",
+            output: {type: "record", args: {
+                a: {type: "literal", value: 10}
+            }}
         }
 
     ].forEach(function (test) {

@@ -1,6 +1,7 @@
 
 var Observers = require("./observers");
 var autoCancelPrevious = Observers.autoCancelPrevious;
+var once = Observers.once;
 
 exports.makePropertyBinder = makePropertyBinder;
 function makePropertyBinder(observeObject, observeKey) {
@@ -36,6 +37,53 @@ function makeHasBinder(observeSet, observeValue) {
                 }), target, parameters);
             }), source, parameters);
         }), source, parameters);
+    };
+}
+
+exports.makeContentBinder = makeContentBinder;
+function makeContentBinder(observeTarget) {
+    return function (observeSource, source, target, parameters) {
+        return observeTarget(Observers.autoCancelPrevious(function (target) {
+            if (!target)
+                return;
+            return observeSource(Observers.autoCancelPrevious(function (source) {
+                if (!source)
+                    return;
+                function contentChange(plus, minus, index) {
+                    if (target.getContentChangeDescriptor().isActive)
+                        return;
+                    target.swap(index, minus.length, plus);
+                }
+                source.addContentChangeListener(contentChange);
+                contentChange(source, target, 0);
+                return once(function () {
+                    source.removeContentChangeListener(contentChange);
+                });
+            }), source, parameters);
+        }), target, parameters);
+    };
+}
+
+exports.makeReversedBinder = makeReversedBinder;
+function makeReversedBinder(observeTarget) {
+    return function (observeSource, source, target, parameters) {
+        return observeTarget(Observers.autoCancelPrevious(function (target) {
+            return observeSource(Observers.autoCancelPrevious(function (source) {
+                if (!source)
+                    return;
+                function contentChange(plus, minus, index) {
+                    if (target.getContentChangeDescriptor().isActive)
+                        return;
+                    var reflected = target.length - index - minus.length;
+                    target.swap(reflected, minus.length, plus.reversed());
+                }
+                source.addContentChangeListener(contentChange);
+                contentChange(source, target, 0);
+                return once(function () {
+                    source.removeContentChangeListener(contentChange);
+                });
+            }), source, parameters);
+        }), target, parameters);
     };
 }
 

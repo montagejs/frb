@@ -47,6 +47,28 @@ function makePropertyObserver(observeObject, observeKey) {
     };
 }
 
+exports.makeRecordObserver = makeRecordObserver;
+function makeRecordObserver(observers) {
+    return function observeRecord(emit, value, parameters) {
+        var cancelers = {};
+        var output = {};
+        for (var name in observers) {
+            (function (name, observe) {
+                cancelers[name] = observe(function (value) {
+                    output[name] = value;
+                }, value, parameters);
+            })(name, observers[name]);
+        }
+        var cancel = emit(output) || noop;
+        return function cancelRecordObserver() {
+            cancel();
+            for (var name in cancelers) {
+                cancelers[name]();
+            }
+        };
+    };
+}
+
 exports.makeHasObserver = makeHasObserver;
 function makeHasObserver(observeSet, observeValue) {
     return function observeHas(emit, value, parameters) {
@@ -366,6 +388,7 @@ function autoCancelPrevious(emit) {
     };
 }
 
+exports.once = once;
 function once(callback) {
     var done;
     return function once() {

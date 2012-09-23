@@ -12,7 +12,9 @@ compile.semantics = {
 
     compilers: {
         property: Binders.makePropertyBinder,
-        has: Binders.makeHasBinder
+        has: Binders.makeHasBinder,
+        content: Binders.makeContentBinder,
+        reversed: Binders.makeReversedBinder
     },
 
     compile: function (syntax) {
