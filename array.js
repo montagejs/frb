@@ -16,13 +16,13 @@ require("./array"); // content change listener
 require("./object"); // property change listener
 var List = require("collections/list");
 var WeakMap = require("collections/weak-map");
+var Observable = require("collections/observable");
 
 var array_splice = Array.prototype.splice;
 var array_slice = Array.prototype.slice;
 var array_reverse = Array.prototype.reverse;
 var array_sort = Array.prototype.sort;
 
-var contentChangeDescriptors = new WeakMap(); // {isActive, willChangeListeners, changeListeners}
 var anyOwnPropertyChangeListeners = new WeakMap(); // {willChange, change}
 
 // use different strategies for making arrays observable between Internet
@@ -40,101 +40,13 @@ if (protoIsSupported) {
 }
 Array.prototype.makeObservable = array_makeObservable;
 
-Array.prototype.getContentChangeDescriptor = function () {
-    if (!contentChangeDescriptors.has(this)) {
-        contentChangeDescriptors.set(this, {
-            isActive: false,
-            changeListeners: new List(),
-            willChangeListeners: new List()
-        });
-    }
-    return contentChangeDescriptors.get(this);
-};
-
-Array.prototype.addContentChangeListener = function (listener, beforeChange) {
-    if (!this.isObservable) {
-        this.makeObservable();
-    }
-
-    var descriptor = this.getContentChangeDescriptor();
-
-    var listeners;
-    if (beforeChange) {
-        listeners = descriptor.willChangeListeners;
-    } else {
-        listeners = descriptor.changeListeners;
-    }
-
-    // even if already registered
-    listeners.push(listener);
-};
-
-Array.prototype.removeContentChangeListener = function (listener, beforeChange) {
-    var descriptor = this.getContentChangeDescriptor();
-
-    // before or after
-    var listeners;
-    if (beforeChange) {
-        listeners = descriptor.willChangeListeners;
-    } else {
-        listeners = descriptor.changeListeners;
-    }
-
-    var node = listeners.find(listener);
-    if (!node) {
-        throw new Error("Can't remove listener: does not exist.");
-    }
-
-    listeners.splice(node, 1);
-};
-
-Array.prototype.dispatchContentChange = function (plus, minus, index, beforeChange) {
-    var descriptor = this.getContentChangeDescriptor();
-
-    if (descriptor.isActive) {
-        return;
-    } else {
-        descriptor.isActive = true;
-    }
-
-    // before or after
-    var listeners;
-    if (beforeChange) {
-        listeners = descriptor.willChangeListeners;
-    } else {
-        listeners = descriptor.changeListeners;
-    }
-
-    // dispatch each listener
-    try {
-        listeners.forEach(function (listener) {
-            // support listener() listener.handleEvent() and
-            // listener.handleContentChange() forms
-            if (beforeChange) {
-                listener = listener.handleContentWillChange || listener.handleEvent || listener;
-            } else {
-                listener = listener.handleContentChange || listener.handleEvent || listener;
-            }
-            if (listener.call) {
-                listener.call(listener, plus, minus, index, beforeChange);
-            }
-        });
-    } finally {
-        descriptor.isActive = false;
-    }
-};
-
-Array.prototype.addBeforeContentChangeListener = function (listener) {
-    return this.addContentChangeListener(listener, true);
-};
-
-Array.prototype.removeBeforeContentChangeListener = function (listener) {
-    return this.removeContentChangeListener(listener, true);
-};
-
-Array.prototype.dispatchBeforeContentChange = function (plus, minus, index) {
-    return this.dispatchContentChange(plus, minus, index, true);
-};
+Array.prototype.getContentChangeDescriptor = Observable.getContentChangeDescriptor;
+Array.prototype.addContentChangeListener = Observable.addContentChangeListener;
+Array.prototype.removeContentChangeListener = Observable.removeContentChangeListener;
+Array.prototype.dispatchContentChange = Observable.dispatchContentChange;
+Array.prototype.addBeforeContentChangeListener = Observable.addBeforeContentChangeListener;
+Array.prototype.removeBeforeContentChangeListener = Observable.addBeforeContentChangeListener;
+Array.prototype.dispatchBeforeContentChange = Observable.dispatchBeforeContentChange;
 
 Array.prototype.addEachContentChangeListener = function (listener, before) {
     var self = this;

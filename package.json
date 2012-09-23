@@ -29,10 +29,10 @@
     },
     "main": "frb",
     "dependencies": {
-        "collections": "0.0.x"
+        "collections": ">=0.0.5"
     },
     "devDependencies": {
-        "jasmine-node": "0.1.x"
+        "jasmine-node": "1.x.x"
     },
     "scripts": {
         "test": "jasmine-node spec"
