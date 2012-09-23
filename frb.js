@@ -3,21 +3,22 @@
 // TODO custom property observer definition
 
 var WeakMap = require("collections/weak-map");
-var cancelersForObject = new WeakMap();
-var owns = Object.prototype.hasOwnProperty;
 var bind = require("./bind");
+var observe = require("./observe");
+var Observers = require("./observers");
+require("./object");
 
-module.exports = Type;
-function Type() {
-}
+var bindingsForObject = new WeakMap();
+var owns = Object.prototype.hasOwnProperty;
 
-Type.create = create;
+exports.create = create;
 function create(prototype, properties, descriptors) {
     var self = Object.create(prototype);
     define(self, properties, descriptors);
     return self;
 }
 
+exports.define = define;
 function define(object, properties, descriptors) {
     for (var name in properties) {
         object[name] = properties[name];
@@ -27,6 +28,7 @@ function define(object, properties, descriptors) {
     }
 }
 
+exports.defineProperty = defineProperty;
 function defineProperty(object, name, descriptor) {
     var cancel = noop;
     if (descriptor[constructor]) {
@@ -46,36 +48,47 @@ function defineProperty(object, name, descriptor) {
         }
         Object.defineProperty(object, name, descriptor);
     }
+    var bindingsForName = getBindings(object);
     if ("<-" in descriptor || "<->" in descriptor) {
-        cancelProperty(object, name);
-        var cancelersForName = getCancelers(object);
-        cancelersForName[name] = bind(object, name, descriptor);
+        cancelBinding(object, name);
+        descriptor.target = object;
+        descriptor.cancel = bind(object, name, descriptor);
+        bindingsForName[name] = descriptor;
     }
 }
 
-function getCancelers(object) {
-    if (!cancelersForObject.has(object)) {
-        cancelersForObject.set(object, {});
+exports.getBindings = getBindings;
+function getBindings(object) {
+    if (!bindingsForObject.has(object)) {
+        bindingsForObject.set(object, {});
     }
-    return cancelersForObject.get(object);
+    return bindingsForObject.get(object);
 }
 
-function getCancelerForName(object, name) {
-    var cancelersForName = getCancelers(object);
-    return cancelersForName[name] || noop;
+exports.getBinding = getBinding;
+function getBinding(object, name) {
+    var bindingsForName = getBindings(object);
+    return bindingsForName[name];
 }
 
-Type.cancel = cancel;
-function cancel(object) {
-    var cancelersForName = getCancelers(object);
-    for (var name in cancelersForName) {
-        cancelProperty(object, name);
+exports.cancelBindings = cancelBindings;
+function cancelBindings(object) {
+    var bindings = getBindings(object);
+    for (var name in bindings) {
+        cancelBinding(object, name);
     }
 }
 
-function cancelProperty(object, name) {
-    var cancel = getCancelerForName(object, name);
-    cancel();
+exports.cancelBinding = cancelBinding;
+function cancelBinding(object, name) {
+    var bindings = getBindings(object);
+    if (!bindings[name])
+        return;
+    var binding = bindings[name];
+    if (binding && binding.cancel) {
+        binding.cancel();
+        delete bindings[name];
+    }
 }
 
 function noop () {}

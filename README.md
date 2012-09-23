@@ -50,7 +50,8 @@ var object = Frb.create(null, { // prototype
     // extended property descriptors
     bar: {"<->": "foo", enumerable: false},
     numbers: {"<-": "graph.map{numbers}.flatten()"},
-    sum: {"<-": "numbers.sum()"}
+    sum: {"<-": "numbers.sum()"},
+    reversed: {"<-": "numbers.reversed()"}
 });
 
 expect(object.bar).toEqual(object.foo);
@@ -86,9 +87,11 @@ expect(object.sum).toEqual(46);
 object.graph = [{numbers: [1,2,3]}];
 expect(object.sum).toEqual(6);
 
+expect(object.reversed).toEqual([3, 2, 1]);
+
 expect(object.numbers).toBe(numbers) // still the same object
 
-Frb.cancel(object); // cancels all bindings on this object and
+Frb.cancelBindings(object); // cancels all bindings on this object and
 // their transitive observers and event listeners as deep as
 // they go
 ```
@@ -96,10 +99,10 @@ Frb.cancel(object); // cancels all bindings on this object and
 -   `Frb.create(prototype, properties, descriptors)`
 -   `Frb.define(object, properties, descriptors)`
 -   `Frb.defineProperty(object, name, descriptor)`
--   `Frb.cancelProperty(object, name)`
--   `Frb.cancel(object)`
--   `Frb.getCancelers(object)`
--   `Frb.getCancelerForName(object, name)`
+-   `Frb.getBindings(object)`
+-   `Frb.getBinding(object, name)`
+-   `Frb.cancelBindings(object)`
+-   `Frb.cancelBinding(object, name)`
 
 
 ## Bindings

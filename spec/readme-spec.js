@@ -16,7 +16,8 @@ describe("declarations", function () {
             // extended property descriptors
             bar: {"<->": "foo", enumerable: false},
             numbers: {"<-": "graph.map{numbers}.flatten()"},
-            sum: {"<-": "numbers.sum()"}
+            sum: {"<-": "numbers.sum()"},
+            reversed: {"<-": "numbers.reversed()"}
         });
 
         expect(object.bar).toEqual(object.foo);
@@ -52,9 +53,11 @@ describe("declarations", function () {
         object.graph = [{numbers: [1,2,3]}];
         expect(object.sum).toEqual(6);
 
+        expect(object.reversed).toEqual([3, 2, 1]);
+
         expect(object.numbers).toBe(numbers) // still the same object
 
-        Frb.cancel(object); // cancels all bindings on this object and
+        Frb.cancelBindings(object); // cancels all bindings on this object and
         // their transitive observers and event listeners as deep as
         // they go
 

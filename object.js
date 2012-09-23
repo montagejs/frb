@@ -35,7 +35,7 @@ var propertyChangeDescriptors = new WeakMap();
 // book-keeping is probably not warranted since it would be rare for an
 // observed object to no longer be observed unless it was about to be disposed
 // of or reused as an observable.  The only benefit would be in avoiding bulk
-// calls to dispatchPropertyChange events on objects that have no listeners.
+// calls to dispatchOwnPropertyChange events on objects that have no listeners.
 
 /*
     To observe shallow property changes for a particular key of a particular

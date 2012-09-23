@@ -6,13 +6,13 @@ var compileBinder = require("./compile-binder");
 module.exports = bind;
 function bind(target, targetPath, descriptor) {
 
-    var source = descriptor.source || target;
+    var source = descriptor.source = descriptor.source || target;
     var sourcePath = descriptor["<-"] || descriptor["<->"];
     var value = descriptor.value;
-    var parameters = descriptor.parameters || source;
+    var parameters = descriptor.parameters = descriptor.parameters || source;
 
-    var sourceSyntax = parse(sourcePath);
-    var targetSyntax = parse(targetPath);
+    var sourceSyntax = descriptor.sourceSyntax = parse(sourcePath);
+    var targetSyntax = descriptor.targetSyntax = parse(targetPath);
 
     // <-
     var observeSource = compileObserver(sourceSyntax);
