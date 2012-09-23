@@ -16,21 +16,21 @@ function makePropertyBinder(observeObject, observeKey) {
 }
 
 exports.makeHasBinder = makeHasBinder;
-function makeHasBinder(observeSet, observeSought) {
-    return function (observeValue, source, target, parameters) {
+function makeHasBinder(observeSet, observeValue) {
+    return function (observeHas, source, target, parameters) {
         return observeSet(autoCancelPrevious(function (set) {
-            return observeSought(autoCancelPrevious(function (sought) {
-                return observeValue(autoCancelPrevious(function (value) {
+            return observeValue(autoCancelPrevious(function (value) {
+                return observeHas(autoCancelPrevious(function (has) {
                     // wait for the initial value to be updated by the
                     // other-way binding
-                    if (value === undefined) {
-                    } else if (value) { // should be in set
-                        if (!(set.has || set.contains).call(set, sought)) {
-                            set.add(sought);
+                    if (has === undefined) {
+                    } else if (has) { // should be in set
+                        if (!(set.has || set.contains).call(set, value)) {
+                            set.add(value);
                         }
                     } else { // should not be in set
-                        while ((set.has || set.contains).call(set, sought)) {
-                            (set.remove || set['delete']).call(set, sought);
+                        while ((set.has || set.contains).call(set, value)) {
+                            (set.remove || set['delete']).call(set, value);
                         }
                     }
                 }), target, parameters);
