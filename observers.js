@@ -98,8 +98,10 @@ exports.makeContentObserver = makeContentObserver;
 function makeContentObserver(observeArray) {
     return function observeContent(emit, value, parameters, beforeChange) {
         return observeArray(autoCancelPrevious(function (array) {
-            if (!array)
+            if (array == undefined) // or null is implied
                 return;
+            if (!array.addContentChangeListener)
+                return emit(array);
             var cancel = noop;
             function contentChange() {
                 cancel = emit(array) || noop;

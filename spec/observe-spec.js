@@ -63,4 +63,18 @@ describe("observe", function () {
         ]);
     });
 
+    it("should pass content-less values through content-change-observer", function () {
+        var spy = jasmine.createSpy();
+        var object = {};
+        var cancel = observe(object, 'array', {
+            set: function (array) {
+                spy(array);
+            },
+            contentChange: true
+        });
+        object.array = 10;
+        expect(spy.argsForCall).toEqual([
+            [10]
+        ]);
+    });
 });

@@ -5,7 +5,7 @@
 var WeakMap = require("collections/weak-map");
 var bind = require("./bind");
 var observe = require("./observe");
-var Observers = require("./observers");
+var Properties = require("./properties");
 
 var bindingsForObject = new WeakMap();
 var owns = Object.prototype.hasOwnProperty;
@@ -52,6 +52,15 @@ function defineProperty(object, name, descriptor) {
         cancelBinding(object, name);
         descriptor.target = object;
         descriptor.cancel = bind(object, name, descriptor);
+        bindingsForName[name] = descriptor;
+    } else if ("dependencies" in descriptor) {
+        cancelBinding(object, name);
+        descriptor.cancel = observe(object, descriptor.dependencies, {
+            set: function () {
+                Properties.dispatchPropertyChange(object, name, object[name]);
+            },
+            contentChange: true
+        });
         bindingsForName[name] = descriptor;
     }
 }

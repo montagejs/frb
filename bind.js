@@ -8,6 +8,7 @@ function bind(target, targetPath, descriptor) {
 
     var source = descriptor.source = descriptor.source || target;
     var sourcePath = descriptor["<-"] || descriptor["<->"];
+    descriptor.target = target;
     var value = descriptor.value;
     var parameters = descriptor.parameters = descriptor.parameters || source;
 

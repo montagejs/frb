@@ -4,7 +4,14 @@ var Map = require("collections/map");
 
 module.exports = parse;
 function parse(text) {
-    return parse.semantics.parse(text);
+    if (Array.isArray(text)) {
+        return {
+            type: "tuple",
+            args: text.map(parse)
+        };
+    } else {
+        return parse.semantics.parse(text);
+    }
 }
 
 parse.semantics = {
