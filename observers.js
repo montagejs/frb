@@ -30,33 +30,33 @@ function makeRelationObserver(relation, thisp) {
 
 exports.makePropertyObserver = makePropertyObserver;
 function makePropertyObserver(observeObject, observeKey) {
-    return function observeProperty(emit, value, parameters) {
+    return function observeProperty(emit, value, parameters, beforeChange) {
         return observeKey(autoCancelPrevious(function replaceKey(key) {
             return observeObject(autoCancelPrevious(function replaceObject(object) {
                 if (!object) {
                     throw new Error("Can't observe property " + JSON.stringify(key) + " of " + object);
                 }
                 var cancel = emit(object[key], key, object) || noop;
-                Object.addOwnPropertyChangeListener(object, key, emit);
+                Object.addOwnPropertyChangeListener(object, key, emit, beforeChange);
                 return once(function cancelPropertyObserver() {
                     cancel();
-                    Object.removeOwnPropertyChangeListener(object, key, emit);
+                    Object.removeOwnPropertyChangeListener(object, key, emit, beforeChange);
                 });
-            }), value, parameters);
-        }), value, parameters);
+            }), value, parameters, beforeChange);
+        }), value, parameters, beforeChange);
     };
 }
 
 exports.makeRecordObserver = makeRecordObserver;
 function makeRecordObserver(observers) {
-    return function observeRecord(emit, value, parameters) {
+    return function observeRecord(emit, value, parameters, beforeChange) {
         var cancelers = {};
         var output = {};
         for (var name in observers) {
             (function (name, observe) {
                 cancelers[name] = observe(function (value) {
                     output[name] = value;
-                }, value, parameters);
+                }, value, parameters, beforeChange);
             })(name, observers[name]);
         }
         var cancel = emit(output) || noop;
@@ -71,7 +71,7 @@ function makeRecordObserver(observers) {
 
 exports.makeHasObserver = makeHasObserver;
 function makeHasObserver(observeSet, observeValue) {
-    return function observeHas(emit, value, parameters) {
+    return function observeHas(emit, value, parameters, beforeChange) {
         emit = makeUniq(emit);
         return observeValue(autoCancelPrevious(function replaceValue(sought) {
             return observeSet(autoCancelPrevious(function replaceSet(set) {
@@ -84,13 +84,13 @@ function makeHasObserver(observeSet, observeValue) {
                     cancel = emit((set.has || set.contains).call(set, sought)) || noop;
                 }
                 contentChange();
-                set.addContentChangeListener(contentChange);
+                set.addContentChangeListener(contentChange, beforeChange);
                 return once(function cancelHasObserver() {
                     cancel();
-                    set.removeContentChangeListener(contentChange);
+                    set.removeContentChangeListener(contentChange, beforeChange);
                 });
-            }), value, parameters);
-        }), value, parameters);
+            }), value, parameters, beforeChange);
+        }), value, parameters, beforeChange);
     };
 }
 
@@ -98,7 +98,7 @@ function makeHasObserver(observeSet, observeValue) {
 
 exports.makeMapObserver = makeNonReplacing(makeReplacingMapObserver);
 function makeReplacingMapObserver(observeArray, observeRelation) {
-    return function observeMap(emit, value, parameters) {
+    return function observeMap(emit, value, parameters, beforeChange) {
         return observeArray(autoCancelPrevious(function replaceMapInput(input) {
             var output = [];
             var cancelers = [];
@@ -108,18 +108,18 @@ function makeReplacingMapObserver(observeArray, observeRelation) {
                     minus.length,
                     observeEach(plus, observeRelation, function replaceSlice(replacement) {
                         output.swap(index, minus.length, replacement);
-                    }, value, parameters)
+                    }, value, parameters, beforeChange)
                 ));
             }
             contentChange(input, [], 0)
             var cancel = emit(output) || noop;
-            input.addContentChangeListener(contentChange);
+            input.addContentChangeListener(contentChange, beforeChange);
             return once(function cancelMapObserver() {
                 cancel();
                 cancelEach(cancelers);
-                input.removeContentChangeListener(contentChange);
+                input.removeContentChangeListener(contentChange, beforeChange);
             });
-        }), value, parameters);
+        }), value, parameters, beforeChange);
     };
 }
 
@@ -132,12 +132,12 @@ function makeTupleObserver() {
 // values, incrementally updated
 exports.makeObserversObserver = makeObserversObserver;
 function makeObserversObserver(observers) {
-    return function observeObservers(emit, value, parameters) {
+    return function observeObservers(emit, value, parameters, beforeChange) {
         var output = Array(observers.length);
         var cancelers = observers.map(function observeObserver(observe, index) {
             return observe(function replaceValue(value) {
                 output.set(index, value);
-            }, value, parameters);
+            }, value, parameters, beforeChange);
         })
         var cancel = emit(output) || noop;
         return once(function cancelObserversObserver() {
@@ -150,12 +150,12 @@ function makeObserversObserver(observers) {
 // a utility for the map observer that replaces a spliced region of the input
 // array with the mapped values, and corresponding cancelers for observing each
 // of those values.
-function observeEach(array, observeRelation, emit, value, parameters) {
+function observeEach(array, observeRelation, emit, value, parameters, beforeChange) {
     var output = Array(array.length);
     var cancelers = array.map(function observeOne(value, index) {
         return observeRelation(function replaceOne(value) {
             output.set(index, value);
-        }, value, parameters)
+        }, value, parameters, beforeChange)
     });
     emit(output);
     return cancelers;
@@ -167,7 +167,7 @@ function observeEach(array, observeRelation, emit, value, parameters) {
 // --------    0-  (outer.length - index - inner.length)
 exports.makeReversedObserver = makeNonReplacing(makeReplacingReversedObserver);
 function makeReplacingReversedObserver(observeArray) {
-    return function observeReversed(emit, value, parameters) {
+    return function observeReversed(emit, value, parameters, beforeChange) {
         return observeArray(autoCancelPrevious(function (input) {
             var output = [];
             function contentChange(plus, minus, index) {
@@ -176,18 +176,18 @@ function makeReplacingReversedObserver(observeArray) {
             };
             contentChange(input, [], 0);
             var cancel = emit(output);
-            input.addContentChangeListener(contentChange);
+            input.addContentChangeListener(contentChange, beforeChange);
             return once(function cancelReversedObserver() {
                 cancel();
-                input.removeContentChangeListener(contentChange);
+                input.removeContentChangeListener(contentChange, beforeChange);
             });
-        }), value, parameters);
+        }), value, parameters, beforeChange);
     };
 }
 
 exports.makeWindowObserver = makeNonReplacing(makeReplacingWindowObserver);
 function makeReplacingWindowObserver(observeArray, observeStart, observeLength) {
-    return function observeWindow(emit, value, parameters) {
+    return function observeWindow(emit, value, parameters, beforeChange) {
         return observeArray(autoCancelPrevious(function (array) {
             return observeStart(autoCancelPrevious(function (start) {
                 return observeLength(autoCancelPrevious(function (length) {
@@ -199,20 +199,20 @@ function makeReplacingWindowObserver(observeArray, observeStart, observeLength) 
                     }
                     contentChange(array, [], 0);
                     var cancel = emit(output) || noop;
-                    array.addContentChangeListener(contentChange);
+                    array.addContentChangeListener(contentChange, beforeChange);
                     return once(function cancelWindowObserver() {
                         cancel();
-                        array.removeContentChangeListener(contentChange);
+                        array.removeContentChangeListener(contentChange, beforeChange);
                     });
-                }), value, parameters);
-            }), value, parameters);
-        }), value, parameters);
+                }), value, parameters, beforeChange);
+            }), value, parameters, beforeChange);
+        }), value, parameters, beforeChange);
     };
 }
 
 exports.makeFlattenObserver = makeNonReplacing(makeReplacingFlattenObserver);
 function makeReplacingFlattenObserver(observeArray) {
-    return function (emit, value, parameters) {
+    return function (emit, value, parameters, beforeChange) {
         return observeArray(autoCancelPrevious(function (input) {
             var output = [];
             var cancelers = [];
@@ -254,9 +254,9 @@ function makeReplacingFlattenObserver(observeArray) {
                         }
                         innerContentChange(inner, [], 0);
 
-                        inner.addContentChangeListener(innerContentChange);
+                        inner.addContentChangeListener(innerContentChange, beforeChange);
                         return once(function cancelInnerFlattenObserver() {
-                            inner.removeContentChangeListener(innerContentChange);
+                            inner.removeContentChangeListener(innerContentChange, beforeChange);
                         });
                     })
                 ));
@@ -266,13 +266,13 @@ function makeReplacingFlattenObserver(observeArray) {
             contentChange(input, [], 0);
             var cancel = emit(output) || noop;
 
-            input.addContentChangeListener(contentChange);
+            input.addContentChangeListener(contentChange, beforeChange);
             return once(function cancelFlattenObserver() {
                 cancel();
                 cancelEach(cancelers);
-                input.removeContentChangeListener(contentChange);
+                input.removeContentChangeListener(contentChange, beforeChange);
             });
-        }), value, parameters);
+        }), value, parameters, beforeChange);
     };
 }
 
@@ -291,19 +291,19 @@ function cancelEach(cancelers) {
 function makeNonReplacing(wrapped) {
     return function () {
         var observe = wrapped.apply(this, arguments);
-        return function (emit, value, parameters) {
+        return function (emit, value, parameters, beforeChange) {
             var output = [];
             var cancelObserver = observe(autoCancelPrevious(function (input) {
                 output.swap(0, output.length, input);
-                input.addContentChangeListener(contentChange);
+                input.addContentChangeListener(contentChange, beforeChange);
                 function contentChange(plus, minus, index) {
                     output.swap(index, minus.length, plus);
                 }
                 return once(function cancelReplacingObserver() {
                     // TODO fix problem that this would get called twice on replacement
-                    input.removeContentChangeListener(contentChange);
+                    input.removeContentChangeListener(contentChange, beforeChange);
                 });
-            }), value, parameters);
+            }), value, parameters, beforeChange);
             var cancel = emit(output) || noop;
             return once(function cancelNonReplacingObserver() {
                 cancelObserver();
@@ -318,16 +318,16 @@ function makeNonReplacing(wrapped) {
 // content changes.
 function makeArrayObserverMaker(setup) {
     return function (observeArray) {
-        return function (emit, value, parameters) {
+        return function (emit, value, parameters, beforeChange) {
             emit = makeUniq(emit);
             return observeArray(function (array) {
                 var handler = setup(array, emit);
-                array.addContentChangeListener(handler.contentChange);
+                array.addContentChangeListener(handler.contentChange, beforeChange);
                 return once(function () {
                     handler.cancel();
-                    array.removeContentChangeListener(handler.contentChange);
+                    array.removeContentChangeListener(handler.contentChange, beforeChange);
                 });
-            }, value, parameters);
+            }, value, parameters, beforeChange);
         };
     };
 }

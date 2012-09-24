@@ -26,4 +26,15 @@ describe("observe", function () {
 
     });
 
+    it("should observe a property before it changes", function () {
+        var spy = jasmine.createSpy();
+        var object = {};
+        var cancel = observe(object, 'a', function (value) {
+            expect(value).toBe(undefined);
+            spy();
+        }, {}, true);
+        object.a = 10;
+        expect(spy).toHaveBeenCalled();
+    });
+
 });
