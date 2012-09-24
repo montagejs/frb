@@ -1,8 +1,8 @@
 
 require("collections/array-shim"); // forEach, map
-require("collections/array"); // swap, set, sum
-require("./object"); // property change listeners
+require("collections/array"); // swap, set, sum, flatten
 require("./array"); // content change listeners
+var Properties = require("./properties"); // property change listeners
 
 // primitives
 
@@ -37,10 +37,10 @@ function makePropertyObserver(observeObject, observeKey) {
                     throw new Error("Can't observe property " + JSON.stringify(key) + " of " + object);
                 }
                 var cancel = emit(object[key], key, object) || noop;
-                Object.addOwnPropertyChangeListener(object, key, emit, beforeChange);
+                Properties.addPropertyChangeListener(object, key, emit, beforeChange);
                 return once(function cancelPropertyObserver() {
                     cancel();
-                    Object.removeOwnPropertyChangeListener(object, key, emit, beforeChange);
+                    Properties.removePropertyChangeListener(object, key, emit, beforeChange);
                 });
             }), value, parameters, beforeChange);
         }), value, parameters, beforeChange);

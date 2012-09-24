@@ -6,7 +6,6 @@ var WeakMap = require("collections/weak-map");
 var bind = require("./bind");
 var observe = require("./observe");
 var Observers = require("./observers");
-require("./object");
 
 var bindingsForObject = new WeakMap();
 var owns = Object.prototype.hasOwnProperty;

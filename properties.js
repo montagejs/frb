@@ -35,7 +35,7 @@ var propertyChangeDescriptors = new WeakMap();
 // book-keeping is probably not warranted since it would be rare for an
 // observed object to no longer be observed unless it was about to be disposed
 // of or reused as an observable.  The only benefit would be in avoiding bulk
-// calls to dispatchOwnPropertyChange events on objects that have no listeners.
+// calls to dispatchPropertyChange events on objects that have no listeners.
 
 /*
     To observe shallow property changes for a particular key of a particular
@@ -55,7 +55,7 @@ var propertyChangeDescriptors = new WeakMap();
 */
 var overriddenObjectDescriptors = new WeakMap();
 
-Object.getOwnPropertyChangeDescriptor = function (object, key) {
+exports.getPropertyChangeDescriptor = function (object, key) {
     if (!propertyChangeDescriptors.has(object)) {
         propertyChangeDescriptors.set(object, {});
     }
@@ -69,7 +69,7 @@ Object.getOwnPropertyChangeDescriptor = function (object, key) {
     return objectPropertyChangeDescriptors[key];
 };
 
-Object.hasOwnPropertyChangeDescriptor = function (object, key) {
+exports.hasPropertyChangeDescriptor = function (object, key) {
     if (!propertyChangeDescriptors.has(object)) {
         return false;
     }
@@ -83,24 +83,24 @@ Object.hasOwnPropertyChangeDescriptor = function (object, key) {
     return true;
 };
 
-Object.addOwnPropertyChangeListener = function (object, key, listener, beforeChange) {
+exports.addPropertyChangeListener = function (object, key, listener, beforeChange) {
     if (object.makeObservable && !object.isObservable) {
         object.makeObservable(); // particularly for observable arrays, for
         // their length property
     }
-    var descriptor = Object.getOwnPropertyChangeDescriptor(object, key);
+    var descriptor = exports.getPropertyChangeDescriptor(object, key);
     var listeners;
     if (beforeChange) {
         listeners = descriptor.willChangeListeners;
     } else {
         listeners = descriptor.changeListeners;
     }
-    Object.installPropertyObserver(object, key);
+    exports.installPropertyObserver(object, key);
     listeners.push(listener);
 };
 
-Object.removeOwnPropertyChangeListener = function (object, key, listener, beforeChange) {
-    var descriptor = Object.getOwnPropertyChangeDescriptor(object, key);
+exports.removePropertyChangeListener = function (object, key, listener, beforeChange) {
+    var descriptor = exports.getPropertyChangeDescriptor(object, key);
     var listeners;
     if (beforeChange) {
         listeners = descriptor.willChangeListeners;
@@ -115,8 +115,8 @@ Object.removeOwnPropertyChangeListener = function (object, key, listener, before
     // TODO if listeners.length === 0 uninstallPropertyObserver(object, key)
 };
 
-Object.dispatchOwnPropertyChange = function (object, key, value, beforeChange) {
-    var descriptor = Object.getOwnPropertyChangeDescriptor(object, key);
+exports.dispatchPropertyChange = function (object, key, value, beforeChange) {
+    var descriptor = exports.getPropertyChangeDescriptor(object, key);
 
     var listeners;
     if (beforeChange) {
@@ -126,7 +126,7 @@ Object.dispatchOwnPropertyChange = function (object, key, value, beforeChange) {
     }
 
     var changeName = (beforeChange ? "Will" : "") + "Change";
-    var genericHandlerName = "handleOwnProperty" + changeName;
+    var genericHandlerName = "handleProperty" + changeName;
     var propertyName = String(key);
     propertyName = propertyName && propertyName[0].toUpperCase() + propertyName.slice(1);
     var specificHandlerName = "handle" + propertyName + changeName;
@@ -145,19 +145,19 @@ Object.dispatchOwnPropertyChange = function (object, key, value, beforeChange) {
     });
 };
 
-Object.addBeforeOwnPropertyChangeListener = function (object, key, listener) {
-    return Object.addOwnPropertyChangeListener(object, key, listener, true);
+exports.addBeforePropertyChangeListener = function (object, key, listener) {
+    return exports.addPropertyChangeListener(object, key, listener, true);
 };
 
-Object.removeBeforeOwnPropertyChangeListener = function (object, key, listener) {
-    return Object.removeOwnPropertyChangeListener(object, key, listener, true);
+exports.removeBeforePropertyChangeListener = function (object, key, listener) {
+    return exports.removePropertyChangeListener(object, key, listener, true);
 };
 
-Object.dispatchBeforeOwnPropertyChange = function (object, key, value) {
-    return Object.dispatchOwnPropertyChange(object, key, value, true);
+exports.dispatchBeforePropertyChange = function (object, key, value) {
+    return exports.dispatchPropertyChange(object, key, value, true);
 };
 
-Object.installPropertyObserver = function (object, key) {
+exports.installPropertyObserver = function (object, key) {
     // arrays are special.  we do not support direct setting of properties
     // on an array.  instead, call .set(index, value).  this is observable.
     // 'length' property is observable for all mutating methods because
@@ -234,9 +234,9 @@ Object.installPropertyObserver = function (object, key) {
                 if (value === overriddenDescriptor.value) {
                     return value;
                 }
-                Object.dispatchBeforeOwnPropertyChange(object, key, overriddenDescriptor.value);
+                exports.dispatchBeforePropertyChange(object, key, overriddenDescriptor.value);
                 overriddenDescriptor.value = value;
-                Object.dispatchOwnPropertyChange(object, key, value);
+                exports.dispatchPropertyChange(object, key, value);
                 return value;
             },
             enumerable: overriddenDescriptor.enumerable,
@@ -259,7 +259,7 @@ Object.installPropertyObserver = function (object, key) {
                 if (value === formerValue) {
                     return value;
                 }
-                Object.dispatchBeforeOwnPropertyChange(object, key, formerValue);
+                exports.dispatchBeforePropertyChange(object, key, formerValue);
                 // call through to actual setter
                 if (overriddenDescriptor.set) {
                     overriddenDescriptor.set(value);
@@ -271,7 +271,7 @@ Object.installPropertyObserver = function (object, key) {
                 }
                 // dispatch the new value: the given value if there is
                 // no getter, or the actual value if there is one
-                Object.dispatchOwnPropertyChange(object, key, value);
+                exports.dispatchPropertyChange(object, key, value);
                 return value;
             },
             enumerable: overriddenDescriptor.enumerable,
@@ -282,7 +282,7 @@ Object.installPropertyObserver = function (object, key) {
     Object.defineProperty(object, key, newDescriptor);
 };
 
-Object.uninstallPropertyObserver = function (object, key) {
+exports.uninstallPropertyObserver = function (object, key) {
     // arrays are special.  we do not support direct setting of properties
     // on an array.  instead, call .set(index, value).  this is observable.
     // 'length' property is observable for all mutating methods because

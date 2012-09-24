@@ -5,22 +5,22 @@
     https://github.com/motorola-mobility/montage/blob/master/LICENSE.md
 */
 
-require("../object");
+var Properties = require("../properties");
 
 describe("ObservableObject", function () {
 
     it("observes setter on object", function () {
         spy = jasmine.createSpy();
         var object = {};
-        Object.addBeforeOwnPropertyChangeListener(object, 'x', function (value, key) {
+        Properties.addBeforePropertyChangeListener(object, 'x', function (value, key) {
             spy('from', value, key);
         });
-        Object.addOwnPropertyChangeListener(object, 'x', function (value, key) {
+        Properties.addPropertyChangeListener(object, 'x', function (value, key) {
             spy('to', value, key);
         });
         object.x = 10;
         expect(object.x).toEqual(10);
-        Object.uninstallPropertyObserver(object, 'x');
+        Properties.uninstallPropertyObserver(object, 'x');
         object.x = 20;
         expect(object.x).toEqual(20);
         expect(spy.argsForCall).toEqual([
@@ -44,10 +44,10 @@ describe("ObservableObject", function () {
                 configurable: true
             }
         });
-        Object.addBeforeOwnPropertyChangeListener(object, 'x', function (value, key) {
+        Properties.addBeforePropertyChangeListener(object, 'x', function (value, key) {
             spy('from', value, key);
         });
-        Object.addOwnPropertyChangeListener(object, 'x', function (value, key) {
+        Properties.addPropertyChangeListener(object, 'x', function (value, key) {
             spy('to', value, key);
         });
         object.x = 10;
@@ -61,10 +61,10 @@ describe("ObservableObject", function () {
     it("handles cyclic own property change listeners", function () {
         var a = {};
         var b = {};
-        Object.addOwnPropertyChangeListener(a, 'foo', function (value) {
+        Properties.addPropertyChangeListener(a, 'foo', function (value) {
             b.bar = value;
         });
-        Object.addOwnPropertyChangeListener(b, 'bar', function (value) {
+        Properties.addPropertyChangeListener(b, 'bar', function (value) {
             a.foo = value;
         });
         a.foo = 10;
@@ -73,15 +73,15 @@ describe("ObservableObject", function () {
 
     it("handles generic own property change listeners", function () {
         var object = {
-            handleOwnPropertyChange: function (value, key) {
+            handlePropertyChange: function (value, key) {
                 expect(value).toBe(10);
                 expect(key).toBe("foo");
             }
         };
-        spyOn(object, "handleOwnPropertyChange").andCallThrough();
-        Object.addOwnPropertyChangeListener(object, "foo", object);
+        spyOn(object, "handlePropertyChange").andCallThrough();
+        Properties.addPropertyChangeListener(object, "foo", object);
         object.foo = 10;
-        expect(object.handleOwnPropertyChange).toHaveBeenCalled();
+        expect(object.handlePropertyChange).toHaveBeenCalled();
     });
 
     it("handles specific own property change listeners", function () {
@@ -91,7 +91,7 @@ describe("ObservableObject", function () {
             }
         };
         spyOn(object, "handleFooChange").andCallThrough();
-        Object.addOwnPropertyChangeListener(object, "foo", object);
+        Properties.addPropertyChangeListener(object, "foo", object);
         object.foo = 10;
         expect(object.handleFooChange).toHaveBeenCalled();
     });

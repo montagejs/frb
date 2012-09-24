@@ -12,8 +12,8 @@
     necessary for any collection with observable content.
 */
 
-require("./array"); // content change listener
-require("./object"); // property change listener
+require("./array"); // content changes
+var Properties = require("./properties");
 var List = require("collections/list");
 var WeakMap = require("collections/weak-map");
 var Observable = require("collections/observable");
@@ -23,7 +23,7 @@ var array_slice = Array.prototype.slice;
 var array_reverse = Array.prototype.reverse;
 var array_sort = Array.prototype.sort;
 
-var anyOwnPropertyChangeListeners = new WeakMap(); // {willChange, change}
+var anyPropertyChangeListeners = new WeakMap(); // {willChange, change}
 
 // use different strategies for making arrays observable between Internet
 // Explorer and other browsers.
@@ -53,7 +53,7 @@ Array.prototype.addEachContentChangeListener = function (listener, before) {
 
     // initialize
     for (var i = 0; i < this.length; i++) {
-        Object.addOwnPropertyChangeListener(this, i, listener, before);
+        Properties.addPropertyChangeListener(this, i, listener, before);
     }
 
     // before content changes, add listeners for the new properties
@@ -61,7 +61,7 @@ Array.prototype.addEachContentChangeListener = function (listener, before) {
         var diff = plus.length - minus.length;
         if (diff > 0) {
             for (var i = self.length; i < self.length + diff; i++) {
-                Object.addOwnPropertyChangeListener(self, i, listener, before);
+                Properties.addPropertyChangeListener(self, i, listener, before);
             }
         }
     };
@@ -72,7 +72,7 @@ Array.prototype.addEachContentChangeListener = function (listener, before) {
         var diff = plus.length - minus.length;
         if (diff < 0) {
             for (var i = self.length; i < self.length - diff; i++) {
-                Object.removeOwnPropertyChangeListener(self, i, listener, before);
+                Properties.removePropertyChangeListener(self, i, listener, before);
             }
         }
     };
@@ -81,7 +81,7 @@ Array.prototype.addEachContentChangeListener = function (listener, before) {
     // associate the given listener function with the produced
     // listener functions for change and willChange events so
     // they can be removed later
-    anyOwnPropertyChangeListeners.set(listener, {
+    anyPropertyChangeListeners.set(listener, {
         willChange: beforeContentChangeListener,
         change: contentChangeListener
     });
@@ -92,11 +92,11 @@ Array.prototype.removeEachContentChangeListener = function (listener, before) {
 
     // remove the listeners for each property change
     for (var i = 0; i < this.length; i++) {
-        Object.removeOwnPropertyChangeListener(this, i, listener, before);
+        Properties.removePropertyChangeListener(this, i, listener, before);
     }
 
     // remove the manufactured listeners for content changes
-    var listeners = anyOwnPropertyChangeListeners.get(listener);
+    var listeners = anyPropertyChangeListeners.get(listener);
     this.removeBeforeContentChangeListener(listeners.willChange);
     this.removeContentChangeListener(listeners.change);
 
@@ -130,7 +130,7 @@ var observableArrayProperties = {
             // dispatch before change events
             this.dispatchBeforeContentChange(this, this, 0);
             for (var i = 0; i < this.length; i++) {
-                Object.dispatchBeforeOwnPropertyChange(this, i, this[i]);
+                Properties.dispatchBeforePropertyChange(this, i, this[i]);
             }
 
             // actual work
@@ -138,7 +138,7 @@ var observableArrayProperties = {
 
             // dispatch after change events
             for (var i = 0; i < this.length; i++) {
-                Object.dispatchOwnPropertyChange(this, i, this[i]);
+                Properties.dispatchPropertyChange(this, i, this[i]);
             }
             this.dispatchContentChange(this, this, 0);
 
@@ -154,7 +154,7 @@ var observableArrayProperties = {
             // dispatch before change events
             this.dispatchBeforeContentChange(this, this, 0);
             for (var i = 0; i < this.length; i++) {
-                Object.dispatchBeforeOwnPropertyChange(this, i, this[i]);
+                Properties.dispatchBeforePropertyChange(this, i, this[i]);
             }
 
             // actual work
@@ -162,7 +162,7 @@ var observableArrayProperties = {
 
             // dispatch after change events
             for (var i = 0; i < this.length; i++) {
-                Object.dispatchOwnPropertyChange(this, i, this[i]);
+                Properties.dispatchPropertyChange(this, i, this[i]);
             }
             this.dispatchContentChange(this, this, 0);
 
@@ -183,19 +183,19 @@ var observableArrayProperties = {
 
             // dispatch before change events
             if (diff) {
-                Object.dispatchBeforeOwnPropertyChange(this, "length", this.length);
+                Properties.dispatchBeforePropertyChange(this, "length", this.length);
             }
             this.dispatchBeforeContentChange(plus, minus, start);
             if (diff === 0) { // substring replacement
                 for (var i = start; i < start + plus.length; i++) {
-                    Object.dispatchBeforeOwnPropertyChange(this, i, this[i]);
+                    Properties.dispatchBeforePropertyChange(this, i, this[i]);
                 }
-            } else if (Object.hasOwnPropertyChangeDescriptor(this)) {
+            } else if (Properties.hasPropertyChangeDescriptor(this)) {
                 // all subsequent values changed or shifted.
                 // avoid (longest - start) long walks if there are no
                 // registered descriptors.
                 for (var i = start; i < longest; i++) {
-                    Object.dispatchBeforeOwnPropertyChange(this, i, this[i]);
+                    Properties.dispatchBeforePropertyChange(this, i, this[i]);
                 }
             }
 
@@ -205,14 +205,14 @@ var observableArrayProperties = {
             // dispatch after change events
             if (diff === 0) { // substring replacement
                 for (var i = start; i < start + plus.length; i++) {
-                    Object.dispatchOwnPropertyChange(this, i, this[i]);
+                    Properties.dispatchPropertyChange(this, i, this[i]);
                 }
-            } else if (Object.hasOwnPropertyChangeDescriptor(this)) {
+            } else if (Properties.hasPropertyChangeDescriptor(this)) {
                 // all subsequent values changed or shifted.
                 // avoid (longest - start) long walks if there are no
                 // registered descriptors.
                 for (var i = start; i < longest; i++) {
-                    Object.dispatchOwnPropertyChange(this, i, this[i]);
+                    Properties.dispatchPropertyChange(this, i, this[i]);
                 }
             }
             // in addEachContentChange, the content change event may remove
@@ -220,7 +220,7 @@ var observableArrayProperties = {
             // occur after ownPropertyChanges
             this.dispatchContentChange(plus, minus, start);
             if (diff) {
-                Object.dispatchOwnPropertyChange(this, "length", this.length);
+                Properties.dispatchPropertyChange(this, "length", this.length);
             }
 
             return result;

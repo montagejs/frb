@@ -1,5 +1,6 @@
 
 require("../array");
+var Properties = require("../properties");
 
 describe("ObservableArray", function () {
 
@@ -11,11 +12,11 @@ describe("ObservableArray", function () {
 
     it("set up listeners", function () {
 
-        Object.addBeforeOwnPropertyChangeListener(array, "length", function (length) {
+        Properties.addBeforePropertyChangeListener(array, "length", function (length) {
             spy("length change from", length);
         });
 
-        Object.addOwnPropertyChangeListener(array, "length", function (length) {
+        Properties.addPropertyChangeListener(array, "length", function (length) {
             spy("length change to", length);
         });
 
@@ -326,7 +327,7 @@ describe("ObservableArray", function () {
     it("observes length changes on arrays that are not otherwised observed", function () {
         var array = [1, 2, 3];
         var spy = jasmine.createSpy();
-        Object.addOwnPropertyChangeListener(array, "length", spy);
+        Properties.addPropertyChangeListener(array, "length", spy);
         array.push(4);
         expect(spy).toHaveBeenCalled();
     });
