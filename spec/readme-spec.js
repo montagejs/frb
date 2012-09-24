@@ -110,5 +110,23 @@ describe("observe", function () {
         expect(sum).toBe(10);
 
     });
+
+    it("should demonstrate descriptors", function () {
+        var observe = require("../observe");
+
+        var object = {};
+        var cancel = observe(object, "array", {
+            set: function (value) {
+                // may return a cancel function for a nested observer
+            },
+            parameters: {},
+            beforeChange: false,
+            contentChange: true
+        });
+
+        object.array = []; // emits []
+        object.array.push(10); // emits [10]
+    });
+
 });
 

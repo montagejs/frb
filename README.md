@@ -167,6 +167,32 @@ values are added or replaced, the observer produces a new canceler.  The
 cancel function returned by `observe` commands the entire underlying
 tree.
 
+Observers also optional accept a descriptor argument in place of a
+callback.
+
+-   `set`: the change handler, receives `value` for most observers, but
+    also `key` and `object` for property changes.
+-   `parameters`: the value for `$` expressions.
+-   `beforeChange`: instructs an observer to emit the previous value
+    before a change occurs.
+-   `contentChange`: instructs an observer to emit an array every time
+    its content changes.  By default, arrays are only emitted once.
+
+```javascript
+var object = {};
+var cancel = observe(object, "array", {
+    set: function (value) {
+        // may return a cancel function for a nested observer
+    },
+    parameters: {},
+    beforeChange: false,
+    contentChange: true
+});
+
+object.array = []; // emits []
+object.array.push(10); // emits [10]
+```
+
 
 ## The Language
 

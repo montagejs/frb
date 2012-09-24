@@ -94,7 +94,25 @@ function makeHasObserver(observeSet, observeValue) {
     };
 }
 
-// compound
+exports.makeContentObserver = makeContentObserver;
+function makeContentObserver(observeArray) {
+    return function observeContent(emit, value, parameters, beforeChange) {
+        return observeArray(autoCancelPrevious(function (array) {
+            if (!array)
+                return;
+            var cancel = noop;
+            function contentChange() {
+                cancel = emit(array) || noop;
+            }
+            array.addContentChangeListener(contentChange);
+            contentChange();
+            return once(function cancelContentObserver() {
+                cancel();
+                array.removeContentChangeListener(contentChange);
+            });
+        }), value, parameters, beforeChange);
+    };
+}
 
 exports.makeMapObserver = makeNonReplacing(makeReplacingMapObserver);
 function makeReplacingMapObserver(observeArray, observeRelation) {
