@@ -4,9 +4,12 @@ var compile = require("./compile-observer");
 var Observers = require("./observers");
 
 module.exports = observe;
-function observe(object, path, descriptor) {
-    if (typeof descriptor === 'function') {
-        descriptor = {set: descriptor};
+function observe(object, path, descriptorOrFunction) {
+    var descriptor;
+    if (typeof descriptorOrFunction === "function") {
+        descriptor = {set: descriptorOrFunction};
+    } else {
+        descriptor = descriptorOrFunction;
     }
 
     descriptor = descriptor || empty;
@@ -24,18 +27,9 @@ function observe(object, path, descriptor) {
         observe = Observers.makeContentObserver(observe);
     }
 
-    // cancel any previous observer on the descriptor
-    if (descriptor.cancel) {
-        descriptor.cancel();
-    }
-
-    var cancel = observe(function () {
+    return observe(function () {
         return descriptor.set.apply(object, arguments);
     }, object, parameters, beforeChange);
-
-    descriptor.cancel = cancel;
-
-    return cancel;
 }
 
 var empty = {};
