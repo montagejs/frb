@@ -6,9 +6,12 @@ var compileBinder = require("./compile-binder");
 module.exports = bind;
 function bind(target, targetPath, descriptor) {
 
+    descriptor.target = target;
+    descriptor.targetPath = targetPath;
     var source = descriptor.source = descriptor.source || target;
     var sourcePath = descriptor["<-"] || descriptor["<->"];
-    descriptor.target = target;
+    var twoWay = descriptor.twoWay = "<->" in descriptor;
+    descriptor.sourcePath = sourcePath;
     var value = descriptor.value;
     var parameters = descriptor.parameters = descriptor.parameters || source;
 
@@ -24,11 +27,11 @@ function bind(target, targetPath, descriptor) {
 
     // ->
     var cancelTargetToSource = noop;
-    if ("<->" in descriptor) {
+    if (twoWay) {
         var observeTarget = compileObserver(targetSyntax);
         var bindSource = compileBinder(sourceSyntax);
         var cancelTargetToSource = bindSource(
-            observeTarget, source, target, parameters
+            observeTarget, target, source, parameters
         );
     }
 

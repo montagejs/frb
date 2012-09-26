@@ -19,11 +19,15 @@ function create(prototype, properties, descriptors) {
 
 exports.define = define;
 function define(object, properties, descriptors) {
-    for (var name in properties) {
-        object[name] = properties[name];
+    if (properties) {
+        for (var name in properties) {
+            object[name] = properties[name];
+        }
     }
-    for (var name in descriptors) {
-        defineProperty(object, name, descriptors[name]);
+    if (descriptors) {
+        for (var name in descriptors) {
+            defineProperty(object, name, descriptors[name]);
+        }
     }
 }
 

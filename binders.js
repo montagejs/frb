@@ -1,5 +1,6 @@
 
 var Observers = require("./observers");
+var Properties = require("./properties");
 var autoCancelPrevious = Observers.autoCancelPrevious;
 var once = Observers.once;
 
@@ -9,6 +10,8 @@ function makePropertyBinder(observeObject, observeKey) {
         return observeObject(autoCancelPrevious(function (object) {
             return observeKey(autoCancelPrevious(function (key) {
                 return observeValue(autoCancelPrevious(function (value) {
+                    if (Properties.getPropertyChangeDescriptor(object, key).isActive)
+                        return;
                     object[key] = value;
                 }), source, parameters);
             }), target, parameters);
