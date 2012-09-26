@@ -610,7 +610,7 @@ var app = Frb.create(Object.prototype, {
 ```
 
 
-# Reference
+## Reference
 
 Functional Reactive Bindings is an implementation of synchronous,
 incremental object-property and collection-content bindings for
@@ -675,7 +675,7 @@ It must prove itself worthy before it can return.
     bindings, properties, and computed properties with dependencies.
 
 
-## Declarations
+### Declarations
 
 The highest level interface for FRB resembles the ES5 Object constructor
 and can be used to declare objects and define and cancel bindings on
@@ -763,7 +763,7 @@ A binding descriptor contains:
 -   `parameters`: the parameters, which default to `source`.
 -   `cancel`: a function to cancel the binding
 
-## Bindings
+### Bindings
 
 The `bind` module provides direct access to the `bind` function.
 
@@ -789,7 +789,7 @@ cancel();
 `compileObserver`.
 
 
-## Observers
+### Observers
 
 The `observe` modules provides direct access to the `observe` function.
 `observe` is built on top of `parse` and `compileObserver`.
@@ -852,13 +852,13 @@ object.array.push(10); // emits [10]
 ```
 
 
-## The Language
+### The Language
 
 Bindings and observers used a small query language intended to resemble
 the same code that you would write in JavaScript to update a binding by
 brute force.
 
-### Grammar
+#### Grammar
 
 -   **expression** = **term** *delimited by* `.`
 -   **term** = **literal** *or* `(` **expression** `)` *or* **property
@@ -881,7 +881,7 @@ The left hand side of a binding permits a strict subset.
 -   **last term** = **property name** *or* **has call**
 -   **has call** = `has(` **expression** `)`
 
-### Semantics
+#### Semantics
 
 An expression is observed with a source value and emits a target
 one or more times.  All expressions emit an initial value.  Array
@@ -939,7 +939,7 @@ semantics.  Binders receive a target as well as a source.
     or more times, the binder uses the `delete` or `remove` method of
     the collection to remove all occurrences of the sought value.
 
-### Interface
+#### Interface
 
 ```javascript
 var parse = require("frb/parse");
@@ -960,7 +960,7 @@ var compileBinder = require("frb/compile-binder");
     conceivably be any function with a clear inverse operation like
     `map` and `reversed`.
 
-### Syntax Tree
+#### Syntax Tree
 
 The syntax tree is JSON serializable and has a "type" property.  Nodes
 have the following types:
@@ -988,7 +988,7 @@ presently ignored.
 -   `average`
 
 
-## Observers and Binders
+### Observers and Binders
 
 The `observers` module contains functions for making all of the
 different types of observers, and utilities for creating new ones.
@@ -1045,9 +1045,9 @@ source, target, parameters)` and return a `cancel()` function.
 -   `makeHasBinder(observeCollection, observeValue)`
 
 
-## Change Events
+### Change Events
 
-### Object Own Property Changes
+#### Object Own Property Changes
 
 To use object observers, `require("frb/object")`.
 This installs the necessary methods on the `Object` constructor.
@@ -1077,7 +1077,7 @@ the most specific provided.
 -   `handleEvent`
 -   function
 
-### Array Content Changes
+#### Array Content Changes
 
 To use array content observers,
 `require("frb/array")`.  This will install the
