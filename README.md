@@ -230,7 +230,8 @@ array[0].unshift(0);
 expect(object.flat).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 ```
 
-The flattened array is never replaced, just incrementally updated.
+Also, as with all other bindings that produce arrays, the flattened
+array is never replaced, just incrementally updated.
 
 ```javascript
 var flat = object.flat;
@@ -1047,23 +1048,22 @@ source, target, parameters)` and return a `cancel()` function.
 
 ### Change Events
 
-#### Object Own Property Changes
+#### Object Property Changes
 
-To use object observers, `require("frb/object")`.
-This installs the necessary methods on the `Object` constructor.
-Observers depend on EcmaScript 5's `Object.defineProperty` and
-`Object.defineProperties` or a suitable shim.  Observable collections
-benefit from the ability to swap `__proto__` in all engines except
-Internet Explorer, in which case they fall back to using
-`Object.defineProperties` to trap change functions.
+To use object observers, `require("frb/properties")`.  Observers depend
+on EcmaScript 5's `Object.defineProperty` and `Object.defineProperties`
+or a suitable shim.  Observable collections benefit from the ability to
+swap `__proto__` in all engines except Internet Explorer, in which case
+they fall back to using `Object.defineProperties` to trap change
+functions.
 
 Listen for individual property changes on an object.  The listener may
 be a function or a delegate.
 
--   `Object.addOwnPropertyChangeListener(object, key, listener, beforeChange)`
--   `Object.removeOwnPropertyChangeListener(object, key, listener, beforeChange)`
--   `Object.addBeforeOwnPropertyChangeListener(object, key, listener)`
--   `Object.removeBeforeOwnPropertyChangeListener(object, key, listener)`
+-   `addOwnPropertyChangeListener(object, key, listener, beforeChange)`
+-   `removeOwnPropertyChangeListener(object, key, listener, beforeChange)`
+-   `addBeforeOwnPropertyChangeListener(object, key, listener)`
+-   `removeBeforeOwnPropertyChangeListener(object, key, listener)`
 
 The arguments to the listener are `(value, key, object)`, much like a
 `forEach` callback.  The `this` within the listener is the listener
