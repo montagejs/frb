@@ -155,7 +155,69 @@ describe("parse", function () {
             output: {type: "record", args: {
                 a: {type: "literal", value: 10}
             }}
-        }
+        },
+
+        {
+            input: "#2 == #2",
+            output: {type: "equals", args: [
+                {type: "literal", value: 2},
+                {type: "literal", value: 2}
+            ]}
+        },
+
+        {
+            input: "#2 != #2",
+            output: {type: "not", args: [
+                {type: "equals", args: [
+                    {type: "literal", value: 2},
+                    {type: "literal", value: 2}
+                ]}
+            ]}
+        },
+
+        {
+            input: "#2 + #2",
+            output: {type: "add", args: [
+                {type: "literal", value: 2},
+                {type: "literal", value: 2}
+            ]}
+        },
+
+        {
+            input: "#2 + #2 = #4",
+            output: {type: "equals", args: [
+                {type: "add", args: [
+                    {type: "literal", value: 2},
+                    {type: "literal", value: 2}
+                ]},
+                {type: "literal", value: 4}
+            ]}
+        },
+
+        {
+            input: "!#0",
+            output: {type: "not", args: [
+                {type: "literal", value: 0}
+            ]}
+        },
+
+        {
+            input: "-#1",
+            output: {type: "neg", args: [
+                {type: "literal", value: 1}
+            ]}
+        },
+
+        {
+            input: "#2 * #2 + #4",
+            output: {type: "add", args: [
+                {type: "mul", args: [
+                    {type: "literal", value: 2},
+                    {type: "literal", value: 2}
+                ]},
+                {type: "literal", value: 4}
+            ]}
+        },
 
     ].forEach(function (test) {
         it("should parse " + JSON.stringify(test.input), function () {

@@ -143,6 +143,19 @@ function makeReplacingMapObserver(observeArray, observeRelation) {
     };
 }
 
+exports.makeOperatorObserverMaker = makeOperatorObserverMaker;
+function makeOperatorObserverMaker(operator) {
+    return function makeOperatorObserver(/*...observers*/) {
+        var observeOperands = makeObserversObserver(Array.prototype.slice.call(arguments));
+        var observeOperandChanges = makeContentObserver(observeOperands);
+        return function observeOperator(emit, value, parameters, beforeChange) {
+            return observeOperandChanges(function (operands) {
+                emit(operator.apply(void 0, operands));
+            }, value, parameters, beforeChange);
+        };
+    };
+}
+
 exports.makeTupleObserver = makeTupleObserver;
 function makeTupleObserver() {
     return makeObserversObserver(Array.prototype.slice.call(arguments));

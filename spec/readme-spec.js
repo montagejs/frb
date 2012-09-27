@@ -116,7 +116,14 @@ describe("tutorial", function () {
         expect(object.ten).toEqual(10);
     });
 
-    it("frb", function () {
+    it("negation", function () {
+        var caesar = {toBe: false};
+        bind(caesar, "notToBe", {"<->": "!toBe"});
+        expect(caesar.toBe).toEqual(false);
+        expect(caesar.notToBe).toEqual(true);
+
+        caesar.notToBe = false;
+        expect(caesar.toBe).toEqual(true);
     });
 
 });

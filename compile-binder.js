@@ -19,7 +19,11 @@ compile.semantics = {
 
     compile: function (syntax) {
         var compilers = this.compilers;
-        if (compilers.hasOwnProperty(syntax.type)) {
+        if (syntax.type === "equals") {
+            var bindLeft = this.compile(syntax.args[0]);
+            var observeRight = compileObserver(syntax.args[1]);
+            return Binders.makeEqualityBinder(bindLeft, observeRight);
+        } else if (compilers.hasOwnProperty(syntax.type)) {
             var argObservers = syntax.args.map(compileObserver, compileObserver.semantics);
             return compilers[syntax.type].apply(null, argObservers);
         } else {

@@ -330,11 +330,71 @@ might be able to help FRB overcome this limitation in the future.
 
 [Mutation Observers]: https://developer.mozilla.org/en-US/docs/DOM/DOM_Mutation_Observers
 
+### Equals
+
+You can bind to whether expressions are equal.
+
+```javascript
+var fruit = {apples: 1, oranges: 2};
+bind(fruit, "equal", {"<-": "apples == oranges"});
+expect(fruit.equal).toBe(false);
+fruit.orange = 1;
+expect(fruit.equal).toBe(true);
+```
+
+Equality can be bound both directions.  In this example, we do a two-way
+binding between whether a radio button is checked and a corresponding
+value in our model.
+
+```javascript
+bind(model, "fruit = 'orange'", {
+    "<->": "checked",
+    source: orangeElement
+});
+bind(model, "fruit = 'apple'", {
+    "<->": "checked",
+    source: appleElement
+});
+
+orangeElement.checked = true;
+expect(model.fruit).toEqual("orange");
+
+appleElement.checked = true;
+expect(model.fruit).toEqual("apple");
+```
+
+Because equality and assignment are interchanged in this language, you
+can use either `=` or `==`.
+
+### Operators
+
+FRB can also recognize most operators.  These are in order of precedence
+unary `-` negation and `!` and logical negation and binary `**` (power),
+`*`, `/`, `%` modulo, `%%` remainder, `+`, `-`, ```<```, ```>```,
+```<=```, ```>=```, `=` or `==`, `!=`, `&&` and `||`.
+
+```javascript
+var object = {height: 10};
+bind(object, "heightPx", {"<-": "height + 'px'"});
+```
+
+Negation and logical negation can be bound in both directions.
+
+```javascript
+var caesar = {toBe: false};
+bind(caesar, "notToBe", {"<->": "!toBe"});
+expect(caesar.toBe).toEqual(false);
+expect(caesar.notToBe).toEqual(true);
+
+caesar.notToBe = false;
+expect(caesar.toBe).toEqual(true);
+```
+
 ### Literals
 
-You may have noticed a string literal in the previous example.  String
-literals take the form of any characters between single quotes.  Any
-character can be escaped with a back slash.
+You may have noticed literals in the previous examples.  String literals
+take the form of any characters between single quotes.  Any character
+can be escaped with a back slash.
 
 ```javascript
 var object = {};

@@ -1,12 +1,13 @@
 
 var Observers = require("./observers");
+var Operators = require("./operators");
 
 module.exports = compile;
 function compile(syntax) {
-    return compile.semantics.compile(syntax);
+    return semantics.compile(syntax);
 }
 
-compile.semantics = {
+var semantics = compile.semantics = {
 
     compilers: {
         property: Observers.makePropertyObserver,
@@ -44,6 +45,11 @@ compile.semantics = {
     }
 
 };
+
+var compilers = semantics.compilers;
+Object.keys(Operators).forEach(function (name) {
+    compilers[name] = Observers.makeOperatorObserverMaker(Operators[name]);
+});
 
 function identity(x) { return x; }
 

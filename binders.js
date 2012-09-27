@@ -43,6 +43,17 @@ function makeHasBinder(observeSet, observeValue) {
     };
 }
 
+exports.makeEqualityBinder = makeEqualityBinder;
+function makeEqualityBinder(bindLeft, observeRight) {
+    return function (observeEquals, source, target, parameters) {
+        return observeEquals(autoCancelPrevious(function (equals) {
+            if (equals) {
+                return bindLeft(observeRight, source, source, parameters);
+            }
+        }), target, parameters);
+    };
+}
+
 exports.makeContentBinder = makeContentBinder;
 function makeContentBinder(observeTarget) {
     return function (observeSource, source, target, parameters) {

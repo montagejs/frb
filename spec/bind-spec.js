@@ -303,5 +303,84 @@ describe("bind", function () {
         expect(object.foo).toEqual([0, 20, [30, 30, 30, 30]]);
     });
 
+    describe("equality and addition", function () {
+        var object = {a: 2, b: 1, c: 1};
+        var cancel = bind(object, "d", {"<->": "a == b + c"});
+        expect(object.d).toEqual(true);
+        object.a = 3;
+        expect(object.d).toEqual(false);
+        object.b = 2;
+        expect(object.d).toEqual(true);
+        object.c = 2;
+        expect(object.d).toEqual(false);
+        object.d = true;
+        expect(object.a).toEqual(4);
+    });
+
+    describe("two-way negation", function () {
+        var object = {};
+
+        bind(object, "a", {"<->": "!b"});
+        expect(object.a).toBe(true);
+        expect(object.b).toBe(false);
+
+        object.b = true;
+        expect(object.a).toBe(false);
+        object.b = false;
+        expect(object.a).toBe(true);
+
+        object.a = false;
+        expect(object.b).toBe(true);
+        object.a = true;
+        expect(object.b).toBe(false);
+    });
+
+    describe("equality and assignment", function () {
+        var object = {choice: 2, a: 2, b: 3};
+        bind(object, "isA", {"<->": "!isB"});
+        bind(object, "choice == a", {"<->": "isA"});
+        bind(object, "choice == b", {"<->": "isB"});
+
+        expect(object.choice).toBe(2);
+
+        object.isB = true;
+        expect(object.isB).toBe(true);
+        expect(object.isA).toBe(false);
+        expect(object.choice).toBe(3);
+
+        object.b = 4;
+        // causes choice == b to become false
+        // which makes isB false
+        expect(object.isB).toBe(false);
+        // which makes isA true
+        expect(object.isA).toBe(true);
+        // which makes choice == a
+        expect(object.choice).toBe(2);
+
+        object.isB = true;
+        expect(object.choice).toBe(4);
+
+        object.isA = true;
+        expect(object.choice).toBe(2);
+
+        object.isA = false;
+        expect(object.isB).toBe(true);
+        expect(object.choice).toBe(4);
+    });
+
+    describe("gt", function () {
+        var object = {a: 1, b: 2};
+        bind(object, "gt", {"<-": "a > b"});
+        expect(object.gt).toBe(false);
+        object.b = 0;
+        expect(object.gt).toBe(true);
+    });
+
+    describe("algebra", function () {
+        var object = {};
+        bind(object, "result", {"<-": "#2 ** #3 * #3 + #7"});
+        expect(object.result).toBe(Math.pow(2, 3) * 3 + 7);
+    });
+
 });
 

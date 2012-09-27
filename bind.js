@@ -19,6 +19,10 @@ function bind(target, targetPath, descriptor) {
     var targetSyntax = descriptor.targetSyntax = parse(targetPath);
 
     // <-
+    rotate(sourceSyntax, targetSyntax, function (newSource, newTarget) {
+        sourceSyntax = newSource;
+        targetSyntax = newTarget;
+    });
     var observeSource = compileObserver(sourceSyntax);
     var bindTarget = compileBinder(targetSyntax);
     var cancelSourceToTarget = bindTarget(
@@ -28,6 +32,10 @@ function bind(target, targetPath, descriptor) {
     // ->
     var cancelTargetToSource = noop;
     if (twoWay) {
+        rotate(targetSyntax, sourceSyntax, function (newTarget, newSource) {
+            targetSyntax = newTarget;
+            sourceSyntax = newSource;
+        });
         var observeTarget = compileObserver(targetSyntax);
         var bindSource = compileBinder(sourceSyntax);
         var cancelTargetToSource = bindSource(
@@ -40,6 +48,18 @@ function bind(target, targetPath, descriptor) {
         cancelTargetToSource();
     };
 
+}
+
+// rather than implement ! and - binders, just rotate the operator to the
+// source side.
+function rotate(source, target, callback) {
+    if (target.type === 'not' || target.type === 'neg') {
+        // in lieu of destucturing assignment, use a callback
+        callback(
+            {type: target.type, args: [source]},
+            target.args[0]
+        );
+    }
 }
 
 function noop() {}
