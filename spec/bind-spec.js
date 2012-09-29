@@ -312,7 +312,8 @@ describe("bind", function () {
         object.b = 2;
         expect(object.d).toEqual(true);
         object.c = 2;
-        expect(object.d).toEqual(false);
+        expect(object.d).toEqual(true);
+        expect(object.a).toEqual(4);
         object.d = true;
         expect(object.a).toEqual(4);
     });
@@ -349,13 +350,9 @@ describe("bind", function () {
         expect(object.choice).toBe(3);
 
         object.b = 4;
-        // causes choice == b to become false
-        // which makes isB false
-        expect(object.isB).toBe(false);
-        // which makes isA true
-        expect(object.isA).toBe(true);
-        // which makes choice == a
-        expect(object.choice).toBe(2);
+        expect(object.isB).toBe(true);
+        expect(object.isA).toBe(false);
+        expect(object.choice).toBe(4);
 
         object.isB = true;
         expect(object.choice).toBe(4);

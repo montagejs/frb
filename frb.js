@@ -37,35 +37,33 @@ function defineProperty(object, name, descriptor) {
     if (descriptor[constructor]) {
         object = object.constructor;
     }
-    if (/^\w+$/.test(name)) {
-        if (!("get" in descriptor || "set" in descriptor)) {
-            if (!("writable" in descriptor)) {
-                descriptor.writable = true;
-            }
-        }
-        if (!("enumerable" in descriptor)) {
-            descriptor.enumerable = true;
-        }
-        if (!("configurable" in descriptor)) {
-            descriptor.configurable = true;
-        }
-        Object.defineProperty(object, name, descriptor);
-    }
     var bindingsForName = getBindings(object);
     if ("<-" in descriptor || "<->" in descriptor) {
         cancelBinding(object, name);
         descriptor.target = object;
         descriptor.cancel = bind(object, name, descriptor);
         bindingsForName[name] = descriptor;
-    } else if ("dependencies" in descriptor) {
-        cancelBinding(object, name);
-        descriptor.cancel = observe(object, descriptor.dependencies, {
-            set: function () {
-                Properties.dispatchPropertyChange(object, name, object[name]);
-            },
-            contentChange: true
-        });
-        bindingsForName[name] = descriptor;
+    } else {
+        if ("dependencies" in descriptor) {
+            cancelBinding(object, name);
+            descriptor.cancel = observe(object, descriptor.dependencies, {
+                set: function () {
+                    Properties.dispatchPropertyChange(object, name, object[name]);
+                },
+                contentChange: true
+            });
+            bindingsForName[name] = descriptor;
+        }
+        if (!("get" in descriptor) && !("set" in descriptor) && !("writable" in descriptor)) {
+            descriptor.writable = true;
+        }
+        if (!("configurable" in descriptor)) {
+            descriptor.configurable = true;
+        }
+        if (!("enumerable" in descriptor)) {
+            descriptor.enumerable = true;
+        }
+        Object.defineProperty(object, name, descriptor);
     }
 }
 

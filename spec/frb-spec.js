@@ -23,7 +23,6 @@ describe("frb", function () {
 
                 expect(object.qux).toEqual(30);
 
-                debugger;
                 object.bar = 30;
                 expect(object.qux).toEqual(40);
 
@@ -51,7 +50,6 @@ describe("frb", function () {
 
                 expect(object.qux).toEqual(30);
 
-                debugger;
                 object.bar = 30;
                 expect(object.qux).toEqual(40);
 

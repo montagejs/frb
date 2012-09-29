@@ -14,32 +14,39 @@ function bind(target, targetPath, descriptor) {
     descriptor.sourcePath = sourcePath;
     var value = descriptor.value;
     var parameters = descriptor.parameters = descriptor.parameters || source;
+    var trace = descriptor.trace;
 
     var sourceSyntax = descriptor.sourceSyntax = parse(sourcePath);
     var targetSyntax = descriptor.targetSyntax = parse(targetPath);
 
-    // <-
-    rotate(sourceSyntax, targetSyntax, function (newSource, newTarget) {
-        sourceSyntax = newSource;
-        targetSyntax = newTarget;
-    });
-    var observeSource = compileObserver(sourceSyntax);
-    var bindTarget = compileBinder(targetSyntax);
-    var cancelSourceToTarget = bindTarget(
-        observeSource, source, target, parameters
+    // <- source to target
+    trace && console.log("DEFINE BINDING", targetPath, "<-", sourcePath, target);
+    var cancelSourceToTarget = bindOneWay(
+        target,
+        targetSyntax,
+        source,
+        sourceSyntax,
+        parameters,
+        trace ? {
+            sourcePath: sourcePath,
+            targetPath: targetPath
+        } : undefined
     );
 
-    // ->
+    // -> target to source
     var cancelTargetToSource = noop;
     if (twoWay) {
-        rotate(targetSyntax, sourceSyntax, function (newTarget, newSource) {
-            targetSyntax = newTarget;
-            sourceSyntax = newSource;
-        });
-        var observeTarget = compileObserver(targetSyntax);
-        var bindSource = compileBinder(sourceSyntax);
-        var cancelTargetToSource = bindSource(
-            observeTarget, target, source, parameters
+        trace && console.log("DEFINE BINDING", targetPath, "->", sourcePath, source);
+        cancelTargetToSource = bindOneWay(
+            source,
+            sourceSyntax,
+            target,
+            targetSyntax,
+            parameters,
+            trace ? {
+                sourcePath: targetPath,
+                targetPath: sourcePath
+            } : undefined
         );
     }
 
@@ -50,16 +57,22 @@ function bind(target, targetPath, descriptor) {
 
 }
 
-// rather than implement ! and - binders, just rotate the operator to the
-// source side.
-function rotate(source, target, callback) {
-    if (target.type === 'not' || target.type === 'neg') {
-        // in lieu of destucturing assignment, use a callback
-        callback(
-            {type: target.type, args: [source]},
-            target.args[0]
-        );
+function bindOneWay(target, targetSyntax, source, sourceSyntax, parameters, trace) {
+    // rotate negation from the target to the source since it's equivalent but
+    // bindable
+    if (targetSyntax.type === "not" || targetSyntax.type === "neg") {
+        sourceSyntax = {type: targetSyntax.type, args: [sourceSyntax]};
+        targetSyntax = targetSyntax.args[0];
     }
+    var observeSource = compileObserver(sourceSyntax);
+    var bindTarget = compileBinder(targetSyntax);
+    return bindTarget(
+        observeSource,
+        source,
+        target,
+        parameters,
+        trace
+    );
 }
 
 function noop() {}

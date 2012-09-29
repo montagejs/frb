@@ -27,7 +27,7 @@ compile.semantics = {
             var argObservers = syntax.args.map(compileObserver, compileObserver.semantics);
             return compilers[syntax.type].apply(null, argObservers);
         } else {
-            throw new Error("Can't compile binder for " + JSON.stringify(syntax));
+            throw new Error("Can't compile binder for " + JSON.stringify(syntax.type));
         }
     }
 
