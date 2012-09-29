@@ -84,6 +84,9 @@ exports.hasPropertyChangeDescriptor = function (object, key) {
 };
 
 exports.addPropertyChangeListener = function (object, key, listener, beforeChange) {
+    if (object.addPropertyChangeListener) {
+        return object.addPropertyChangeListener(key, listener, beforeChange);
+    }
     if (object.makeObservable && !object.isObservable) {
         object.makeObservable(); // particularly for observable arrays, for
         // their length property
@@ -95,24 +98,29 @@ exports.addPropertyChangeListener = function (object, key, listener, beforeChang
     } else {
         listeners = descriptor.changeListeners;
     }
-    exports.installPropertyObserver(object, key);
+    exports.makePropertyObservable(object, key);
     listeners.push(listener);
 };
 
 exports.removePropertyChangeListener = function (object, key, listener, beforeChange) {
     var descriptor = exports.getPropertyChangeDescriptor(object, key);
+
     var listeners;
     if (beforeChange) {
         listeners = descriptor.willChangeListeners;
     } else {
         listeners = descriptor.changeListeners;
     }
+
     var node = listeners.findLast(listener);
     if (!node) {
         throw new Error("Can't remove listener: does not exist.");
     }
     listeners.splice(node, 1);
-    // TODO if listeners.length === 0 uninstallPropertyObserver(object, key)
+
+    if (listeners.length === 0) {
+        exports.makePropertyUnobservable(object, key);
+    }
 };
 
 exports.dispatchPropertyChange = function (object, key, value, beforeChange) {
@@ -157,13 +165,17 @@ exports.dispatchBeforePropertyChange = function (object, key, value) {
     return exports.dispatchPropertyChange(object, key, value, true);
 };
 
-exports.installPropertyObserver = function (object, key) {
+exports.makePropertyObservable = function (object, key) {
     // arrays are special.  we do not support direct setting of properties
     // on an array.  instead, call .set(index, value).  this is observable.
     // 'length' property is observable for all mutating methods because
     // our overrides explicitly dispatch that change.
     if (object instanceof Array) {
         return;
+    }
+
+    if (object.makePropertyObservable) {
+        return object.makePropertyObservable(key);
     }
 
     // memoize overridden property descriptor table
@@ -282,13 +294,17 @@ exports.installPropertyObserver = function (object, key) {
     Object.defineProperty(object, key, newDescriptor);
 };
 
-exports.uninstallPropertyObserver = function (object, key) {
+exports.makePropertyUnobservable = function (object, key) {
     // arrays are special.  we do not support direct setting of properties
     // on an array.  instead, call .set(index, value).  this is observable.
     // 'length' property is observable for all mutating methods because
     // our overrides explicitly dispatch that change.
     if (object instanceof Array) {
         return;
+    }
+
+    if (object.makePropertyUnobservable) {
+        return object.makePropertyUnobservable(key);
     }
 
     if (!overriddenObjectDescriptors.has(object)) {

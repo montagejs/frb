@@ -1137,6 +1137,16 @@ the most specific provided.
 -   `handleEvent`
 -   function
 
+#### Custom Property Change Observers
+
+The property change listener functions delegate to a
+`makePropertyObservable(key)` and `makePropertyUnobservable(key)` if
+they exist.  So, these can be used to augment host objects, like parts
+of the DOM, to accommodate property change listeners.  The `dom` module
+monkey-patches HTML element prototoypes to make some properties
+observable, like the "checked" property of radio and checkbox input
+elements using the `addEventListener("change")` interface.
+
 #### Array Content Changes
 
 To use array content observers,
