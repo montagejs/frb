@@ -382,5 +382,18 @@ describe("bind", function () {
         expect(object.result).toBe(Math.pow(2, 3) * 3 + 7);
     });
 
+    describe("logic", function () {
+        var object = {a: false, b: false};
+        bind(object, "result", {"<-": "a || b"});
+        expect(object.result).toBe(false);
+        object.a = true;
+        expect(object.result).toBe(true);
+        object.b = true;
+        expect(object.result).toBe(true);
+        object.a = false;
+        object.b = false;
+        expect(object.result).toBe(false);
+    });
+
 });
 

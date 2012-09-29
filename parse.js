@@ -62,10 +62,11 @@ parse.semantics = {
         self.makeLeftToRightParser(["pow"]);
         self.makeLeftToRightParser(["mul", "div", "mod", "rem"]);
         self.makeLeftToRightParser(["add", "sub"]);
+        self.makeComparisonParser(); // equals, notEquals, gt, lt, ge, le
         self.makeLeftToRightParser(["and"]);
         self.makeLeftToRightParser(["or"]);
         self.makeLeftToRightParser(["xor"]);
-        self.parseExpression = self.makeComparisonParser();
+        self.parseExpression = self.precedence();
         self.parseMemoized = Parser.makeParser(self.parseExpression);
     },
 
@@ -112,11 +113,11 @@ parse.semantics = {
     parseColon: Parser.makeExpect(":"),
 
     skipWhiteSpace: function skipWhiteSpace(callback) {
-        return function (character) {
+        return function (character, loc) {
             if (character === " ") {
                 return skipWhiteSpace(callback);
             } else {
-                return callback()(character);
+                return callback()(character, loc);
             }
         };
     },
@@ -155,7 +156,7 @@ parse.semantics = {
     parsePrimary: function parsePrimary(callback, previous) {
         var self = this;
         previous = previous || {type: "value"};
-        return function (character) {
+        return function (character, loc) {
             if (character === "#") {
                 return self.parseNumber(callback);
             } else if (character === "*") {
@@ -170,7 +171,7 @@ parse.semantics = {
             } else if (character === "'") {
                 return self.parseStringTail(callback, "");
             } else if (character === "(") {
-                return self.parseTuple(callback)(character);
+                return self.parseTuple(callback)(character, loc);
             } else if (character === "{") {
                 return self.parseRecord(callback)(character);
             } else {

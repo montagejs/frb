@@ -219,6 +219,36 @@ describe("parse", function () {
             ]}
         },
 
+        {
+            input: "x != a && y != b",
+            output: {type: "and", args: [
+                {type: "not", args: [
+                    {type: "equals", args: [
+                        {type: "property", args: [
+                            {type: "value"},
+                            {type: "literal", value: "x"}
+                        ]},
+                        {type: "property", args: [
+                            {type: "value"},
+                            {type: "literal", value: "a"}
+                        ]}
+                    ]},
+                ]},
+                {type: "not", args: [
+                    {type: "equals", args: [
+                        {type: "property", args: [
+                            {type: "value"},
+                            {type: "literal", value: "y"}
+                        ]},
+                        {type: "property", args: [
+                            {type: "value"},
+                            {type: "literal", value: "b"}
+                        ]}
+                    ]}
+                ]}
+            ]}
+        }
+
     ].forEach(function (test) {
         it("should parse " + JSON.stringify(test.input), function () {
             expect(parse(test.input)).toEqual(test.output);
