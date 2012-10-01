@@ -805,7 +805,7 @@ Frb.cancelBindings(object); // cancels all bindings on this object and
 
 -   `Frb.create(prototype, properties, descriptors)`
 -   `Frb.define(object, properties, descriptors)`
--   `Frb.defineProperty(object, name, descriptor)`
+-   `Frb.defineBinding(object, name, descriptor)`
 -   `Frb.getBindings(object)`
 -   `Frb.getBinding(object, name)`
 -   `Frb.cancelBindings(object)`

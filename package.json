@@ -27,7 +27,7 @@
         "type": "git",
         "url": "http://github.com/kriskowal/frb.git"
     },
-    "main": "frb",
+    "main": "bindings",
     "dependencies": {
         "collections": ">=0.0.6"
     },

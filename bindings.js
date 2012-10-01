@@ -26,13 +26,13 @@ function define(object, properties, descriptors) {
     }
     if (descriptors) {
         for (var name in descriptors) {
-            defineProperty(object, name, descriptors[name]);
+            defineBinding(object, name, descriptors[name]);
         }
     }
 }
 
-exports.defineProperty = defineProperty;
-function defineProperty(object, name, descriptor) {
+exports.defineBinding = defineBinding;
+function defineBinding(object, name, descriptor) {
     var cancel = noop;
     if (descriptor[constructor]) {
         object = object.constructor;
