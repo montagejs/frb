@@ -571,29 +571,30 @@ var cancel = observe(object, "foo", function (foo) {
 });
 ```
 
-### FRB
+### Bindings
 
 FRB provides utilities for declaraing and managing multiple bindings on
-objects.  The `frb` module exports this interface.
+objects.  The `frb` (`frb/bindings`) module exports this interface.
 
 ```javascript
-var Frb = require("frb");
+var Bindings = require("frb");
 ```
 
-The `Frb.create` and `Frb.define` methods have a similar interface.  The
-`create` function creates a new object with properties and bindings.
-The `define` function augments an existing object.  The properties
-object is just key value pairs to copy to the object, for convenience.
+The `Bindings.create` and `Bindings.define` methods have a similar
+interface.  The `create` function creates a new object with properties
+and bindings.  The `define` function augments an existing object.  The
+properties object is just key value pairs to copy to the object, for
+convenience.
 
 ```javascript
-var object = Frb.create(Object.prototype, {
+var object = Bindings.create(Object.prototype, {
     a: 10,
     b: 20
 });
 expect(object.a).toEqual(10);
 expect(object.b).toEqual(20);
 
-Frb.define(object, {
+Bindings.define(object, {
     b: 30,
     c: 50
 });
@@ -614,7 +615,7 @@ descriptor to an internal table that tracks all of the bindings defined
 on that object.
 
 ```javascript
-var object = Frb.create(null, {
+var object = Bindings.create(null, {
     darkMode: false,
     document: document
 }, {
@@ -624,16 +625,16 @@ var object = Frb.create(null, {
 });
 ```
 
-You can get all the binding descriptors with `Frb.getBindings`, or a
-single binding descriptor with `Frb.getBinding`.  `Frb.cancel` cancels
-all the bindings to an object and `Frb.cancelBinding` will cancel just
+You can get all the binding descriptors with `Bindings.getBindings`, or a
+single binding descriptor with `Bindings.getBinding`.  `Bindings.cancel` cancels
+all the bindings to an object and `Bindings.cancelBinding` will cancel just
 one.
 
 ```javascript
-var bindings = Frb.getBindings(object);
-var descriptor = Frb.getBinding(object, "document.body.classList.has('dark')");
-Frb.cancelBinding(object, "document.body.classList.has('dark')");
-Frb.cancel(object);
+var bindings = Bindings.getBindings(object);
+var descriptor = Bindings.getBinding(object, "document.body.classList.has('dark')");
+Bindings.cancelBinding(object, "document.body.classList.has('dark')");
+Bindings.cancel(object);
 ```
 
 ### Dependent Paths
@@ -648,7 +649,7 @@ window’s search string, effectively navigating to a new page whenever
 the "q" or "charset" entries of the form change.
 
 ```javascript
-var app = Frb.create(Object.prototype, {
+var app = Bindings.create(Object.prototype, {
     window: window,
     form: {
         q: "",
@@ -743,10 +744,10 @@ and can be used to declare objects and define and cancel bindings on
 them with extended property descriptors.
 
 ```javascript
-var Frb = require("frb");
+var Bindings = require("frb");
 
 // create an object
-var object = Frb.create(null, { // prototype
+var object = Bindings.create(null, { // prototype
     // simple properties
     foo: 0,
     graph: [
@@ -798,18 +799,18 @@ expect(object.reversed).toEqual([3, 2, 1]);
 
 expect(object.numbers).toBe(numbers) // still the same object
 
-Frb.cancelBindings(object); // cancels all bindings on this object and
+Bindings.cancelBindings(object); // cancels all bindings on this object and
 // their transitive observers and event listeners as deep as
 // they go
 ```
 
--   `Frb.create(prototype, properties, descriptors)`
--   `Frb.define(object, properties, descriptors)`
--   `Frb.defineBinding(object, name, descriptor)`
--   `Frb.getBindings(object)`
--   `Frb.getBinding(object, name)`
--   `Frb.cancelBindings(object)`
--   `Frb.cancelBinding(object, name)`
+-   `Bindings.create(prototype, properties, descriptors)`
+-   `Bindings.define(object, properties, descriptors)`
+-   `Bindings.defineBinding(object, name, descriptor)`
+-   `Bindings.getBindings(object)`
+-   `Bindings.getBinding(object, name)`
+-   `Bindings.cancelBindings(object)`
+-   `Bindings.cancelBinding(object, name)`
 
 A binding descriptor contains:
 

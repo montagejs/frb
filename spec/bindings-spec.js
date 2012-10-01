@@ -1,12 +1,12 @@
 
-var Frb = require("..");
+var Bindings = require("..");
 
-describe("frb", function () {
+describe("bindings", function () {
     describe("dependent properties", function () {
         describe("string", function () {
             it("should propagate related bindings", function () {
 
-                var object = Frb.create(null, {
+                var object = Bindings.create(null, {
                     foo: 10,
                     bar: 20
                 }, {
@@ -33,7 +33,7 @@ describe("frb", function () {
 
             it("should propagate related bindings", function () {
 
-                var object = Frb.create(null, {
+                var object = Bindings.create(null, {
                     foo: 10,
                     bar: 20
                 }, {
