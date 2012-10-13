@@ -1,4 +1,6 @@
 
+// TODO commute literals on the left side of a target operand, when possible
+
 module.exports = solve;
 function solve(target, source) {
     return solve.semantics.solve(target, source);
@@ -9,7 +11,7 @@ solve.semantics = {
     solve: function (target, source) {
         while (this.solvers.hasOwnProperty(target.type)) {
             source = this.solvers[target.type](target, source);
-            target = target.args[0];;
+            target = target.args[0];
         }
         return [target, source];
     },
@@ -30,10 +32,13 @@ solve.semantics = {
                 target.args[1]
             ]};
         },
+        number: function (target, source) {
+            return this.reflect(target, source);
+        },
         not: function (target, source) {
             return this.reflect(target, source);
         },
-        neg: function (taget, source) {
+        neg: function (target, source) {
             return this.reflect(target, source);
         },
         add: function (target, source) {

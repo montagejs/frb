@@ -322,6 +322,8 @@ describe("bind", function () {
         var object = {};
 
         bind(object, "a", {"<->": "!b"});
+        expect(object.a).toBe(undefined);
+        object.b = false;
         expect(object.a).toBe(true);
         expect(object.b).toBe(false);
 

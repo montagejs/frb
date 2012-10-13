@@ -3,6 +3,10 @@ require("collections/object"); // shim equals, compare
 
 // from highest to lowest precedence
 
+exports.number = function (s) {
+    return +s;
+};
+
 exports.not = function (b) {
     return !b;
 };

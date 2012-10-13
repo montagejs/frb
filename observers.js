@@ -173,7 +173,9 @@ function makeOperatorObserverMaker(operator) {
         var observeOperandChanges = makeContentObserver(observeOperands);
         return function observeOperator(emit, value, parameters, beforeChange) {
             return observeOperandChanges(function (operands) {
-                emit(operator.apply(void 0, operands));
+                if (operands.every(defined)) {
+                    return emit(operator.apply(void 0, operands));
+                }
             }, value, parameters, beforeChange);
         };
     };
@@ -460,4 +462,8 @@ function once(callback) {
 }
 
 function noop() {}
+
+function defined(x) {
+    return x != null;
+}
 

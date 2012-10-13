@@ -392,6 +392,12 @@ parse.semantics = {
                         expression
                     ]});
                 });
+            } else if (character === "+") {
+                return parsePrevious(function (expression) {
+                    return callback({type: "number", args: [
+                        expression
+                    ]});
+                });
             } else if (character === "-") {
                 return parsePrevious(function (expression) {
                     return callback({type: "neg", args: [
