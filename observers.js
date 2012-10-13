@@ -32,10 +32,11 @@ exports.makePropertyObserver = makePropertyObserver;
 function makePropertyObserver(observeObject, observeKey) {
     return function observeProperty(emit, value, parameters, beforeChange) {
         return observeKey(autoCancelPrevious(function replaceKey(key) {
+            if (key === undefined)
+                return;
             return observeObject(autoCancelPrevious(function replaceObject(object) {
-                if (!object) {
-                    throw new Error("Can't observe property " + JSON.stringify(key) + " of " + object);
-                }
+                if (!object)
+                    return;
                 var cancel = emit(object[key], key, object) || noop;
                 Properties.addPropertyChangeListener(object, key, emit, beforeChange);
                 return once(function cancelPropertyObserver() {
@@ -120,6 +121,8 @@ exports.makeMapObserver = makeNonReplacing(makeReplacingMapObserver);
 function makeReplacingMapObserver(observeArray, observeRelation) {
     return function observeMap(emit, value, parameters, beforeChange) {
         return observeArray(autoCancelPrevious(function replaceMapInput(input) {
+            if (!input)
+                return;
             var output = [];
             var cancelers = [];
             function contentChange(plus, minus, index) {

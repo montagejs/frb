@@ -9,7 +9,11 @@ function makePropertyBinder(observeObject, observeKey) {
     return function (observeValue, source, target, parameters, trace) {
         var isActive;
         return observeObject(autoCancelPrevious(function (object) {
+            if (!object)
+                return;
             return observeKey(autoCancelPrevious(function (key) {
+                if (key === undefined)
+                    return;
                 return observeValue(autoCancelPrevious(function (value) {
                     if (isActive) {
                         trace && console.log("IGNORED SET", trace.targetPath, "TO", value, "ON", object, "BECAUSE", trace.sourcePath, "ALREADY ACTIVE");
@@ -32,7 +36,11 @@ exports.makeHasBinder = makeHasBinder;
 function makeHasBinder(observeSet, observeValue) {
     return function (observeHas, source, target, parameters, trace) {
         return observeSet(autoCancelPrevious(function (set) {
+            if (!set)
+                return;
             return observeValue(autoCancelPrevious(function (value) {
+                if (value === undefined)
+                    return;
                 return observeHas(autoCancelPrevious(function (has) {
                     // wait for the initial value to be updated by the
                     // other-way binding
@@ -79,12 +87,23 @@ function makeContentBinder(observeTarget) {
                 if (!source)
                     return;
                 function contentChange(plus, minus, index) {
-                    if (target.getContentChangeDescriptor().isActive)
+                    if (
+                        target.getContentChangeDescriptor &&
+                        target.getContentChangeDescriptor().isActive
+                    )
                         return;
-                    target.swap(index, minus.length, plus);
+                    if (trace) {
+                        console.log("SWAPPING", minus, "FOR", plus, "AT", index);
+                    }
+                    if (target.swap) {
+                        target.swap(index, minus.length, plus);
+                    } else if (target.add && (target.remove || target["delete"])) {
+                        plus.forEach(target.add, target);
+                        minus.forEach(target.remove || target["delete"], target);
+                    }
                 }
                 source.addContentChangeListener(contentChange);
-                contentChange(source, target, 0);
+                contentChange(Array.from(source), Array.from(target), 0);
                 return once(function () {
                     source.removeContentChangeListener(contentChange);
                 });

@@ -48,6 +48,9 @@ function defineBinding(object, name, descriptor) {
             cancelBinding(object, name);
             descriptor.cancel = observe(object, descriptor.dependencies, {
                 set: function () {
+                    if (descriptor.trace) {
+                        console.log("DEPENDENT PROPERTY", name, "CHANGED TO", object[name], "ON", object);
+                    }
                     Properties.dispatchPropertyChange(object, name, object[name]);
                 },
                 contentChange: true
