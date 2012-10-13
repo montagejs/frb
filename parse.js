@@ -67,7 +67,6 @@ parse.semantics = {
         self.makeComparisonParser(); // equals, notEquals, gt, lt, ge, le
         self.makeLeftToRightParser(["and"]);
         self.makeLeftToRightParser(["or"]);
-        self.makeLeftToRightParser(["xor"]);
         self.parseExpression = self.precedence();
         self.parseMemoized = Parser.makeParser(self.parseExpression);
     },

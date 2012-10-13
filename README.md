@@ -370,9 +370,9 @@ can use either `=` or `==`.
 
 FRB can also recognize many operators.  These are in order of precedence
 unary `-` negation, `+` numeric coercion, and `!` logical negation and
-then binary `**` (power), `//` (root), `%%` (logarithm), `*`, `/`, `%`
-modulo, `%%` remainder, `+`, `-`, ```<```, ```>```, ```<=```, ```>=```,
-`=` or `==`, `!=`, `&&` and `||`.
+then binary `**` power, `//` root, `%%` logarithm, `*`, `/`, `%` modulo,
+`%%` remainder, `+`, `-`, ```<```, ```>```, ```<=```, ```>=```, `=` or
+`==`, `!=`, `&&` and `||`.
 
 ```javascript
 var object = {height: 10};
@@ -831,7 +831,7 @@ It must prove itself worthy before it can return.
     bindings, properties, and computed properties with dependencies.
 
 
-### Declarations
+### Bindings
 
 The highest level interface for FRB resembles the ES5 Object constructor
 and can be used to declare objects and define and cancel bindings on
@@ -919,7 +919,7 @@ A binding descriptor contains:
 -   `parameters`: the parameters, which default to `source`.
 -   `cancel`: a function to cancel the binding
 
-### Bindings
+### Bind
 
 The `bind` module provides direct access to the `bind` function.
 
@@ -944,6 +944,30 @@ cancel();
 `bind` is built on top of `parse`, `compileBinder`, and
 `compileObserver`.
 
+### Compute
+
+The `compute` module provides direct access to the `compute` function,
+used by `Bindings` to make computed properties.
+
+```javascript
+var compute = require("frb/compute");
+
+var source = {operands: [10, 20]};
+var target = {};
+var cancel = compute(target, "sum", {
+    source: source,
+    args: ["operands.0", "operands.1"],
+    compute: function (a, b) {
+        return a + b;
+    }
+});
+
+expect(target.sum).toEqual(30);
+
+// change one operand
+source.operands.set(1, 30); // needed to dispatch change notification
+expect(target.sum).toEqual(40);
+```
 
 ### Observers
 
@@ -1016,9 +1040,29 @@ brute force.
 
 #### Grammar
 
--   **expression** = **term** *delimited by* `.`
--   **term** = **literal** *or* `(` **expression** `)` *or* **property
-    name** *or* **function call** *or* **block call**
+-   **expression** = **logical or expression**
+-   **logical or expression** = **logical and expression** ( `||`
+    **relation expression** )?
+-   **logical and expression** = **relation expression** ( `&&`
+    **relation expression** )?
+-   **relation expression** = **arithmetic expression** ( **relation
+    operator** **arithmetic expression** )?
+-   **relation operator** = `=` | `==` | `<` | `<=` | `>` | `>=`
+-   **arithmetic expression** = **multiplicative expresion** *delimited
+    by* **arithmetic operator**
+-   **arithmetic operator** = `+` | `-`
+-   **multiplicative expression** = **exponential expression**
+    *delimited by* **multiplicative operator**
+-   **multiplicative operator** = `*` | `/` | `%` | `rem`
+-   **exponential expression** = **unary expression** *delimited by*
+    **exponential operator**
+-   **exponential operator** = `**` | `//` | `%%`
+-   **unary expression** = **unary operator** ? **chain expression**
+-   **unary operator** = `+` | `-` | `!`
+-   **chain expression** = **primary expression** *delimited by* `.`
+    ( `.*` )?
+-   **primary expression** = **literal** *or* `(` **expression** `)`
+    *or* **property name** *or* **function call** *or* **block call**
 -   **property name** = ( **non space character** )+
 -   **block name** = **function name** *or* `map`
 -   **function name** = `flatten` *or* `reversed` *or* `sum` *or*
@@ -1030,12 +1074,6 @@ brute force.
 -   **number literal** = `#` ( **non space character** )+
 -   **string literal** = `'` ( **non quote character** *or* `\`
     **character** )* `'`
-
-All of this grammar can be used on the right hand side of a binding.
-The left hand side of a binding permits a strict subset.
-
--   **last term** = **property name** *or* **has call**
--   **has call** = `has(` **expression** `)`
 
 #### Semantics
 
@@ -1079,6 +1117,7 @@ emited anew each time their value changes.
     target array with elements corresponding to the respective
     expression in the tuple.  Each inner expression is evaluated with
     the same source value as the outer expression.
+-   `.*` at the end of a chain has no effect on an observed value.
 
 On the left hand side of a binding, the last term has alternate
 semantics.  Binders receive a target as well as a source.
@@ -1086,6 +1125,13 @@ semantics.  Binders receive a target as well as a source.
 -   A "property" observes an object and a property name from the target,
     and a value from the source.  When any of these change, the binder
     upates the value for the property name of the object.
+-   A "equals" expression observes a boolean value from the source.  If
+    that boolean becomes true, the equality expression is made true by
+    assigning the right expression to the left property of the equality,
+    turning the "equals" into an "assign" conceptually.  No action is
+    taken if the boolean becomes false.
+-   A "reversed" expression observes an indexed collection and maintains
+    a mirror array of that collection.
 -   A "has" function call observes a boolean value from the source, and
     an collection and a sought value from the target.  When the value is
     true and the value is absent in the collection, the binder uses the
@@ -1094,6 +1140,13 @@ semantics.  Binders receive a target as well as a source.
     the value is false and the value does appear in the collection one
     or more times, the binder uses the `delete` or `remove` method of
     the collection to remove all occurrences of the sought value.
+
+If the target expression ends with `.*`, the content of the target is
+bound instead of the property.  This is useful for binding the content
+of a non-array collection to the content of another indexed collection.
+The collection can be any collection that implements the "observable
+content" interface including `dispatchContentChange(plus, minus,
+index)`, `addContentChangeListener`, and `removeContentChangeListener`.
 
 #### Interface
 
@@ -1135,6 +1188,36 @@ nodes.
 -   `tuple`: has any number of arguments, each an expression to observe
     in terms of the source value.
 
+For all operators, the "args" property are operands.  The node types for
+unary operators are:
+
+-   ```+```: `number`, arithmetic coercion
+-   ```-```: `neg`, arithmetic negation
+-   ```!```: `not`, logical negation
+
+For all binary operators, the node types are:
+
+-   ```**```: `pow`, exponential power
+-   ```//```: `root`, binary
+-   ```%%```: `log`, logarithm with base
+-   ```*```: `mul`, multiplication
+-   ```/```: `div`, division
+-   ```%```: `mod`, modulo (toward negative infinity, always positive)
+-   ```rem```: `rem`, remainder (toward zero, negative if negative)
+-   ```+```: `add`, addition
+-   ```-```: `sub`, subtraction
+-   ```<```: `lt`, less than
+-   ```<=````: `le`, less than or equal
+-   ```>```: `gt`, greater than
+-   ```>=```: `ge`, greater than or equal
+-   ```=``` and ```==```: ``equals``, equality comparison and assignment
+-   ```!=``` produces unary negation and equality comparison or
+    assignment so does not have a corresponding node type.  The
+    simplification makes it easier to rotate the syntax tree
+    algebraically.
+-   ```&&```, `and`, logical and
+-   ```||```, `or`, logical or
+
 For all function calls, the right hand side is a tuple of arguments,
 presently ignored.
 
@@ -1157,6 +1240,10 @@ All of these functions are or return an observer function of the form
 -   `makeRelationObserver(callback, thisp)` is unavailable through the
     property binding language, translates a value through a JavaScript
     function.
+-   `makeComputerObserver(observeArgs, compute, thisp)` applies
+    arguments to the computation function to get a new value.
+-   `makeConverterObserver(observeValue, convert, thisp)` calls the
+    converter function to transform a value to a converted value.
 -   `makePropertyObserver(observeObject, observeKey)`
 -   `makeMapObserver(observeArray, observeRelation)`
 -   `makeTupleObserver(...observers)`

@@ -110,8 +110,9 @@ describe("bind", function () {
     describe("reversed left hand side", function () {
         var object = {foo: [1,2,3]};
         var cancel = bind(object, "bar", {"<->": "foo.reversed()"});
-        // object.bar has to be sliced since observable arrays are not equal to plain arrays in jasmine,
-        // because of a differing prototype
+        // object.bar has to be sliced since observable arrays are not
+        // equal to plain arrays in jasmine, because of a differing
+        // prototype
         expect(object.bar.slice()).toEqual([3, 2, 1]);
         object.foo.push(4);
         expect(object.bar.slice()).toEqual([4, 3, 2, 1]);

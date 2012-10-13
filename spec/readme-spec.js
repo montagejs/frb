@@ -260,3 +260,24 @@ describe("observe", function () {
 
 });
 
+describe("compile", function () {
+    it("should work", function () {
+        var compute = require("../compute");
+
+        var source = {operands: [10, 20]};
+        var target = {};
+        var cancel = compute(target, "sum", {
+            source: source,
+            args: ["operands.0", "operands.1"],
+            compute: function (a, b) {
+                return a + b;
+            }
+        });
+
+        expect(target.sum).toEqual(30);
+
+        source.operands.set(1, 30);
+        expect(target.sum).toEqual(40);
+    });
+});
+
