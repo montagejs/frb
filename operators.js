@@ -15,6 +15,14 @@ exports.pow = function (a, b) {
     return Math.pow(a, b);
 };
 
+exports.root = function (a, b) {
+    return Math.pow(a, 1 / b);
+};
+
+exports.log = function (a, b) {
+    return Math.log(a) / Math.log(b);
+};
+
 exports.mul = function (a, b) {
     return a * b;
 };

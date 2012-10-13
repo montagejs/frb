@@ -20,10 +20,12 @@ function makeOperatorParser(operators, parseOperator) {
 
 var operators = {
     "**": "pow",
+    "//": "root",
+    "%%": "log",
     "*": "mul",
     "/": "div",
     "%": "mod",
-    "%%": "rem",
+    "rem": "rem",
     "+": "add",
     "-": "sub",
     "<": "lt",
@@ -59,7 +61,7 @@ parse.semantics = {
         self.precedence(function () {
             return self.parseNegation.bind(self);
         });
-        self.makeLeftToRightParser(["pow"]);
+        self.makeLeftToRightParser(["pow", "root", "log"]);
         self.makeLeftToRightParser(["mul", "div", "mod", "rem"]);
         self.makeLeftToRightParser(["add", "sub"]);
         self.makeComparisonParser(); // equals, notEquals, gt, lt, ge, le

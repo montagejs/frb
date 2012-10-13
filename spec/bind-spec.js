@@ -411,6 +411,31 @@ describe("bind", function () {
         expect(object.b).toEqual(12);
     });
 
+    describe("add <-> sub", function () {
+        var object = {a: 10};
+        var cancel = bind(object, "b", {
+            "<->": "a + #1"
+        });
+        expect(object.b).toEqual(11);
+        object.b = 12;
+        expect(object.a).toEqual(11);
+        cancel();
+        object.a = 1000;
+        expect(object.b).toEqual(12);
+    });
+
+    describe("pow <-> log", function () {
+        var object = {a: 2, b: 3};
+        var cancel = bind(object, "c", {
+            "<->": "a ** b"
+        });
+        expect(object.c).toEqual(8);
+        object.c = 27;
+        expect(object.a).toEqual(3);
+        object.b = 2;
+        expect(object.c).toEqual(9);
+    });
+
     describe("converter", function () {
         var object = {a: 10};
         var cancel = bind(object, "b", {

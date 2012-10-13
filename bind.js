@@ -1,5 +1,6 @@
 
 var parse = require("./parse");
+var solve = require("./algebra");
 var compileObserver = require("./compile-observer");
 var compileBinder = require("./compile-binder");
 var Observers = require("./observers");
@@ -85,12 +86,11 @@ function bindOneWay(
     trace
 ) {
 
-    // rotate negation from the target to the source since it's equivalent
-    // because we can't make a binder for negation but can observe it
-    if (targetSyntax.type === "not" || targetSyntax.type === "neg") {
-        sourceSyntax = {type: targetSyntax.type, args: [sourceSyntax]};
-        targetSyntax = targetSyntax.args[0];
-    }
+    // rotate operators from the target side of the binding to the
+    // by inversion onto the source
+    var solution = solve(targetSyntax, sourceSyntax);
+    targetSyntax = solution[0];
+    sourceSyntax = solution[1];
 
     var observeSource = compileObserver(sourceSyntax);
     if (convert) {
