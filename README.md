@@ -368,17 +368,25 @@ can use either `=` or `==`.
 
 ### Operators
 
-FRB can also recognize most operators.  These are in order of precedence
-unary `-` negation and `!` and logical negation and binary `**` (power),
-`*`, `/`, `%` modulo, `%%` remainder, `+`, `-`, ```<```, ```>```,
-```<=```, ```>=```, `=` or `==`, `!=`, `&&` and `||`.
+FRB can also recognize many operators.  These are in order of precedence
+unary `-` negation, `+` numeric coercion, and `!` logical negation and
+then binary `**` (power), `//` (root), `%%` (logarithm), `*`, `/`, `%`
+modulo, `%%` remainder, `+`, `-`, ```<```, ```>```, ```<=```, ```>=```,
+`=` or `==`, `!=`, `&&` and `||`.
 
 ```javascript
 var object = {height: 10};
 bind(object, "heightPx", {"<-": "height + 'px'"});
 ```
 
-Negation and logical negation can be bound in both directions.
+### Algebra
+
+FRB can automatically invert algebraic operators as long as they operate
+strictly on numbers and the left-most expressions on both the source and
+target are bindable properties.
+
+In this examlple, the primary binding is ```notToBe <- !toBe```, and the
+inverse binding is automatically computed ```toBe <- !notToBe```.
 
 ```javascript
 var caesar = {toBe: false};
@@ -389,6 +397,26 @@ expect(caesar.notToBe).toEqual(true);
 caesar.notToBe = false;
 expect(caesar.toBe).toEqual(true);
 ```
+
+FRB does algebra by rotating the expressions on one side of a binding to
+the other until only one independent property remains (the left most
+expression) on the target side of the equation.
+
+```
+convert: y <- !x
+revert: x <- !y
+```
+
+```
+convert: y <- x + a
+revert: x <- y - a
+```
+
+The left-most independent variable on the right hand side becomes the
+dependent variable on the inverted binding.  At present, this only works
+for numbers and when the left-most expression is a bindable property
+because it cannot assign a new value to the literal 10.  For example,
+FRB cannot yet implicitly revert ```y <-> #10 + x```.
 
 ### Literals
 
@@ -482,7 +510,7 @@ bind(object, "ten", {"<-": "$", parameters: 10});
 expect(object.ten).toEqual(10);
 ```
 
-### Observers and Binders
+### Observers
 
 FRB’s bindings use observers and binders internally.  You can create an
 observer from a property path with the `observe` function exported by
@@ -637,11 +665,62 @@ Bindings.cancelBinding(object, "document.body.classList.has('dark')");
 Bindings.cancel(object);
 ```
 
-### Dependent Paths
+### Converters
 
-The source of a binding can be a computed property.  In that case, the
-source property needs to be annotated with a path or list of paths that
-the property uses as input.
+A binding descriptor can have a `convert` function, a `revert` function,
+or alternately a `converter` object.  Converters are useful for
+transformations that cannot be expressed in the property language, or
+are not reversible in the property language.
+
+In this example, `a` and `b` are synchronized such that `a` is always
+half of `b`, regardless of which property gets updated.
+
+```javascript
+Bindings.create(null, {
+    a: 10
+}, {
+    b: {
+        "<-": a
+        convert: function (a) {
+            return a * 2;
+        },
+        revert: function (b) {
+            return a / 2;
+        }
+    }
+});
+```
+
+Converter objects are useful for reusable or modular converter types and
+converters that track additional state.
+
+```javascript
+Bindings.create(null, {
+    a: 10
+}, {
+    b: {
+        "<-": a
+        converter: {
+            factor: 2,
+            convert: function (a) {
+                return a * this.factor;
+            },
+            revert: function (b) {
+                return a / this.factor;
+            }
+        }
+    }
+});
+```
+
+### Computed Properties
+
+A computed property is one that gets updated with a function call when
+one of its arguments changes.  Like a converter, it is useful in cases
+where a transformation or computation cannot be expressed in the
+property language, but can additionally accept multiple arguments as
+input.  A computed property can be used as the source for another
+binding.
 
 In this example, we create an object as the root of multiple bindings.
 The object synchronizes the properties of a "form" object with the
@@ -649,7 +728,7 @@ window’s search string, effectively navigating to a new page whenever
 the "q" or "charset" entries of the form change.
 
 ```javascript
-var app = Bindings.create(Object.prototype, {
+Bindings.create(null, {
     window: window,
     form: {
         q: "",
@@ -657,11 +736,11 @@ var app = Bindings.create(Object.prototype, {
     }
 }, {
     queryString: {
-        dependencies: ["form.q", "form.charset"],
-        get: function () {
+        args: ["form.q", "form.charset"],
+        compute: function (q, charset) {
             return "?" + QS.stringify({
-                q: this.form.q,
-                charset: this.form.charset
+                q: q,
+                charset: charset
             });
         }
     },
@@ -671,6 +750,21 @@ var app = Bindings.create(Object.prototype, {
 });
 ```
 
+### Debugging with Traces
+
+A binding can be configured to log when it changes and why.  The `trace`
+property on a descriptor instructs the binder to log changes to the
+console.
+
+```javascript
+Bindings.create(null, {
+    a: 10
+}, {
+    b: {
+        "<-": "a + #1",
+    }
+});
+```
 
 ## Reference
 
