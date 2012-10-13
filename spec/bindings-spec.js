@@ -2,7 +2,9 @@
 var Bindings = require("..");
 
 describe("bindings", function () {
-    describe("dependent properties", function () {
+
+    describe("computed properties", function () {
+
         describe("string", function () {
             it("should propagate related bindings", function () {
 
@@ -11,9 +13,9 @@ describe("bindings", function () {
                     bar: 20
                 }, {
                     baz: {
-                        dependencies: "(foo, bar)",
-                        get: function () {
-                            return this.foo + this.bar;
+                        args: ["foo", "bar"],
+                        compute: function (foo, bar) {
+                            return foo + bar;
                         }
                     },
                     qux: {
@@ -38,9 +40,9 @@ describe("bindings", function () {
                     bar: 20
                 }, {
                     baz: {
-                        dependencies: ["foo", "bar"],
-                        get: function () {
-                            return this.foo + this.bar;
+                        args: ["foo", "bar"],
+                        compute: function (foo, bar) {
+                            return foo + bar;
                         }
                     },
                     qux: {

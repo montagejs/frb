@@ -4,6 +4,7 @@
 
 var WeakMap = require("collections/weak-map");
 var bind = require("./bind");
+var compute = require("./compute");
 var observe = require("./observe");
 var Properties = require("./properties");
 
@@ -38,25 +39,16 @@ function defineBinding(object, name, descriptor) {
         object = object.constructor;
     }
     var bindingsForName = getBindings(object);
-    if ("<-" in descriptor || "<->" in descriptor) {
+    if ("<-" in descriptor || "<->" in descriptor || "compute" in descriptor) {
         cancelBinding(object, name);
         descriptor.target = object;
-        descriptor.cancel = bind(object, name, descriptor);
+        if ("compute" in descriptor) {
+            descriptor.cancel = compute(object, name, descriptor);
+        } else {
+            descriptor.cancel = bind(object, name, descriptor);
+        }
         bindingsForName[name] = descriptor;
     } else {
-        if ("dependencies" in descriptor) {
-            cancelBinding(object, name);
-            descriptor.cancel = observe(object, descriptor.dependencies, {
-                set: function () {
-                    if (descriptor.trace) {
-                        console.log("DEPENDENT PROPERTY", name, "CHANGED TO", object[name], "ON", object);
-                    }
-                    Properties.dispatchPropertyChange(object, name, object[name]);
-                },
-                contentChange: true
-            });
-            bindingsForName[name] = descriptor;
-        }
         if (!("get" in descriptor) && !("set" in descriptor) && !("writable" in descriptor)) {
             descriptor.writable = true;
         }

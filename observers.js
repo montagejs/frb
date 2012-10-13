@@ -397,6 +397,7 @@ exports.makeAverageObserver = makeArrayObserverMaker(function setup(array, emit)
 });
 
 // wraps an emitter such that repeated values are ignored
+exports.makeUniq = makeUniq;
 function makeUniq(emit) {
     var previous;
     return function uniqEmit(next) {
