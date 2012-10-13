@@ -2,6 +2,7 @@
 var parse = require("./parse");
 var compileObserver = require("./compile-observer");
 var compileBinder = require("./compile-binder");
+var Observers = require("./observers");
 
 module.exports = bind;
 function bind(target, targetPath, descriptor) {
@@ -17,6 +18,20 @@ function bind(target, targetPath, descriptor) {
     var parameters = descriptor.parameters = descriptor.parameters || source;
     var trace = descriptor.trace;
 
+    // promote convert and revert from a converter object up to the descriptor
+    if (descriptor.converter) {
+        var converter = descriptor.converter;
+        if (converter.convert) {
+            descriptor.convert = converter.convert.bind(converter);
+        }
+        if (converter.revert) {
+            descriptor.revert = converter.revert.bind(converter);
+        }
+    }
+
+    var convert = descriptor.convert;
+    var revert = descriptor.revert;
+
     var sourceSyntax = descriptor.sourceSyntax = parse(sourcePath);
     var targetSyntax = descriptor.targetSyntax = parse(targetPath);
 
@@ -28,6 +43,7 @@ function bind(target, targetPath, descriptor) {
         source,
         sourceSyntax,
         parameters,
+        convert,
         trace ? {
             sourcePath: sourcePath,
             targetPath: targetPath
@@ -44,6 +60,7 @@ function bind(target, targetPath, descriptor) {
             target,
             targetSyntax,
             parameters,
+            revert,
             trace ? {
                 sourcePath: targetPath,
                 targetPath: sourcePath
@@ -58,14 +75,32 @@ function bind(target, targetPath, descriptor) {
 
 }
 
-function bindOneWay(target, targetSyntax, source, sourceSyntax, parameters, trace) {
-    // rotate negation from the target to the source since it's equivalent but
-    // bindable
+function bindOneWay(
+    target,
+    targetSyntax,
+    source,
+    sourceSyntax,
+    parameters,
+    convert,
+    trace
+) {
+
+    // rotate negation from the target to the source since it's equivalent
+    // because we can't make a binder for negation but can observe it
     if (targetSyntax.type === "not" || targetSyntax.type === "neg") {
         sourceSyntax = {type: targetSyntax.type, args: [sourceSyntax]};
         targetSyntax = targetSyntax.args[0];
     }
+
     var observeSource = compileObserver(sourceSyntax);
+    if (convert) {
+        observeSource = Observers.makeConverterObserver(
+            observeSource,
+            convert,
+            source
+        );
+    }
+
     var bindTarget = compileBinder(targetSyntax);
     return bindTarget(
         observeSource,
@@ -74,6 +109,7 @@ function bindOneWay(target, targetSyntax, source, sourceSyntax, parameters, trac
         parameters,
         trace
     );
+
 }
 
 function noop() {}

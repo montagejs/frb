@@ -28,6 +28,26 @@ function makeRelationObserver(relation, thisp) {
     };
 }
 
+exports.makeConverterObserver = makeConverterObserver;
+function makeConverterObserver(observeValue, convert, thisp) {
+    return function (emit, value, parameters, beforeChange) {
+        emit = makeUniq(emit);
+        return observeValue(autoCancelPrevious(function replaceValue(value) {
+            return emit(convert.call(thisp, value)) || noop;
+        }), value, parameters, beforeChange);
+    };
+}
+
+exports.makeComputerObserver = makeComputerObserver;
+function makeComputerObserver(observeArgs, compute, thisp) {
+    return function (emit, value, parameters, beforeChange) {
+        emit = makeUniq(emit);
+        return observeArgs(autoCancelPrevious(function replaceArgs(args) {
+            return emit(compute.apply(thisp, args)) || noop;
+        }), value, parameters, beforeChange);
+    };
+}
+
 exports.makePropertyObserver = makePropertyObserver;
 function makePropertyObserver(observeObject, observeKey) {
     return function observeProperty(emit, value, parameters, beforeChange) {

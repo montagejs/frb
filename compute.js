@@ -19,16 +19,10 @@ function compute(target, targetPath, descriptor) {
     var argsObserver = Observers.makeContentObserver(
         Observers.makeObserversObserver(argObservers)
     );
+    var observeSource = Observers.makeComputerObserver(argsObserver, compute, target);
 
     var targetSyntax = parse(targetPath);
     var bindTarget = compileBinder(targetSyntax);
-
-    function observeSource(emit, value, parameters, beforeChange) {
-        emit = Observers.makeUniq(emit);
-        return argsObserver(Observers.autoCancelPrevious(function (args) {
-            return emit(compute.apply(target, args));
-        }), value, parameters, beforeChange);
-    }
 
     return bindTarget(observeSource, source, target, parameters, trace ? {
         sourcePath: args.join(", "),

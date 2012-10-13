@@ -392,5 +392,45 @@ describe("bind", function () {
         expect(object.result).toBe(false);
     });
 
+    describe("convert, revert", function () {
+        var object = {a: 10};
+        var cancel = bind(object, "b", {
+            "<->": "a",
+            convert: function (a) {
+                return a + 1;
+            },
+            revert: function (b) {
+                return b - 1;
+            }
+        });
+        expect(object.b).toEqual(11);
+        object.b = 12;
+        expect(object.a).toEqual(11);
+        cancel();
+        object.a = 1000;
+        expect(object.b).toEqual(12);
+    });
+
+    describe("converter", function () {
+        var object = {a: 10};
+        var cancel = bind(object, "b", {
+            "<->": "a",
+            converter: {
+                convert: function (a) {
+                    return a + 1;
+                },
+                revert: function (b) {
+                    return b - 1;
+                }
+            }
+        });
+        expect(object.b).toEqual(11); // 12
+        object.b = 12;
+        expect(object.a).toEqual(11);
+        cancel();
+        object.a = 1000;
+        expect(object.b).toEqual(12);
+    });
+
 });
 
