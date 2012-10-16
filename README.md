@@ -416,7 +416,7 @@ The left-most independent variable on the right hand side becomes the
 dependent variable on the inverted binding.  At present, this only works
 for numbers and when the left-most expression is a bindable property
 because it cannot assign a new value to the literal 10.  For example,
-FRB cannot yet implicitly revert ```y <-> #10 + x```.
+FRB cannot yet implicitly revert ```y <-> 10 + x```.
 
 ### Literals
 
@@ -430,14 +430,10 @@ bind(object, "greeting", {"<-": "'Hello, World!'"});
 expect(object.greeting).toBe("Hello, World!");
 ```
 
-To distingish array indicies from number literals, the number literal
-must have a prefix `#`.
+Number literals are digits with an optional mantissa.
 
 ```javascript
-var array = [1, 2, 3];
-var object = {};
-bind(object, 'zero', {"<-": "#0", source: array});
-bind(object, 'one', {"<-": "0", source: array});
+bind(object, 'four', {"<-": "2 + 2", source: array});
 ```
 
 ### Tuples
@@ -761,7 +757,7 @@ Bindings.create(null, {
     a: 10
 }, {
     b: {
-        "<-": "a + #1",
+        "<-": "a + 1",
     }
 });
 ```
@@ -969,7 +965,7 @@ source.operands.set(1, 30); // needed to dispatch change notification
 expect(target.sum).toEqual(40);
 ```
 
-### Observers
+### Observe
 
 The `observe` modules provides direct access to the `observe` function.
 `observe` is built on top of `parse` and `compileObserver`.
@@ -1047,7 +1043,8 @@ brute force.
     **relation expression** )?
 -   **relation expression** = **arithmetic expression** ( **relation
     operator** **arithmetic expression** )?
--   **relation operator** = `=` | `==` | `<` | `<=` | `>` | `>=`
+-   **relation operator** = `=` | `==` | ```<``` | ```<=``` | ```>``` |
+    ```>=```
 -   **arithmetic expression** = **multiplicative expresion** *delimited
     by* **arithmetic operator**
 -   **arithmetic operator** = `+` | `-`
@@ -1071,7 +1068,7 @@ brute force.
 -   **block call** = **function name** `{` **expression** `}`
 -   **tuple** = **expression** *delimited by* `,`
 -   **literal** = **string literal** *or* **number literal**
--   **number literal** = `#` ( **non space character** )+
+-   **number literal** = **digits* ( `.` **digits** )?
 -   **string literal** = `'` ( **non quote character** *or* `\`
     **character** )* `'`
 
@@ -1082,7 +1079,13 @@ one or more times.  All expressions emit an initial value.  Array
 targets are always updated incrementally.  Numbers and boolean are
 emited anew each time their value changes.
 
--   The first term is evaluated with the source value.
+If any operand is `null` or `undefine`, a binding will not emit an
+update.  Thus, if a binding’s source becomes invalid, it does not
+corrupt its target but waits until a valid replacement becomes
+available.
+
+-   In a chained expression, the first term is evaluated with the source
+    value.
 -   Each subsequent term uses the target of the previous as its source.
 -   Literals are interpreted as their corresponding value.
 -   A property expression observes the named key of the source object.
@@ -1207,7 +1210,7 @@ For all binary operators, the node types are:
 -   ```+```: `add`, addition
 -   ```-```: `sub`, subtraction
 -   ```<```: `lt`, less than
--   ```<=````: `le`, less than or equal
+-   ```<=```: `le`, less than or equal
 -   ```>```: `gt`, greater than
 -   ```>=```: `ge`, greater than or equal
 -   ```=``` and ```==```: ``equals``, equality comparison and assignment
@@ -1293,7 +1296,7 @@ source, target, parameters)` and return a `cancel()` function.
 #### Object Property Changes
 
 To use object observers, `require("frb/properties")`.  Observers depend
-on EcmaScript 5's `Object.defineProperty` and `Object.defineProperties`
+on EcmaScript 5’s `Object.defineProperty` and `Object.defineProperties`
 or a suitable shim.  Observable collections benefit from the ability to
 swap `__proto__` in all engines except Internet Explorer, in which case
 they fall back to using `Object.defineProperties` to trap change

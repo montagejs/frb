@@ -134,7 +134,7 @@ describe("parse", function () {
         },
 
         {
-            input: "function(#0, '\\'')",
+            input: "function(0, '\\'')",
             output: {type: "function", args: [
                 {type: "value"},
                 {type: "literal", value: 0},
@@ -151,14 +151,14 @@ describe("parse", function () {
         },
 
         {
-            input: "{a: #10}",
+            input: "{a: 10}",
             output: {type: "record", args: {
                 a: {type: "literal", value: 10}
             }}
         },
 
         {
-            input: "#2 == #2",
+            input: "2 == 2",
             output: {type: "equals", args: [
                 {type: "literal", value: 2},
                 {type: "literal", value: 2}
@@ -166,7 +166,7 @@ describe("parse", function () {
         },
 
         {
-            input: "#2 != #2",
+            input: "2 != 2",
             output: {type: "not", args: [
                 {type: "equals", args: [
                     {type: "literal", value: 2},
@@ -176,7 +176,7 @@ describe("parse", function () {
         },
 
         {
-            input: "#2 + #2",
+            input: "2 + 2",
             output: {type: "add", args: [
                 {type: "literal", value: 2},
                 {type: "literal", value: 2}
@@ -184,7 +184,7 @@ describe("parse", function () {
         },
 
         {
-            input: "#2 + #2 = #4",
+            input: "2 + 2 = 4",
             output: {type: "equals", args: [
                 {type: "add", args: [
                     {type: "literal", value: 2},
@@ -195,21 +195,21 @@ describe("parse", function () {
         },
 
         {
-            input: "!#0",
+            input: "!0",
             output: {type: "not", args: [
                 {type: "literal", value: 0}
             ]}
         },
 
         {
-            input: "-#1",
+            input: "-1",
             output: {type: "neg", args: [
                 {type: "literal", value: 1}
             ]}
         },
 
         {
-            input: "#2 * #2 + #4",
+            input: "2 * 2 + 4",
             output: {type: "add", args: [
                 {type: "mul", args: [
                     {type: "literal", value: 2},

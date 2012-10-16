@@ -136,6 +136,19 @@ parse.semantics = {
         };
     },
 
+    parseDigits: function parseDigits(callback, digits) {
+        digits = digits || "";
+        return function (character, loc) {
+            if (/[\w\d]/.test(character)) {
+                return parseDigits(callback, digits + character);
+            } else if (digits !== "") {
+                return callback(digits)(character, loc);
+            } else {
+                return callback()(character, loc);
+            }
+        };
+    },
+
     parseStringTail: function parseStringTail(callback, string) {
         var self = this;
         return function (character) {
@@ -156,10 +169,20 @@ parse.semantics = {
 
     parsePrimary: function parsePrimary(callback, previous) {
         var self = this;
+        var root = !previous;
         previous = previous || {type: "value"};
         return function (character, loc) {
-            if (character === "#") {
-                return self.parseNumber(callback);
+            if (/\d/.test(character)) {
+                return self.parseNumber(function (number) {
+                    if (root) {
+                        return callback(number);
+                    } else {
+                        return callback({
+                            type: "property",
+                            args: [previous, number]
+                        });
+                    }
+                })(character);
             } else if (character === "*") {
                 return callback({
                     type: "content",
@@ -183,10 +206,21 @@ parse.semantics = {
 
     parseNumber: function parseNumber(callback) {
         var self = this;
-        return self.parseWord(function (word) {
-            return callback({
-                type: "literal",
-                value: +word
+        return self.parseDigits(function (whole) {
+            return self.parseDot(function (dot) {
+                if (dot) {
+                    return self.parseDigits(function (fraction) {
+                        return callback({
+                            type: "literal",
+                            value: +(whole + "." + fraction)
+                        });
+                    });
+                } else {
+                    return callback({
+                        type: "literal",
+                        value: +whole
+                    });
+                }
             });
         })
     },

@@ -167,7 +167,7 @@ describe("bind", function () {
 
     describe("literals", function () {
         var object = {};
-        var cancel = bind(object, "literals", {"<-": "(#0, 'foo bar')"});
+        var cancel = bind(object, "literals", {"<-": "(0, 'foo bar')"});
         expect(object.literals).toEqual([0, "foo bar"]);
     });
 
@@ -378,7 +378,7 @@ describe("bind", function () {
 
     describe("algebra", function () {
         var object = {};
-        bind(object, "result", {"<-": "#2 ** #3 * #3 + #7"});
+        bind(object, "result", {"<-": "2 ** 3 * 3 + 7"});
         expect(object.result).toBe(Math.pow(2, 3) * 3 + 7);
     });
 
@@ -417,7 +417,7 @@ describe("bind", function () {
     describe("add <-> sub", function () {
         var object = {a: 10};
         var cancel = bind(object, "b", {
-            "<->": "a + #1"
+            "<->": "a + 1"
         });
         expect(object.b).toEqual(11);
         object.b = 12;
