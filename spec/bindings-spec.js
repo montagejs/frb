@@ -115,5 +115,29 @@ describe("bindings", function () {
 
     });
 
+    it("should not update an active property", function () {
+
+        var bindings = Bindings.create(null, {
+            input: "0"
+        }, {
+            "output": {"<->": "input",
+                convert: function (value) {
+                    return Number(value).toFixed(1);
+                },
+                revert: function (value) {
+                    return Number(value).toFixed(1);
+                }
+            }
+        });
+
+        expect(bindings.input).toEqual("0");
+        expect(bindings.output).toEqual("0.0");
+
+        bindings.input = "1";
+        expect(bindings.input).toEqual("1");
+        expect(bindings.output).toEqual("1.0");
+
+    });
+
 });
 

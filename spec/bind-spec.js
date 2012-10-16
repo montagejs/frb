@@ -323,7 +323,7 @@ describe("bind", function () {
         object.b = 2;
         expect(object.d).toEqual(true);
         object.c = 2;
-        expect(object.d).toEqual(true);
+        expect(object.d).toEqual(false);
         expect(object.a).toEqual(4);
         object.d = true;
         expect(object.a).toEqual(4);

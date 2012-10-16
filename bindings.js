@@ -20,14 +20,14 @@ function create(prototype, properties, descriptors) {
 
 exports.define = define;
 function define(object, properties, descriptors) {
-    if (properties) {
-        for (var name in properties) {
-            object[name] = properties[name];
-        }
-    }
     if (descriptors) {
         for (var name in descriptors) {
             defineBinding(object, name, descriptors[name]);
+        }
+    }
+    if (properties) {
+        for (var name in properties) {
+            object[name] = properties[name];
         }
     }
 }

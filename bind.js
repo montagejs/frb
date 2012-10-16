@@ -45,6 +45,7 @@ function bind(target, targetPath, descriptor) {
         sourceSyntax,
         parameters,
         convert,
+        descriptor,
         trace ? {
             sourcePath: sourcePath,
             targetPath: targetPath
@@ -62,6 +63,7 @@ function bind(target, targetPath, descriptor) {
             targetSyntax,
             parameters,
             revert,
+            descriptor,
             trace ? {
                 sourcePath: targetPath,
                 targetPath: sourcePath
@@ -83,6 +85,7 @@ function bindOneWay(
     sourceSyntax,
     parameters,
     convert,
+    descriptor,
     trace
 ) {
 
@@ -107,6 +110,7 @@ function bindOneWay(
         source,
         target,
         parameters,
+        descriptor,
         trace
     );
 

@@ -6,46 +6,36 @@ var once = Observers.once;
 
 exports.makePropertyBinder = makePropertyBinder;
 function makePropertyBinder(observeObject, observeKey) {
-    return function (observeValue, source, target, parameters, trace) {
-        var isActive;
+    return function (observeValue, source, target, parameters, descriptor, trace) {
         return observeObject(autoCancelPrevious(function (object) {
-            if (!object)
-                return;
             return observeKey(autoCancelPrevious(function (key) {
-                if (key === undefined)
-                    return;
                 return observeValue(autoCancelPrevious(function (value) {
-                    if (isActive) {
+                    if (descriptor.isActive) {
                         trace && console.log("IGNORED SET", trace.targetPath, "TO", value, "ON", object, "BECAUSE", trace.sourcePath, "ALREADY ACTIVE");
                         return;
                     }
                     try {
-                        isActive = true;
+                        descriptor.isActive = true;
                         trace && console.log("SET", trace.targetPath, "TO", value, "ON", object, "BECAUSE", trace.sourcePath);
                         object[key] = value;
                     } finally {
-                        isActive = false;
+                        descriptor.isActive = false;
                     }
-                }), source, parameters, false, trace);
-            }), target, parameters, false, trace);
-        }), target, parameters, false, trace);
+                }), source, parameters, false, descriptor, trace);
+            }), target, parameters, false, descriptor, trace);
+        }), target, parameters, false, descriptor, trace);
     };
 }
 
 exports.makeHasBinder = makeHasBinder;
 function makeHasBinder(observeSet, observeValue) {
-    return function (observeHas, source, target, parameters, trace) {
+    return function (observeHas, source, target, parameters, descriptor, trace) {
         return observeSet(autoCancelPrevious(function (set) {
-            if (!set)
-                return;
             return observeValue(autoCancelPrevious(function (value) {
-                if (value === undefined)
-                    return;
                 return observeHas(autoCancelPrevious(function (has) {
                     // wait for the initial value to be updated by the
                     // other-way binding
-                    if (has === undefined) {
-                    } else if (has) { // should be in set
+                    if (has) { // should be in set
                         if (!(set.has || set.contains).call(set, value)) {
                             trace && console.log("ADD", value, "TO", trace.targetPath, "BECAUSE", trace.sourcePath);
                             set.add(value);
@@ -56,41 +46,34 @@ function makeHasBinder(observeSet, observeValue) {
                             (set.remove || set['delete']).call(set, value);
                         }
                     }
-                }), target, parameters, false, trace);
-            }), source, parameters, false, trace);
-        }), source, parameters, false, trace);
+                }), target, parameters, false, descriptor, trace);
+            }), source, parameters, false, descriptor, trace);
+        }), source, parameters, false, descriptor, trace);
     };
 }
 
 exports.makeEqualityBinder = makeEqualityBinder;
 function makeEqualityBinder(bindLeft, observeRight) {
-    return function (observeEquals, source, target, parameters, trace) {
+    return function (observeEquals, source, target, parameters, descriptor, trace) {
         return observeEquals(autoCancelPrevious(function (equals) {
             if (equals) {
                 trace && console.log("BIND", trace.targetPath, "TO", trace.sourcePath);
-                var cancel = bindLeft(observeRight, source, source, parameters, trace);
+                var cancel = bindLeft(observeRight, source, source, parameters, descriptor, trace);
                 return function () {
                     trace && console.log("UNBIND", trace.targetPath, "FROM", trace.sourcePath);
                 };
             }
-        }), target, parameters, false, trace);
+        }), target, parameters, false, descriptor, trace);
     };
 }
 
 exports.makeContentBinder = makeContentBinder;
 function makeContentBinder(observeTarget) {
-    return function (observeSource, source, target, parameters, trace) {
+    return function (observeSource, source, target, parameters, descriptor, trace) {
         return observeTarget(Observers.autoCancelPrevious(function (target) {
-            if (!target)
-                return;
             return observeSource(Observers.autoCancelPrevious(function (source) {
-                if (!source)
-                    return;
                 function contentChange(plus, minus, index) {
-                    if (
-                        target.getContentChangeDescriptor &&
-                        target.getContentChangeDescriptor().isActive
-                    )
+                    if (isActive(target))
                         return;
                     if (trace) {
                         console.log("SWAPPING", minus, "FOR", plus, "AT", index);
@@ -107,20 +90,18 @@ function makeContentBinder(observeTarget) {
                 return once(function () {
                     source.removeContentChangeListener(contentChange);
                 });
-            }), source, parameters, false, trace);
-        }), target, parameters, false, trace);
+            }), source, parameters, false, descriptor, trace);
+        }), target, parameters, false, descriptor, trace);
     };
 }
 
 exports.makeReversedBinder = makeReversedBinder;
 function makeReversedBinder(observeTarget) {
-    return function (observeSource, source, target, parameters, trace) {
+    return function (observeSource, source, target, parameters, descriptor, trace) {
         return observeTarget(Observers.autoCancelPrevious(function (target) {
             return observeSource(Observers.autoCancelPrevious(function (source) {
-                if (!source)
-                    return;
                 function contentChange(plus, minus, index) {
-                    if (target.getContentChangeDescriptor().isActive)
+                    if (isActive(target))
                         return;
                     var reflected = target.length - index - minus.length;
                     target.swap(reflected, minus.length, plus.reversed());
@@ -130,8 +111,15 @@ function makeReversedBinder(observeTarget) {
                 return once(function () {
                     source.removeContentChangeListener(contentChange);
                 });
-            }), source, parameters, false, trace);
-        }), target, parameters, false, trace);
+            }), source, parameters, false, descriptor, trace);
+        }), target, parameters, false, descriptor, trace);
     };
+}
+
+function isActive(target) {
+    return (
+        target.getContentChangeDescriptor &&
+        target.getContentChangeDescriptor().isActive
+    );
 }
 

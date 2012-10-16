@@ -52,11 +52,7 @@ exports.makePropertyObserver = makePropertyObserver;
 function makePropertyObserver(observeObject, observeKey) {
     return function observeProperty(emit, value, parameters, beforeChange) {
         return observeKey(autoCancelPrevious(function replaceKey(key) {
-            if (key === undefined)
-                return;
             return observeObject(autoCancelPrevious(function replaceObject(object) {
-                if (!object)
-                    return;
                 var cancel = emit(object[key], key, object) || noop;
                 Properties.addPropertyChangeListener(object, key, emit, beforeChange);
                 return once(function cancelPropertyObserver() {
@@ -119,8 +115,6 @@ exports.makeContentObserver = makeContentObserver;
 function makeContentObserver(observeArray) {
     return function observeContent(emit, value, parameters, beforeChange) {
         return observeArray(autoCancelPrevious(function (array) {
-            if (array == undefined) // or null is implied
-                return;
             if (!array.addContentChangeListener)
                 return emit(array);
             var cancel = noop;
@@ -141,8 +135,6 @@ exports.makeMapObserver = makeNonReplacing(makeReplacingMapObserver);
 function makeReplacingMapObserver(observeArray, observeRelation) {
     return function observeMap(emit, value, parameters, beforeChange) {
         return observeArray(autoCancelPrevious(function replaceMapInput(input) {
-            if (!input)
-                return;
             var output = [];
             var cancelers = [];
             function contentChange(plus, minus, index) {
@@ -479,9 +471,12 @@ function makeUniq(emit) {
 exports.autoCancelPrevious = autoCancelPrevious;
 function autoCancelPrevious(emit) {
     var cancelPrevious = noop;
-    return function cancelPreviousAndReplace() {
+    return function cancelPreviousAndReplace(value) {
         cancelPrevious();
-        cancelPrevious = emit.apply(this, arguments) || noop;
+        cancelPrevious = noop;
+        if (value !== undefined) {
+            cancelPrevious = emit.apply(this, arguments) || noop;
+        }
         return function cancelLast() {
             cancelPrevious();
         };

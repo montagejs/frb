@@ -24,7 +24,7 @@ function compute(target, targetPath, descriptor) {
     var targetSyntax = parse(targetPath);
     var bindTarget = compileBinder(targetSyntax);
 
-    return bindTarget(observeSource, source, target, parameters, trace ? {
+    return bindTarget(observeSource, source, target, parameters, descriptor, trace ? {
         sourcePath: args.join(", "),
         targetPath: targetPath
     }: undefined);
