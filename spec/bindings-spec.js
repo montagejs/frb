@@ -61,5 +61,59 @@ describe("bindings", function () {
 
     });
 
+    describe("exclusive options", function () {
+
+        it("should work", function () {
+
+            var bindings = Bindings.create(null, {
+                options: [],
+                off: true,
+                on: false
+            }, {
+
+                "!options.has('feature')": {
+                    "<->": "off"
+                },
+                "options.has('feature')": {
+                    "<->": "on"
+                }
+            });
+
+            expect(bindings.options.slice()).toEqual([]);
+
+            bindings.on = true;
+            expect(bindings.options.slice()).toEqual(['feature']);
+            bindings.off = true;
+            expect(bindings.options.slice()).toEqual([]);
+
+        });
+
+        it("should work", function () {
+
+            var bindings = Bindings.create(null, {
+                options: [],
+                off: true,
+                on: false
+            }, {
+                "options.has('feature')": {
+                    "<-": "!off"
+                },
+                "options.has('feature')": {
+                    "<-": "on"
+                },
+                "on": {"<->": "!off"}
+            });
+
+            expect(bindings.options.slice()).toEqual([]);
+
+            bindings.on = true;
+            expect(bindings.options.slice()).toEqual(['feature']);
+            bindings.off = true;
+            expect(bindings.options.slice()).toEqual([]);
+
+        });
+
+    });
+
 });
 
