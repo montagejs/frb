@@ -206,6 +206,26 @@ mapping.  The straight-forward path would be
 `objects.map{number}.sum()`, but you can use a block with any function
 as a short hand, `objects.sum{number}`.
 
+### Filter
+
+A filter block generates an incrementally updated array filter.  The
+resulting array will contain only those elements from the source array
+that pass the test deescribed in the block.  As items of the source
+array are added, removed, or changed such that they go from passing to
+failing or failing to passing, the filtered array gets incrementally
+updated to include or exclude those items in their proper positions, as
+if the whole array were regenerated with `array.filter` by brute force.
+
+```javascript
+var object = {numbers: [1, 2, 3, 4, 5, 6]};
+bind(object, "evens", {"<-": "numbers.filter{!(%2)}"});
+expect(object.evens).toEqual([2, 4, 6]);
+object.numbers.push(7, 8);
+object.shift();
+object.shift();
+expect(object.evens).toEqual([4, 6, 8]);
+```
+
 ### Flatten
 
 You can flatten nested arrays.  In this example, we have an array of
