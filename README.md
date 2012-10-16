@@ -1065,7 +1065,7 @@ brute force.
 -   **object expression** = `{` (**property name** `:` **expression**)
     *delimited by* `,` `}`
 -   **property name** = ( **non space character** )+
--   **block name** = **function name** *or* `map`
+-   **block name** = **function name** *or* `map` *or* `filter`
 -   **function call** = **function name** `(` **expression** *delimited
     by* `,` `)`
 -   **function name** = `flatten` *or* `reversed` *or* `sum` *or*
@@ -1099,6 +1099,11 @@ available.
     `addContentChangeListener`.  Each element of the target array
     corresponds to the observed value of the block expression using the
     respective element in the source array as the source value.
+-   A "filter" block observes the source array and emits a target array
+    containing only those values from the source array that actively
+    pass the predicate described in the block expression useing the
+    respective element in the source array as the source value.  As with
+    "map", filters update the target array incrementally.
 -   Any function call with a "block" implies calling the function on the
     result of a "map" block.
 -   A "flatten" function call observes a source array and produces a

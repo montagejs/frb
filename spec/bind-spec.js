@@ -221,6 +221,16 @@ describe("bind", function () {
         expect(object.baz).toEqual([10, 20, 30, 40]);
     });
 
+    describe("filter", function () {
+        var object = {
+            foo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        };
+        var cancel = bind(object, "bar", {
+            "<-": "foo.filter{!(%2)}"
+        });
+        expect(object.bar).toEqual([2, 4, 6, 8, 10]);
+    });
+
     describe("flatten", function () {
         var object = {
             foo: [[1], [2, 3], [4]]

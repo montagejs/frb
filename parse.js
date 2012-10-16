@@ -236,9 +236,9 @@ parse.semantics = {
                 return function (character) {
                     if (character === "{") {
                         return self.parseBlock(function (expression) {
-                            if (identifier === "map") {
+                            if (identifier === "map" || identifier === "filter") {
                                 return self.parseTail(callback, {
-                                    type: "map",
+                                    type: identifier,
                                     args: [
                                         previous,
                                         expression

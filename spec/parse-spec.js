@@ -247,6 +247,16 @@ describe("parse", function () {
                     ]}
                 ]}
             ]}
+        },
+
+        {
+            input: "!(%2)",
+            output: {type: "not", args: [
+                {type: "mod", args: [
+                    {type: "value"},
+                    {type: "literal", value: 2}
+                ]}
+            ]}
         }
 
     ].forEach(function (test) {

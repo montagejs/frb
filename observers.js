@@ -155,13 +155,54 @@ function makeReplacingMapObserver(observeArray, observeRelation) {
                 ));
             }
             contentChange(input, [], 0)
-            var cancel = emit(output) || noop;
+            var cancel = emit(output, input) || noop;
             input.addContentChangeListener(contentChange, beforeChange);
             return once(function cancelMapObserver() {
                 cancel();
                 cancelEach(cancelers);
                 input.removeContentChangeListener(contentChange, beforeChange);
             });
+        }), value, parameters, beforeChange);
+    };
+}
+
+exports.makeFilterObserver = makeNonReplacing(makeReplacingFilterObserver);
+function makeReplacingFilterObserver(observeArray, observePredicate) {
+    var observePredicates = makeReplacingMapObserver(observeArray, observePredicate);
+    return function observeFilter(emit, value, parameters, beforeChange) {
+        return observePredicates(autoCancelPrevious(function (predicates, values) {
+            var output = [];
+            var cancelers = [];
+            var cumulativeLengths = [0];
+
+            function update(index) {
+                for (; index < predicates.length; index++) {
+                    cumulativeLengths[index + 1] = cumulativeLengths[index] + predicates[index];
+                }
+            }
+
+            function contentChange(plusPredicates, minusPredicates, index) {
+                var plusValues = values.slice(index, index + plusPredicates.length);
+                var oldLength = minusPredicates.sum();
+                var newLength = plusPredicates.sum();
+                var length = newLength - oldLength;
+                var plusOutput = plusValues.filter(function (value, offset) {
+                    return plusPredicates[offset];
+                });
+                var start = cumulativeLengths[index];
+                output.swap(start, Math.max(0, oldLength - newLength), plusOutput);
+                update(start);
+            }
+
+            contentChange(predicates, [], 0);
+            var cancel = emit(output) || noop;
+            predicates.addContentChangeListener(contentChange, beforeChange);
+            return once(function cancelMapObserver() {
+                cancel();
+                cancelEach(cancelers);
+                input.removeContentChangeListener(contentChange, beforeChange);
+            });
+
         }), value, parameters, beforeChange);
     };
 }
