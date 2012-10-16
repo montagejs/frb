@@ -2,6 +2,8 @@
 var bind = require("../bind");
 var Frb = require("..");
 
+Error.stackTraceLimit = 100;
+
 describe("tutorial", function () {
 
     it("1", function () {
@@ -80,7 +82,7 @@ describe("tutorial", function () {
 
     it("tuples", function () {
         var object = {array: [[1, 2, 3], [4, 5]]};
-        bind(object, "summary", {"<-": "array.map{(length, sum())}"});
+        bind(object, "summary", {"<-": "array.map{[length, sum()]}"});
         expect(object.summary).toEqual([
             [3, 6],
             [2, 9]
@@ -101,7 +103,7 @@ describe("tutorial", function () {
     it("parameters", function () {
         var object = {a: 10, b: 20, c: 30};
         bind(object, "foo", {
-            "<-": "($a, $b, $c)",
+            "<-": "[$a, $b, $c]",
             parameters: object
         });
         expect(object.foo).toEqual([10, 20, 30]);
@@ -202,7 +204,7 @@ describe("bindings", function () {
         var source = [{numbers: [1,2,3]}, {numbers: [4,5,6]}];
         var target = {};
         var cancel = bind(target, "summary", {
-            "<-": "map{(numbers.sum(), numbers.average())}",
+            "<-": "map{[numbers.sum(), numbers.average()]}",
             source: source
         });
 

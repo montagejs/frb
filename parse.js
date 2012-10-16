@@ -1,7 +1,7 @@
 
-var Parser = require("./parser");
 var Map = require("collections/map");
 
+var Parser = require("./lib/parser");
 var makeTrie = require("./lib/trie");
 var makeParserFromTrie = require("./lib/trie-parser");
 var makeLeftToRightParser = require("./lib/l2r-parser");
@@ -107,8 +107,10 @@ parse.semantics = {
     parseDot: Parser.makeExpect("."),
     parseBlockBegin: Parser.makeExpect("{"),
     parseBlockEnd: Parser.makeExpect("}"),
-    parseTupleBegin: Parser.makeExpect("("),
-    parseTupleEnd: Parser.makeExpect(")"),
+    parseOpenParen: Parser.makeExpect("("),
+    parseCloseParen: Parser.makeExpect(")"),
+    parseTupleBegin: Parser.makeExpect("["),
+    parseTupleEnd: Parser.makeExpect("]"),
     parseRecordBegin: Parser.makeExpect("{"),
     parseRecordEnd: Parser.makeExpect("}"),
     parseColon: Parser.makeExpect(":"),
@@ -195,6 +197,8 @@ parse.semantics = {
             } else if (character === "'") {
                 return self.parseStringTail(callback, "");
             } else if (character === "(") {
+                return self.parseParenthetical(callback)(character, loc);
+            } else if (character === "[") {
                 return self.parseTuple(callback)(character, loc);
             } else if (character === "{") {
                 return self.parseRecord(callback)(character);
@@ -263,7 +267,7 @@ parse.semantics = {
                             }
                         })(character);
                     } else if (character === "(") {
-                        return self.parseTuple(function (tuple) {
+                        return self.parseArguments(function (tuple) {
                             return self.parseTail(callback, {
                                 type: identifier,
                                 args: [previous].concat(tuple.args)
@@ -308,7 +312,7 @@ parse.semantics = {
                         if (end) {
                             return callback(expression);
                         } else {
-                            var error = new Error("Expected \")\"");
+                            var error = new Error("Expected \"}\"");
                             error.loc = loc;
                             throw error;
                         }
@@ -320,12 +324,70 @@ parse.semantics = {
         });
     },
 
+    parseParenthetical: function (callback) {
+        var self = this;
+        return self.parseOpenParen(function () {
+            return self.parseExpression(function (expression) {
+                return self.parseCloseParen(function () {
+                    return callback(expression);
+                });
+            });
+        });
+    },
+
     parseTuple: function (callback) {
         var self = this;
         return self.parseTupleBegin(function (begin) {
             if (begin) {
                 return self.parseTupleInternal(function (args) {
                     return self.parseTupleEnd(function (end, loc) {
+                        if (end) {
+                            return callback({
+                                type: "tuple",
+                                args: args
+                            });
+                        } else {
+                            var error = new Error("Expected \"]\"");
+                            error.loc = loc;
+                            throw error;
+                        }
+                    });
+                });
+            } else {
+                return callback();
+            }
+        });
+    },
+
+    parseTupleInternal: function (callback, args) {
+        var self = this;
+        args = args || [];
+        return function (character, loc) {
+            if (character === "]") {
+                return callback(args)(character, loc);
+            } else {
+                return self.parseExpression(function (expression) {
+                    args.push(expression);
+                    return function (character) {
+                        if (character === ",") {
+                            return self.skipWhiteSpace(function () {
+                                return self.parseTupleInternal(callback, args);
+                            });
+                        } else {
+                            return callback(args)(character);
+                        }
+                    };
+                })(character);
+            }
+        };
+    },
+
+    parseArguments: function (callback) {
+        var self = this;
+        return self.parseOpenParen(function (begin) {
+            if (begin) {
+                return self.parseArgumentsInternal(function (args) {
+                    return self.parseCloseParen(function (end, loc) {
                         if (end) {
                             return callback({
                                 type: "tuple",
@@ -344,25 +406,25 @@ parse.semantics = {
         });
     },
 
-    parseTupleInternal: function (callback, args) {
+    parseArgumentsInternal: function (callback, args) {
         var self = this;
         args = args || [];
-        return function (character) {
+        return function (character, loc) {
             if (character === ")") {
-                return callback(args)(character);
+                return callback(args)(character, loc);
             } else {
                 return self.parseExpression(function (expression) {
                     args.push(expression);
                     return function (character) {
                         if (character === ",") {
                             return self.skipWhiteSpace(function () {
-                                return self.parseTupleInternal(callback, args);
+                                return self.parseArgumentsInternal(callback, args);
                             });
                         } else {
                             return callback(args)(character);
                         }
                     };
-                })(character);
+                })(character, loc);
             }
         };
     },

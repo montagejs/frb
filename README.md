@@ -444,7 +444,7 @@ parantheses-enclosed.
 
 ```javascript
 var object = {array: [[1, 2, 3], [4, 5]]};
-bind(object, "summary", {"<-": "array.map{(length, sum())}"});
+bind(object, "summary", {"<-": "array.map{[length, sum()]}"});
 expect(object.summary).toEqual([
     [3, 6],
     [2, 9]
@@ -481,7 +481,7 @@ dollar sign.
 ```javascript
 var object = {a: 10, b: 20, c: 30};
 bind(object, "foo", {
-    "<-": "($a, $b, $c)"},
+    "<-": "[$a, $b, $c]"},
     parameters: object
 });
 ```
@@ -925,7 +925,7 @@ var bind = require("frb/bind");
 var source = [{numbers: [1,2,3]}, {numbers: [4,5,6]}];
 var target = {};
 var cancel = bind(target, "summary", {
-    "<-": "map{(numbers.sum(), numbers.average())}",
+    "<-": "map{[numbers.sum(), numbers.average()]}",
     source: source
 });
 
@@ -1059,16 +1059,20 @@ brute force.
 -   **chain expression** = **primary expression** *delimited by* `.`
     ( `.*` )?
 -   **primary expression** = **literal** *or* `(` **expression** `)`
+    *or* **array expression** *or* **object expression**
     *or* **property name** *or* **function call** *or* **block call**
+-   **array expression** = `[` **expression** *delimited by* `,` `]`
+-   **object expression** = `{` (**property name** `:` **expression**)
+    *delimited by* `,` `}`
 -   **property name** = ( **non space character** )+
 -   **block name** = **function name** *or* `map`
+-   **function call** = **function name** `(` **expression** *delimited
+    by* `,` `)`
 -   **function name** = `flatten` *or* `reversed` *or* `sum` *or*
     `average` *or* `has`
--   **function call** = **function name** `(` **tuple** `)`
 -   **block call** = **function name** `{` **expression** `}`
--   **tuple** = **expression** *delimited by* `,`
 -   **literal** = **string literal** *or* **number literal**
--   **number literal** = **digits* ( `.` **digits** )?
+-   **number literal** = **digits** ( `.` **digits** )?
 -   **string literal** = `'` ( **non quote character** *or* `\`
     **character** )* `'`
 

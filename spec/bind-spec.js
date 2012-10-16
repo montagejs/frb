@@ -128,7 +128,7 @@ describe("bind", function () {
 
     describe("tuple", function () {
         var object = {a: 10, b: 20, c: 30};
-        var cancel = bind(object, "d", {"<-": "(a,b,c)"});
+        var cancel = bind(object, "d", {"<-": "[a, b, c]"});
         expect(object.d).toEqual([10, 20, 30]);
         cancel();
         object.c = 40;
@@ -167,7 +167,7 @@ describe("bind", function () {
 
     describe("literals", function () {
         var object = {};
-        var cancel = bind(object, "literals", {"<-": "(0, 'foo bar')"});
+        var cancel = bind(object, "literals", {"<-": "[0, 'foo bar']"});
         expect(object.literals).toEqual([0, "foo bar"]);
     });
 
@@ -293,7 +293,7 @@ describe("bind", function () {
         var parameters = {a: 10, b: 20, c: 30};
         var source = [1, 2, 3];
         var cancel = bind(object, "foo", {
-            "<-": "($a, $b, map($c))",
+            "<-": "[$a, $b, map{$c}]",
             parameters: parameters,
             source: source
         });

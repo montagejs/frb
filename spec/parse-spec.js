@@ -30,20 +30,20 @@ describe("parse", function () {
         },
 
         {
-            input: "()",
+            input: "[]",
             output: {type: "tuple", args: [
             ]}
         },
 
         {
-            input: "(,)",
+            input: "[,]",
             output: {type: "tuple", args: [
                 {type: "value"}
             ]}
         },
 
         {
-            input: "(,,)",
+            input: "[,,]",
             output: {type: "tuple", args: [
                 {type: "value"},
                 {type: "value"}
@@ -51,7 +51,7 @@ describe("parse", function () {
         },
 
         {
-            input: "(a)",
+            input: "[a]",
             output: {type: "tuple", args: [
                 {type: "property", args: [
                     {type: "value"},
