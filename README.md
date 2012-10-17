@@ -624,34 +624,46 @@ objects.  The `frb` (`frb/bindings`) module exports this interface.
 var Bindings = require("frb");
 ```
 
-The `Bindings.create` and `Bindings.define` methods have a similar
-interface.  The `create` function creates a new object with properties
-and bindings.  The `define` function augments an existing object.  The
-properties object is just key value pairs to copy to the object, for
-convenience.
+The `Bindings` module provides `defineBindings` and `cancelBindings`,
+`defineBinding` and `cancelBinding`, as well as binding inspector
+methods `getBindings` and `getBinding`.  All of these take a target
+object as the first argument.
+
+The `Bindings.defineBinding(target, descriptors)` method returns the
+target object for convenience.
 
 ```javascript
-var object = Bindings.create(Object.prototype, {
-    a: 10,
-    b: 20
+var target = Bindings.defineBindings({}, {
+    "fahrenheit": {"<->": "celsius * 1.8 + 32"},
+    "celsius": {"<->": "kelvin - 272.15"}
 });
-expect(object.a).toEqual(10);
-expect(object.b).toEqual(20);
+target.celsius = 0;
+expect(target.fahrenheit).toEqual(32);
+expect(target.kelvin).toEqual(272.15);
+```
 
-Bindings.define(object, {
-    b: 30,
-    c: 50
-});
-expect(object.b).toEqual(30);
-expect(object.c).toEqual(50);
+`Bindings.getBindings` in that case would return an object with
+`fahrenheit` and `celsius` keys.  The values would be identical to the
+given binding descriptor objects, like `{"<->": "kelvin - 272.15"}`, but
+it also gets annotated with a `cancel` function and the default values
+for any ommitted properties like `source` (same as `target`),
+`parameters` (same as `source`), and others.
+
+`Bindings.cancelBindings` cancels all bindings attached to an object and
+removes them from the bindings descriptors object.
+
+```javascript
+Bindings.cancelBindings(target);
+expect(Bindings.getBindings(object)).toEqual({});
 ```
 
 ### Binding Descriptors
 
-The third argument of both `create` and `define` is an object containing
-property descriptors.  These are the same property descriptors you see
-with EcmaScript 5’s `Object.defineProperty`.  They additionally can
-contain bindings or dependent paths.
+Binding descriptors describe the source of a binding and additional
+parameters.  `Bindings.defineBindings` can set up bindings (```<-``` or
+```<->```), computed (```compute```) properties, and falls back to
+defining ES5 properties with permissive defaults (`enumerable`,
+`writable`, and `configurable` all on by default).
 
 If a descriptor has a ```<-``` or ```<->```, it is a binding descriptor.
 FRB creates a binding, adds the canceler to the descriptor, and adds the
@@ -659,7 +671,7 @@ descriptor to an internal table that tracks all of the bindings defined
 on that object.
 
 ```javascript
-var object = Bindings.create(null, {
+var object = Bindings.defineBindings({
     darkMode: false,
     document: document
 }, {
@@ -692,11 +704,11 @@ In this example, `a` and `b` are synchronized such that `a` is always
 half of `b`, regardless of which property gets updated.
 
 ```javascript
-Bindings.create(null, {
+Bindings.defineBindings({
     a: 10
 }, {
     b: {
-        "<-": a
+        "<-": "a",
         convert: function (a) {
             return a * 2;
         },
@@ -711,11 +723,11 @@ Converter objects are useful for reusable or modular converter types and
 converters that track additional state.
 
 ```javascript
-Bindings.create(null, {
+Bindings.defineBindings({
     a: 10
 }, {
     b: {
-        "<-": a
+        "<-": "a",
         converter: {
             factor: 2,
             convert: function (a) {
@@ -744,7 +756,7 @@ window’s search string, effectively navigating to a new page whenever
 the "q" or "charset" entries of the form change.
 
 ```javascript
-Bindings.create(null, {
+Bindings.defineBindings({
     window: window,
     form: {
         q: "",
@@ -773,7 +785,7 @@ property on a descriptor instructs the binder to log changes to the
 console.
 
 ```javascript
-Bindings.create(null, {
+Bindings.defineBindings({
     a: 10
 }, {
     b: {
@@ -857,15 +869,13 @@ them with extended property descriptors.
 var Bindings = require("frb");
 
 // create an object
-var object = Bindings.create(null, { // prototype
-    // simple properties
+var object = Bindings.defineBindings({
     foo: 0,
     graph: [
         {numbers: [1,2,3]},
         {numbers: [4,5,6]}
     ]
 }, {
-    // extended property descriptors
     bar: {"<->": "foo", enumerable: false},
     numbers: {"<-": "graph.map{numbers}.flatten()"},
     sum: {"<-": "numbers.sum()"},
@@ -914,8 +924,7 @@ Bindings.cancelBindings(object); // cancels all bindings on this object and
 // they go
 ```
 
--   `Bindings.create(prototype, properties, descriptors)`
--   `Bindings.define(object, properties, descriptors)`
+-   `Bindings.defineBindings(object, name, descriptor)`
 -   `Bindings.defineBinding(object, name, descriptor)`
 -   `Bindings.getBindings(object)`
 -   `Bindings.getBinding(object, name)`

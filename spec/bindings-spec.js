@@ -8,7 +8,7 @@ describe("bindings", function () {
         describe("string", function () {
             it("should propagate related bindings", function () {
 
-                var object = Bindings.create(null, {
+                var object = Bindings.defineBindings({
                     foo: 10,
                     bar: 20
                 }, {
@@ -35,7 +35,7 @@ describe("bindings", function () {
 
             it("should propagate related bindings", function () {
 
-                var object = Bindings.create(null, {
+                var object = Bindings.defineBindings({
                     foo: 10,
                     bar: 20
                 }, {
@@ -65,7 +65,7 @@ describe("bindings", function () {
 
         it("should work", function () {
 
-            var bindings = Bindings.create(null, {
+            var bindings = Bindings.defineBindings({
                 options: [],
                 off: true,
                 on: false
@@ -90,7 +90,7 @@ describe("bindings", function () {
 
         it("should work", function () {
 
-            var bindings = Bindings.create(null, {
+            var bindings = Bindings.defineBindings({
                 options: [],
                 off: true,
                 on: false
@@ -117,9 +117,7 @@ describe("bindings", function () {
 
     it("should not update an active property", function () {
 
-        var bindings = Bindings.create(null, {
-            input: "0"
-        }, {
+        var bindings = Bindings.defineBindings({}, {
             "output": {"<->": "input",
                 convert: function (value) {
                     return Number(value).toFixed(1);
@@ -130,6 +128,7 @@ describe("bindings", function () {
             }
         });
 
+        bindings.input = "0";
         expect(bindings.input).toEqual("0");
         expect(bindings.output).toEqual("0.0");
 

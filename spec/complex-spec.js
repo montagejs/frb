@@ -1,11 +1,11 @@
 
-var Frb = require("..");
+var Bindings = require("..");
 
 describe("complex binding chain", function () {
 
     var trace = false;
 
-    var ui = Frb.create(null, {
+    var ui = Bindings.defineBindings({
         apples: {checked: true},
         oranges: {checked: false},
         selected: "apples",

@@ -1,12 +1,14 @@
 
+var Bindings = require("../bindings");
 var bind = require("../bind");
 var Frb = require("..");
 
 Error.stackTraceLimit = 100;
 
-describe("tutorial", function () {
+describe("Tutorial", function () {
 
     it("1", function () {
+        // mock
         var document = {body: {innerHTML: ""}};
 
         var model = {content: "Hello, World!"};
@@ -26,7 +28,6 @@ describe("tutorial", function () {
     });
 
     it("2", function () {
-        var bind = require("../bind");
 
         var object = {};
         var cancel = bind(object, "foo", {
@@ -134,10 +135,8 @@ describe("tutorial", function () {
 describe("declarations", function () {
     it("should work", function () {
 
-        var Frb = require("..");
-
         // create an object
-        var object = Frb.create(null, { // prototype
+        var object = Bindings.defineBindings({ // prototype
             // simple properties
             foo: 0,
             graph: [
@@ -196,8 +195,98 @@ describe("declarations", function () {
     });
 });
 
-describe("bindings", function () {
-    it("should work", function () {
+describe("Bindings", function () {
+
+    it("Bindings", function () {
+        var target = Bindings.defineBindings({}, {
+            "fahrenheit": {"<->": "celsius * 1.8 + 32"},
+            "celsius": {"<->": "kelvin - 272.15"}
+        });
+        target.celsius = 0;
+        expect(target.fahrenheit).toEqual(32);
+        expect(target.kelvin).toEqual(272.15);
+    });
+
+    it("Binding Descriptors", function () {
+        var document = {body: {classList: []}};
+
+        var object = Bindings.defineBindings({
+            darkMode: false,
+            document: document
+        }, {
+            "document.body.classList.has('dark')": {
+                "<-": "darkMode"
+            }
+        });
+
+        // continued
+        Bindings.cancelBindings(object);
+        expect(Bindings.getBindings(object)).toEqual({});
+    });
+
+    it("Converters", function () {
+        Bindings.defineBindings({
+            a: 10
+        }, {
+            b: {
+                "<-": "a",
+                convert: function (a) {
+                    return a * 2;
+                },
+                revert: function (b) {
+                    return a / 2;
+                }
+            }
+        });
+
+        // continue
+        Bindings.defineBindings({
+            a: 10
+        }, {
+            b: {
+                "<-": "a",
+                converter: {
+                    factor: 2,
+                    convert: function (a) {
+                        return a * this.factor;
+                    },
+                    revert: function (b) {
+                        return a / this.factor;
+                    }
+                }
+            }
+        });
+    });
+
+    it("Computed Properties", function () {
+        /*
+        // preamble
+        var window = {location: {search: ""}};
+
+        Bindings.defineBindings({
+            window: window,
+            form: {
+                q: "",
+                charset: "utf-8"
+            }
+        }, {
+            queryString: {
+                args: ["form.q", "form.charset"],
+                compute: function (q, charset) {
+                    return "?" + QS.stringify({
+                        q: q,
+                        charset: charset
+                    });
+                }
+            },
+            "window.location.search": {
+                "<-": "queryString"
+            }
+        });
+        */
+    });
+
+    it("Bind", function () {
 
         var bind = require("../bind");
 
