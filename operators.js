@@ -4,7 +4,13 @@ require("collections/object"); // shim equals, compare
 // from highest to lowest precedence
 
 exports.number = function (s) {
-    return +s;
+    if (typeof s === "number") {
+        return s;
+    } else if (typeof s === "string") {
+        return parseInt(s, 10) || 0;
+    } else {
+        return 0;
+    }
 };
 
 exports.not = function (b) {
