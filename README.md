@@ -548,7 +548,7 @@ callback.  For example, to observe a property’s value *before it changes*, you
 ```javascript
 var object = {foo: {bar: 10}};
 var cancel = observe(object, "foo.bar", {
-    set: function (value) {
+    change: function (value) {
         // 10
         // 20
     },
@@ -566,7 +566,7 @@ flag.
 ```javascript
 var array = [[1, 2, 3], [4, 5, 6]];
 observe(array, "map{sum()}", {
-    set: function (sums) {
+    change: function (sums) {
         // 1. [6, 15]
         // 2. [6, 15, 0]
         // 3. [10, 15, 0]
@@ -1044,7 +1044,7 @@ callback.
 ```javascript
 var object = {};
 var cancel = observe(object, "array", {
-    set: function (value) {
+    change: function (value) {
         // may return a cancel function for a nested observer
     },
     parameters: {},

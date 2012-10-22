@@ -7,7 +7,7 @@ module.exports = observe;
 function observe(object, path, descriptorOrFunction) {
     var descriptor;
     if (typeof descriptorOrFunction === "function") {
-        descriptor = {set: descriptorOrFunction};
+        descriptor = {change: descriptorOrFunction};
     } else {
         descriptor = descriptorOrFunction;
     }
@@ -23,13 +23,20 @@ function observe(object, path, descriptorOrFunction) {
     var observe = compile(syntax);
 
     // decorate for content change observations
-    if (contentChange) {
+    if (contentChange === true) {
         observe = Observers.makeContentObserver(observe);
     }
 
-    return observe(function () {
-        return descriptor.set.apply(object, arguments);
-    }, object, parameters, beforeChange);
+    return observe(Observers.autoCancelPrevious(function (value) {
+        if (typeof contentChange === "function") {
+            value.addContentChangeListener(contentChange);
+            return function () {
+                value.removeContentChangeListener(contentChange);
+            };
+        } else {
+            return descriptor.change.apply(object, arguments);
+        }
+    }), object, parameters, beforeChange);
 }
 
 var empty = {};

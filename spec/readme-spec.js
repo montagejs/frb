@@ -337,7 +337,7 @@ describe("observe", function () {
 
         var object = {};
         var cancel = observe(object, "array", {
-            set: function (value) {
+            change: function (value) {
                 // may return a cancel function for a nested observer
             },
             parameters: {},

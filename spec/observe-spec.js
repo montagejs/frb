@@ -7,20 +7,16 @@ describe("observe", function () {
         var object = {};
 
         var cancel = observe(object, "a", spy);
-        expect(spy.argsForCall).toEqual([
-            [undefined, 'a', object],
-        ]);
+        expect(spy.argsForCall).toEqual([]);
 
         object.a = 10;
         expect(spy.argsForCall).toEqual([
-            [undefined, 'a', object],
             [10, 'a', object]
         ]);
 
         cancel();
-        object.b = 20;
+        object.a = 20;
         expect(spy.argsForCall).toEqual([
-            [undefined, 'a', object],
             [10, 'a', object]
         ]);
 
@@ -30,13 +26,14 @@ describe("observe", function () {
         var spy = jasmine.createSpy();
         var object = {};
         var cancel = observe(object, 'a', {
-            set: function (value) {
-                expect(value).toBe(undefined);
+            change: function (value) {
+                expect(value).toBe(10);
                 spy();
             },
             beforeChange: true
         });
         object.a = 10;
+        object.a = 20;
         expect(spy).toHaveBeenCalled();
     });
 
@@ -44,7 +41,7 @@ describe("observe", function () {
         var spy = jasmine.createSpy();
         var object = {};
         var cancel = observe(object, 'array', {
-            set: function (array) {
+            change: function (array) {
                 spy(array.slice());
             },
             contentChange: true
@@ -63,11 +60,33 @@ describe("observe", function () {
         ]);
     });
 
+    it("should observe content changes", function () {
+        var spy = jasmine.createSpy();
+        var object = {};
+        var cancel = observe(object, 'array', {
+            contentChange: function (plus, minus, index) {
+                spy(plus, minus, index);
+            },
+        });
+        object.array = [];
+        object.array.push(10);
+        object.array.pop();
+        object.array = [];
+        cancel();
+        object.array = [10];
+        expect(spy.argsForCall).toEqual([
+            //[[], [], 0],
+            [[10], [], 0],
+            [[], [10], 0]
+            //[[]]
+        ]);
+    });
+
     it("should pass content-less values through content-change-observer", function () {
         var spy = jasmine.createSpy();
         var object = {};
         var cancel = observe(object, 'array', {
-            set: function (array) {
+            change: function (array) {
                 spy(array);
             },
             contentChange: true
