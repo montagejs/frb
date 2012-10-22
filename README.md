@@ -226,6 +226,21 @@ object.shift();
 expect(object.evens).toEqual([4, 6, 8]);
 ```
 
+### Enumerate
+
+An enumeration observer produces `{index, value}` pairs.  You can bind
+to the index or the item in subsequent stages.
+
+```javascript
+var object = {letters: ['a', 'b', 'c', 'd']};
+bind(object, "lettersAtEvenIndicies", {
+    "<-": "letters.enumerate().filter{!(index % 2)}.map{value}"
+});
+expect(object.lettersAtEvenIndicies).toEqual(['a', 'c']);
+object.letters.shift();
+expect(object.lettersAtEvenIndicies).toEqual(['b', 'd']);
+```
+
 ### Flatten
 
 You can flatten nested arrays.  In this example, we have an array of
@@ -1088,8 +1103,9 @@ brute force.
 -   **chain expression** = **primary expression** *delimited by* `.`
     ( `.*` )?
 -   **primary expression** = **literal** *or* `(` **expression** `)`
-    *or* **array expression** *or* **object expression**
-    *or* **property name** *or* **function call** *or* **block call**
+    *or* **array expression** *or* **object expression** *or* **property
+    name** *or* `#` **element id** *or* `@` **component label** *or*
+    **function call** *or* **block call**
 -   **array expression** = `[` **expression** *delimited by* `,` `]`
 -   **object expression** = `{` (**property name** `:` **expression**)
     *delimited by* `,` `}`
@@ -1122,6 +1138,15 @@ available.
 -   Each subsequent term uses the target of the previous as its source.
 -   Literals are interpreted as their corresponding value.
 -   A property expression observes the named key of the source object.
+-   An element identifier (with the `#` prefix) uses the `document`
+    property of the `parameters` object and emits
+    `document.getElementById(id)`, or dies trying.  Changes to the
+    document are not observed.
+-   A component label (with the `@` prefix) uses the `serialization`
+    property of `parameters` object and emits
+    `serialization.getObjectForLable(label)`, or dies trying.  Changes
+    to the serialization are not observed.  This syntax exists to
+    support [Montage][] serializations.
 -   A "map" block observes the source array and emits a target array.
     The target array is emitted once and all subsequent updates are
     reflected as content changes that can be independently observed with
@@ -1263,6 +1288,7 @@ For all function calls, the right hand side is a tuple of arguments,
 presently ignored.
 
 -   `reversed`
+-   `enumerate`
 -   `flatten`
 -   `sum`
 -   `average`
@@ -1278,6 +1304,8 @@ All of these functions are or return an observer function of the form
 -   `observeValue`
 -   `observeParameters`
 -   `makeLiteralObserver(value)`
+-   `makeElementObserver(id)`
+-   `makeComponentObserver(label)`
 -   `makeRelationObserver(callback, thisp)` is unavailable through the
     property binding language, translates a value through a JavaScript
     function.
@@ -1287,13 +1315,15 @@ All of these functions are or return an observer function of the form
     converter function to transform a value to a converted value.
 -   `makePropertyObserver(observeObject, observeKey)`
 -   `makeMapObserver(observeArray, observeRelation)`
+-   `makeFilterObserver(observeArray, observePredicate)`
+-   `makeEnumerationObserver(observeArray)`
+-   `makeFlattenObserver(observeOuterArray)`
 -   `makeTupleObserver(...observers)`
 -   `makeObserversObserver(observers)`
 -   `makeReversedObserver(observeArrayh)`
 -   `makeWindowObserver` is not presently available through the language
     and is subject to change.  It is for watching a length from an array
     starting at an observable index.
--   `makeFlattenObserver(observeArray)`
 -   `makeSumObserver(observeArray)`
 -   `makeAverageObserver(observeArray)`
 

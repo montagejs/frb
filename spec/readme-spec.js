@@ -372,3 +372,14 @@ describe("compile", function () {
     });
 });
 
+describe("enmerate", function () {
+    it("should work", function () {
+        var object = {letters: ['a', 'b', 'c', 'd']};
+        bind(object, "lettersAtEvenIndicies", {
+            "<-": "letters.enumerate().filter{!(index % 2)}.map{value}"
+        });
+        expect(object.lettersAtEvenIndicies).toEqual(['a', 'c']);
+        object.letters.shift();
+        expect(object.lettersAtEvenIndicies).toEqual(['b', 'd']);
+    });
+});
