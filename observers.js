@@ -153,18 +153,42 @@ function makeReplacingMapObserver(observeArray, observeRelation) {
     return function observeMap(emit, value, parameters, beforeChange) {
         return observeArray(autoCancelPrevious(function replaceMapInput(input) {
             var output = [];
+            var indexRefs = [];
             var cancelers = [];
-            function contentChange(plus, minus, index) {
-                cancelEach(cancelers.swap(
-                    index,
-                    minus.length,
-                    observeEach(plus, observeRelation, function replaceSlice(replacement) {
-                        output.swap(index, minus.length, replacement);
-                    }, value, parameters, beforeChange)
-                ));
+
+            function update(index) {
+                for (; index < input.length; index++) {
+                    indexRefs[index].index = index;
+                }
             }
-            contentChange(input, [], 0)
+
+            function contentChange(plus, minus, index) {
+                indexRefs.swap(index, minus.length, plus.map(function (value, offset) {
+                    return {index: index + offset};
+                }));
+                update(index + plus.length);
+                var initialized;
+                var mapped = [];
+                cancelEach(cancelers.swap(index, minus.length, plus.map(function (value, offset) {
+                    var indexRef = indexRefs[index + offset];
+                    return observeRelation(autoCancelPrevious(function replaceRelationOutput(value) {
+                        if (initialized) {
+                            output.set(indexRef.index, value);
+                        } else {
+                            mapped[offset] = value;
+                        }
+                    }), value, parameters, beforeChange);
+                })));
+                initialized = true;
+                output.swap(index, minus.length, mapped);
+            }
+
+            contentChange(input, [], 0);
+
+            // passing the input as a second argument is a special feature of a
+            // mapping observer, utilized by filter observers
             var cancel = emit(output, input) || noop;
+
             input.addContentChangeListener(contentChange, beforeChange);
             return once(function cancelMapObserver() {
                 cancel();
@@ -179,7 +203,7 @@ exports.makeFilterObserver = makeNonReplacing(makeReplacingFilterObserver);
 function makeReplacingFilterObserver(observeArray, observePredicate) {
     var observePredicates = makeReplacingMapObserver(observeArray, observePredicate);
     return function observeFilter(emit, value, parameters, beforeChange) {
-        return observePredicates(autoCancelPrevious(function (predicates, values) {
+        return observePredicates(autoCancelPrevious(function (predicates, input) {
             var output = [];
             var cancelers = [];
             var cumulativeLengths = [0];
@@ -191,7 +215,7 @@ function makeReplacingFilterObserver(observeArray, observePredicate) {
             }
 
             function contentChange(plusPredicates, minusPredicates, index) {
-                var plusValues = values.slice(index, index + plusPredicates.length);
+                var plusValues = input.slice(index, index + plusPredicates.length);
                 var oldLength = minusPredicates.sum();
                 var newLength = plusPredicates.sum();
                 var length = newLength - oldLength;
@@ -206,7 +230,7 @@ function makeReplacingFilterObserver(observeArray, observePredicate) {
             contentChange(predicates, [], 0);
             var cancel = emit(output) || noop;
             predicates.addContentChangeListener(contentChange, beforeChange);
-            return once(function cancelMapObserver() {
+            return once(function cancelFilterObserver() {
                 cancel();
                 cancelEach(cancelers);
                 input.removeContentChangeListener(contentChange, beforeChange);
@@ -253,20 +277,6 @@ function makeObserversObserver(observers) {
             cancelEach(cancelers);
         });
     };
-}
-
-// a utility for the map observer that replaces a spliced region of the input
-// array with the mapped values, and corresponding cancelers for observing each
-// of those values.
-function observeEach(array, observeRelation, emit, value, parameters, beforeChange) {
-    var output = Array(array.length);
-    var cancelers = array.map(function observeOne(value, index) {
-        return observeRelation(function replaceOne(value) {
-            output.set(index, value);
-        }, value, parameters, beforeChange)
-    });
-    emit(output);
-    return cancelers;
 }
 
 // calculating the reflected index for an incremental change:
@@ -325,11 +335,11 @@ function makeReplacingFlattenObserver(observeArray) {
             var output = [];
             var cancelers = [];
             var cumulativeLengths = [0];
-            var indicies = [];
+            var indexRefs = [];
 
             function update(i) {
                 for (var j = i; j < input.length; j++) {
-                    indicies[j].index = j;
+                    indexRefs[j].index = j;
                     cumulativeLengths[j + 1] = cumulativeLengths[j] + input[j].length;
                 }
             }
@@ -342,7 +352,7 @@ function makeReplacingFlattenObserver(observeArray) {
                 var length = end - start;
                 output.swap(start, length, []);
 
-                indicies.swap(i, minus.length, plus.map(function () {
+                indexRefs.swap(i, minus.length, plus.map(function () {
                     return {index: null};
                 }));
                 update(i);
@@ -352,7 +362,7 @@ function makeReplacingFlattenObserver(observeArray) {
                     i,
                     minus.length,
                     plus.map(function (inner, j) {
-                        var index = indicies[i + j];
+                        var index = indexRefs[i + j];
                         function innerContentChange(plus, minus, k) {
                             update(index.index);
                             var start = cumulativeLengths[index.index] + k;
@@ -387,7 +397,7 @@ function makeReplacingFlattenObserver(observeArray) {
 exports.makeEnumerationObserver = makeNonReplacing(makeReplacingEnumerationObserver);
 function makeReplacingEnumerationObserver(observeArray) {
     return function (emit, value, parameters, beforeChange) {
-        return observeArray(autoCancelPrevious(function replaceArray(array) {
+        return observeArray(autoCancelPrevious(function replaceArray(input) {
             var output = [];
             function update(index) {
                 for (; index < output.length; index++) {
@@ -403,12 +413,12 @@ function makeReplacingEnumerationObserver(observeArray) {
                 }));
                 update(index + plus.length);
             }
-            contentChange(array, [], 0);
+            contentChange(input, [], 0);
             var cancel = emit(output) || noop;
-            array.addContentChangeListener(contentChange);
+            input.addContentChangeListener(contentChange);
             return function cancelEnumerationObserver() {
                 cancel();
-                array.removeContentChangeListener(contentChange);
+                input.removeContentChangeListener(contentChange);
             };
         }), value, parameters, beforeChange);
     };
