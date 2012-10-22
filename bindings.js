@@ -35,17 +35,17 @@ function define(object, properties, descriptors) {
 }
 
 exports.defineBindings = defineBindings;
-function defineBindings(object, descriptors) {
+function defineBindings(object, descriptors, parameters) {
     if (descriptors) {
         for (var name in descriptors) {
-            defineBinding(object, name, descriptors[name]);
+            defineBinding(object, name, descriptors[name], parameters);
         }
     }
     return object;
 }
 
 exports.defineBinding = defineBinding;
-function defineBinding(object, name, descriptor) {
+function defineBinding(object, name, descriptor, parameters) {
     var cancel = noop;
     if (descriptor[constructor]) {
         object = object.constructor;
@@ -54,6 +54,7 @@ function defineBinding(object, name, descriptor) {
     if ("<-" in descriptor || "<->" in descriptor || "compute" in descriptor) {
         cancelBinding(object, name);
         descriptor.target = object;
+        descriptor.parameters = descriptor.parameters || parameters;
         if ("compute" in descriptor) {
             descriptor.cancel = compute(object, name, descriptor);
         } else {

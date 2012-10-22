@@ -138,5 +138,37 @@ describe("bindings", function () {
 
     });
 
+    it("should bind elements by id", function () {
+        var elements = {
+            foo: {checked: true}
+        };
+        var bindings = Bindings.defineBindings({}, {
+            "bar": {"<->": "#foo.checked"}
+        }, {
+            document: {
+                getElementById: function (id) {
+                    return elements[id];
+                }
+            }
+        });
+        expect(bindings.bar).toBe(true);
+    });
+
+    it("should bind components by label", function () {
+        var components = {
+            foo: {checked: true}
+        };
+        var bindings = Bindings.defineBindings({}, {
+            "bar": {"<->": "@foo.checked"}
+        }, {
+            serialization: {
+                getObjectByLabel: function (label) {
+                    return components[label];
+                }
+            }
+        });
+        expect(bindings.bar).toBe(true);
+    });
+
 });
 

@@ -151,6 +151,27 @@ parse.semantics = {
         };
     },
 
+    parseNumber: function parseNumber(callback) {
+        var self = this;
+        return self.parseDigits(function (whole) {
+            return self.parseDot(function (dot) {
+                if (dot) {
+                    return self.parseDigits(function (fraction) {
+                        return callback({
+                            type: "literal",
+                            value: +(whole + "." + fraction)
+                        });
+                    });
+                } else {
+                    return callback({
+                        type: "literal",
+                        value: +whole
+                    });
+                }
+            });
+        })
+    },
+
     parseStringTail: function parseStringTail(callback, string) {
         var self = this;
         return function (character) {
@@ -194,6 +215,20 @@ parse.semantics = {
                 return self.parsePrimary(callback, {
                     type: "parameters"
                 });
+            } else if (character === "#") {
+                return self.parseWord(function (id) {
+                    return self.parseTail(callback, {
+                        type: "element",
+                        id: id
+                    });
+                });
+            } else if (character === "@") {
+                return self.parseWord(function (label) {
+                    return self.parseTail(callback, {
+                        type: "component",
+                        label: label
+                    });
+                });
             } else if (character === "'") {
                 return self.parseStringTail(callback, "");
             } else if (character === "(") {
@@ -206,27 +241,6 @@ parse.semantics = {
                 return self.parseValue(callback, previous)(character);
             }
         };
-    },
-
-    parseNumber: function parseNumber(callback) {
-        var self = this;
-        return self.parseDigits(function (whole) {
-            return self.parseDot(function (dot) {
-                if (dot) {
-                    return self.parseDigits(function (fraction) {
-                        return callback({
-                            type: "literal",
-                            value: +(whole + "." + fraction)
-                        });
-                    });
-                } else {
-                    return callback({
-                        type: "literal",
-                        value: +whole
-                    });
-                }
-            });
-        })
     },
 
     parseValue: function parseValue(callback, previous) {

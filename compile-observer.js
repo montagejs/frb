@@ -30,6 +30,10 @@ var semantics = compile.semantics = {
             return Observers.observeValue;
         } else if (syntax.type === 'parameters') {
             return Observers.observeParameters;
+        } else if (syntax.type === 'element') {
+            return Observers.makeElementObserver(syntax.id);
+        } else if (syntax.type === 'component') {
+            return Observers.makeComponentObserver(syntax.label);
         } else if (syntax.type === 'record') {
             var observers = {};
             var args = syntax.args;

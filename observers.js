@@ -21,6 +21,23 @@ exports.observeParameters = function (emit, value, parameters) {
     return emit(parameters) || noop;
 };
 
+exports.makeElementObserver = makeElementObserver;
+function makeElementObserver(id) {
+    return function (emit, value, parameters) {
+        return emit(parameters.document.getElementById(id)) || noop;
+    };
+}
+
+exports.makeComponentObserver = makeComponentObserver;
+function makeComponentObserver(label) {
+    return function (emit, value, parameters) {
+        if (!parameters.serialization) {
+            throw new Error("Can't observe components without serialization parameter");
+        }
+        return emit(parameters.serialization.getObjectByLabel(label)) || noop;
+    };
+}
+
 exports.makeRelationObserver = makeRelationObserver;
 function makeRelationObserver(relation, thisp) {
     return function observeRelation(emit, value, parameters) {

@@ -257,6 +257,27 @@ describe("parse", function () {
                     {type: "literal", value: 2}
                 ]}
             ]}
+        },
+
+        {
+            input: "#input",
+            output: {type: "element", id: "input"}
+        },
+
+        {
+            input: "#body.classList.has('darkmode')",
+            output: {type: "has", args: [
+                {type: "property", args: [
+                    {type: "element", id: "body"},
+                    {type: "literal", value: "classList"}
+                ]},
+                {type: "literal", value: "darkmode"}
+            ]}
+        },
+
+        {
+            input: "@owner",
+            output: {type: "component", label: "owner"}
         }
 
     ].forEach(function (test) {
