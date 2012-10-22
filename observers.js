@@ -384,6 +384,36 @@ function makeReplacingFlattenObserver(observeArray) {
     };
 }
 
+exports.makeEnumerationObserver = makeNonReplacing(makeReplacingEnumerationObserver);
+function makeReplacingEnumerationObserver(observeArray) {
+    return function (emit, value, parameters, beforeChange) {
+        return observeArray(autoCancelPrevious(function replaceArray(array) {
+            var output = [];
+            function update(index) {
+                for (; index < output.length; index++) {
+                    output[index].index = index;
+                }
+            }
+            function contentChange(plus, minus, index) {
+                output.swap(index, minus.length, plus.map(function (value, offset) {
+                    return {
+                        index: index + offset,
+                        value: value
+                    };
+                }));
+                update(index + plus.length);
+            }
+            contentChange(array, [], 0);
+            var cancel = emit(output) || noop;
+            array.addContentChangeListener(contentChange);
+            return function cancelEnumerationObserver() {
+                cancel();
+                array.removeContentChangeListener(contentChange);
+            };
+        }), value, parameters, beforeChange);
+    };
+}
+
 function cancelEach(cancelers) {
     cancelers.forEach(function (cancel) {
         if (cancel) {

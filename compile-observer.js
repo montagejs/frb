@@ -13,6 +13,7 @@ var semantics = compile.semantics = {
         property: Observers.makePropertyObserver,
         content: identity,
         map: Observers.makeMapObserver,
+        enumerate: Observers.makeEnumerationObserver,
         filter: Observers.makeFilterObserver,
         reversed: Observers.makeReversedObserver,
         flatten: Observers.makeFlattenObserver,
