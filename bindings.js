@@ -11,29 +11,6 @@ var Properties = require("./properties");
 var bindingsForObject = new WeakMap();
 var owns = Object.prototype.hasOwnProperty;
 
-// deprecated
-exports.create = create;
-function create(prototype, properties, descriptors) {
-    var self = Object.create(prototype);
-    define(self, properties, descriptors);
-    return self;
-}
-
-// deprecated
-exports.define = define;
-function define(object, properties, descriptors) {
-    if (descriptors) {
-        for (var name in descriptors) {
-            defineBinding(object, name, descriptors[name]);
-        }
-    }
-    if (properties) {
-        for (var name in properties) {
-            object[name] = properties[name];
-        }
-    }
-}
-
 exports.defineBindings = defineBindings;
 function defineBindings(object, descriptors, parameters) {
     if (descriptors) {
