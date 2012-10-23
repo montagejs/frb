@@ -166,7 +166,9 @@ expect(a.b).toBe(30); // from before it was orphaned
 ### Sum
 
 Some advanced queries are possible with one-way bindings from
-collections.
+collections.  FRB updates sums incrementally.  When values are added or
+removed from the array, the sum of only those items is taken and added
+or removed from the last known sum.
 
 ```javascript
 var object = {array: [1, 2, 3]};
@@ -176,10 +178,14 @@ expect(object.sum).toEqual(6);
 
 ### Average
 
+The arithmetic mean of a collection can be updated incrementally.  Each
+time the array changes, the added and removed items adjust the last
+known sum and count of values in the array.
+
 ```javascript
 var object = {array: [1, 2, 3]};
 bind(object, "average", {"<-": "array.average()"});
-expect(object.average).toEqual(6);
+expect(object.average).toEqual(2);
 ```
 
 ### Map
@@ -197,8 +203,8 @@ var object = {objects: [
 ]};
 bind(object, "numbers", {"<-": "objects.map{number}"});
 expect(object.numbers).toEqual([10, 20, 30]);
-object.objects.push({numbers: 40});
-expect(object.numbers).toEqual([10, 20, 30]);
+object.objects.push({number: 40});
+expect(object.numbers).toEqual([10, 20, 30, 40]);
 ```
 
 Any function, like `sum` or `average`, can be applied to the result of a
@@ -221,8 +227,8 @@ var object = {numbers: [1, 2, 3, 4, 5, 6]};
 bind(object, "evens", {"<-": "numbers.filter{!(%2)}"});
 expect(object.evens).toEqual([2, 4, 6]);
 object.numbers.push(7, 8);
-object.shift();
-object.shift();
+object.numbers.shift();
+object.numbers.shift();
 expect(object.evens).toEqual([4, 6, 8]);
 ```
 
@@ -261,7 +267,7 @@ the flattened array.
 
 ```javascript
 arrays.push([7, 8, 9]);
-array[0].unshift(0);
+arrays[0].unshift(0);
 expect(object.flat).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 ```
 
@@ -281,12 +287,12 @@ You can bind the reversal of an array.
 ```javascript
 var object = {forward: [1, 2, 3]};
 bind(object, "backward", {
-    "<->": "reversed()"
+    "<->": "forward.reversed()"
 });
-expect(object.backward).toEqual([3, 2, 1]);
+expect(object.backward.slice()).toEqual([3, 2, 1]);
 object.forward.push(4);
-expect(object.forward).toEqual([1, 2, 3, 4]);
-expect(object.backward).toEqual([4, 3, 2, 1]);
+expect(object.forward.slice()).toEqual([1, 2, 3, 4]);
+expect(object.backward.slice()).toEqual([4, 3, 2, 1]);
 ```
 
 Note that you can do two-way bindings, ```<->``` with reversed arrays.
@@ -294,8 +300,8 @@ Changes to either side are updated to the opposite side.
 
 ```javascript
 object.backward.pop();
-expect(object.backward).toEqual([4, 3, 2]);
-expect(object.forward).toEqual([2, 3, 4]);
+expect(object.backward.slice()).toEqual([4, 3, 2]);
+expect(object.forward.slice()).toEqual([2, 3, 4]);
 ```
 
 ### Has
@@ -317,7 +323,7 @@ expect(object.hasNeedle).toBe(false);
 The binding also reacts to changes to the value you seek.
 
 ```javascript
-// continued from above
+// Continued from above...
 object.needle = 2;
 expect(object.hasNeedle).toBe(true);
 ```
@@ -330,6 +336,7 @@ can be bound.
 [Collections]: https://github.com/kriskowal/collections
 
 ```javascript
+// Continued from above...
 var Set = require("collections/set");
 object.haystack = new Set([1, 2, 3]);
 expect(object.hasNeedle).toBe(true);
@@ -382,20 +389,20 @@ binding between whether a radio button is checked and a corresponding
 value in our model.
 
 ```javascript
-bind(model, "fruit = 'orange'", {
-    "<->": "checked",
-    source: orangeElement
-});
-bind(model, "fruit = 'apple'", {
-    "<->": "checked",
-    source: appleElement
+var component = {
+    orangeElement: {checked: false},
+    appleElement: {checked: true}
+};
+Bindings.defineBindings(component, {
+    "orangeElement.checked": {"<->": "fruit = 'orange'"},
+    "appleElement.checked": {"<->": "fruit = 'apple'"},
 });
 
-orangeElement.checked = true;
-expect(model.fruit).toEqual("orange");
+component.orangeElement.checked = true;
+expect(component.fruit).toEqual("orange");
 
-appleElement.checked = true;
-expect(model.fruit).toEqual("apple");
+component.appleElement.checked = true;
+expect(component.fruit).toEqual("apple");
 ```
 
 Because equality and assignment are interchanged in this language, you
@@ -412,6 +419,7 @@ then binary `**` power, `//` root, `%%` logarithm, `*`, `/`, `%` modulo,
 ```javascript
 var object = {height: 10};
 bind(object, "heightPx", {"<-": "height + 'px'"});
+expect(object.heightPx).toEqual("10px");
 ```
 
 ### Algebra
@@ -468,7 +476,7 @@ expect(object.greeting).toBe("Hello, World!");
 Number literals are digits with an optional mantissa.
 
 ```javascript
-bind(object, 'four', {"<-": "2 + 2", source: array});
+bind(object, 'four', {"<-": "2 + 2"});
 ```
 
 ### Tuples
@@ -548,29 +556,39 @@ observer from a property path with the `observe` function exported by
 the `frb/observe` module.
 
 ```javascript
+var results = [];
 var object = {foo: {bar: 10}};
 var cancel = observe(object, "foo.bar", function (value) {
-    // 10
-    // 20
+    results.push(value);
 });
+
 object.foo.bar = 10;
+expect(results).toEqual([10]);
+
 object.foo.bar = 20;
+expect(results).toEqual([10, 20]);
 ```
 
 For more complex cases, you can specify a descriptor instead of the
 callback.  For example, to observe a property’s value *before it changes*, you can use the `beforeChange` flag.
 
 ```javascript
+var results = [];
 var object = {foo: {bar: 10}};
 var cancel = observe(object, "foo.bar", {
     change: function (value) {
-        // 10
-        // 20
+        results.push(value);
     },
     beforeChange: true
 });
+
+expect(results).toEqual([10]);
+
 object.foo.bar = 20;
+expect(results).toEqual([10, 10]);
+
 object.foo.bar = 30;
+expect(results).toEqual([10, 10, 20]);
 ```
 
 If the product of an observer is an array, that array is always updated
@@ -579,17 +597,25 @@ emitted every time its content changes, you can use the `contentChange`
 flag.
 
 ```javascript
+var lastResult;
 var array = [[1, 2, 3], [4, 5, 6]];
 observe(array, "map{sum()}", {
     change: function (sums) {
+        lastResult = sums.slice();
         // 1. [6, 15]
         // 2. [6, 15, 0]
         // 3. [10, 15, 0]
     },
     contentChange: true
 });
+
+expect(lastResult).toEqual([6, 15]);
+
 array.push([0]);
+expect(lastResult).toEqual([6, 15, 0]);
+
 array[0].push(4);
+expect(lastResult).toEqual([10, 15, 0]);
 ```
 
 ### Nested Observers
@@ -598,13 +624,20 @@ To get the same effect as the previous example, you would have to nest
 your own content change observer.
 
 ```javascript
+var i = 0;
 var array = [[1, 2, 3], [4, 5, 6]];
 var cancel = observe(array, "map{sum()}", function (array) {
     function contentChange() {
-        // 1. expect(array).toEqual([6, 15]);
-        // 2. expect(array).toEqual([6, 15, 0]);
-        // 3. expect(array).toEqual([10, 15, 0]);
+        if (i === 0) {
+            expect(array.slice()).toEqual([6, 15]);
+        } else if (i === 1) {
+            expect(array.slice()).toEqual([6, 15, 0]);
+        } else if (i === 2) {
+            expect(array.slice()).toEqual([10, 15, 0]);
+        }
+        i++;
     }
+    contentChange();
     array.addContentChangeListener(contentChange);
     return function cancelContentChange() {
         array.removeContentChangeListener(contentChange);
@@ -702,10 +735,12 @@ all the bindings to an object and `Bindings.cancelBinding` will cancel just
 one.
 
 ```javascript
+// Continued from above...
 var bindings = Bindings.getBindings(object);
 var descriptor = Bindings.getBinding(object, "document.body.classList.has('dark')");
 Bindings.cancelBinding(object, "document.body.classList.has('dark')");
-Bindings.cancel(object);
+Bindings.cancelBindings(object);
+expect(Object.keys(bindings)).toEqual([]);
 ```
 
 ### Converters
@@ -719,41 +754,49 @@ In this example, `a` and `b` are synchronized such that `a` is always
 half of `b`, regardless of which property gets updated.
 
 ```javascript
-Bindings.defineBindings({
+var bindings = Bindings.defineBindings({
     a: 10
 }, {
     b: {
-        "<-": "a",
+        "<->": "a",
         convert: function (a) {
             return a * 2;
         },
         revert: function (b) {
-            return a / 2;
+            return b / 2;
         }
     }
 });
+expect(bindings.b).toEqual(20);
+
+bindings.b = 10;
+expect(bindings.a).toEqual(5);
 ```
 
 Converter objects are useful for reusable or modular converter types and
 converters that track additional state.
 
 ```javascript
-Bindings.defineBindings({
+var bindings = Bindings.defineBindings({
     a: 10
 }, {
     b: {
-        "<-": "a",
+        "<->": "a",
         converter: {
             factor: 2,
             convert: function (a) {
                 return a * this.factor;
             },
             revert: function (b) {
-                return a / this.factor;
+                return b / this.factor;
             }
         }
     }
 });
+expect(bindings.b).toEqual(20);
+
+bindings.b = 10;
+expect(bindings.a).toEqual(5);
 ```
 
 ### Computed Properties

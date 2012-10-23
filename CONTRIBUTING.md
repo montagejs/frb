@@ -5,3 +5,8 @@
     own.
 -   Send a pull request on Github.
 
+For changes to `README.md`.
+
+-   Synchronize your code examples with those in `spec/readme-spec.js`
+    and run the tests as above.
+
