@@ -531,7 +531,7 @@ function autoCancelPrevious(emit) {
     return function cancelPreviousAndReplace(value) {
         cancelPrevious();
         cancelPrevious = noop;
-        if (value !== undefined) {
+        if (value != null) {
             cancelPrevious = emit.apply(this, arguments) || noop;
         }
         return function cancelLast() {

@@ -246,9 +246,9 @@ exports.makePropertyObservable = function (object, key) {
                 if (value === overriddenDescriptor.value) {
                     return value;
                 }
-                exports.dispatchBeforePropertyChange(object, key, overriddenDescriptor.value);
+                exports.dispatchBeforePropertyChange(this, key, overriddenDescriptor.value);
                 overriddenDescriptor.value = value;
-                exports.dispatchPropertyChange(object, key, value);
+                exports.dispatchPropertyChange(this, key, value);
                 return value;
             },
             enumerable: overriddenDescriptor.enumerable,
@@ -258,32 +258,32 @@ exports.makePropertyObservable = function (object, key) {
         newDescriptor = {
             get: function () {
                 if (overriddenDescriptor.get) {
-                    return overriddenDescriptor.get();
+                    return overriddenDescriptor.get.apply(this, arguments);
                 }
             },
             set: function (value) {
                 var formerValue;
                 // get the actual former value if possible
                 if (overriddenDescriptor.get) {
-                    formerValue = overriddenDescriptor.get();
+                    formerValue = overriddenDescriptor.get.apply(this, arguments);
                 }
                 // if it has not changed, suppress a notification
                 if (value === formerValue) {
                     return value;
                 }
-                exports.dispatchBeforePropertyChange(object, key, formerValue);
+                exports.dispatchBeforePropertyChange(this, key, formerValue);
                 // call through to actual setter
                 if (overriddenDescriptor.set) {
-                    overriddenDescriptor.set(value);
+                    overriddenDescriptor.set.apply(this, arguments)
                 }
                 // use getter, if possible, to discover whether the set
                 // was successful
                 if (overriddenDescriptor.get) {
-                    value = overriddenDescriptor.get();
+                    value = overriddenDescriptor.get.apply(this, arguments);
                 }
                 // dispatch the new value: the given value if there is
                 // no getter, or the actual value if there is one
-                exports.dispatchPropertyChange(object, key, value);
+                exports.dispatchPropertyChange(this, key, value);
                 return value;
             },
             enumerable: overriddenDescriptor.enumerable,
