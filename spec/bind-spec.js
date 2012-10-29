@@ -1,5 +1,6 @@
 
 var bind = require("../bind");
+var SortedSet = require("collections/sorted-set");
 
 Error.stackTraceLimit = 100;
 
@@ -468,6 +469,17 @@ describe("bind", function () {
         cancel();
         object.a = 1000;
         expect(object.b).toEqual(12);
+    });
+
+    describe("content binding from sorted set", function () {
+        var array = ['a', 'c', 'b'];
+        var set = SortedSet([4, 5, 1, 3, 45, 1, 8]);
+        var cancel = bind(array, "*", {"<-": "", source: set});
+        expect(array.slice()).toEqual([1, 3, 4, 5, 8, 45]);
+        set.add(2);
+        expect(array.slice()).toEqual([1, 2, 3, 4, 5, 8, 45]);
+        set.delete(45);
+        expect(array.slice()).toEqual([1, 2, 3, 4, 5, 8]);
     });
 
 });
