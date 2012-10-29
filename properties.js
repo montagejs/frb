@@ -116,7 +116,7 @@ exports.removePropertyChangeListener = function (object, key, listener, beforeCh
     if (!node) {
         throw new Error("Can't remove listener: does not exist.");
     }
-    listeners.splice(node, 1);
+    node["delete"]();
 
     if (listeners.length === 0) {
         exports.makePropertyUnobservable(object, key);
