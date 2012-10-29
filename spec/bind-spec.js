@@ -482,5 +482,69 @@ describe("bind", function () {
         expect(array.slice()).toEqual([1, 2, 3, 4, 5, 8]);
     });
 
+    describe("view of a array", function () {
+        var source = {
+            content: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+            index: 2,
+            length: 3
+        };
+        var target = [];
+        var cancel = bind(target, "*", {
+            "<-": "content.view(index, length)",
+            source: source
+        });
+        expect(target.slice()).toEqual([2, 3, 4]);
+        source.content.shift();
+        expect(target.slice()).toEqual([3, 4, 5]);
+        source.length = 2;
+        expect(target.slice()).toEqual([3, 4]);
+        source.index = 3;
+        expect(target.slice()).toEqual([4, 5]);
+        source.content.unshift(0);
+        expect(target.slice()).toEqual([3, 4]);
+    });
+
+    describe("view of a sorted set", function () {
+        var array = ['a', 'c', 'b'];
+        var set = SortedSet([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+        var source = {
+            set: set,
+            index: 2,
+            length: 3
+        };
+        var cancel = bind(array, "*", {
+            "<-": "set.view(index, length)",
+            source: source
+        });
+        expect(array.slice()).toEqual([2, 3, 4]);
+        // remove before the view
+        set.shift();
+        expect(array.slice()).toEqual([3, 4, 5]);
+        // change view length
+        source.length = 2;
+        expect(array.slice()).toEqual([3, 4]);
+        // change view index
+        source.index = 3;
+        expect(array.slice()).toEqual([4, 5]);
+        // add before the view
+        set.unshift(0);
+        expect(array.slice()).toEqual([3, 4]);
+        // change view length (again)
+        source.length = 4;
+        expect(array.slice()).toEqual([3, 4, 5, 6]);
+        // remove within
+        set.delete(4);
+        expect(array.slice()).toEqual([3, 5, 6, 7]);
+        // add within
+        set.add(4);
+        expect(array.slice()).toEqual([3, 4, 5, 6]);
+        // add after
+        set.add(11);
+        expect(array.slice()).toEqual([3, 4, 5, 6]);
+        // remove after
+        set.delete(7);
+        expect(array.slice()).toEqual([3, 4, 5, 6]);
+    });
+
 });
 

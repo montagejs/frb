@@ -17,6 +17,7 @@ var semantics = compile.semantics = {
         filter: Observers.makeFilterObserver,
         reversed: Observers.makeReversedObserver,
         flatten: Observers.makeFlattenObserver,
+        view: Observers.makeViewObserver,
         sum: Observers.makeSumObserver,
         has: Observers.makeHasObserver,
         average: Observers.makeAverageObserver,

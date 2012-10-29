@@ -303,24 +303,46 @@ function makeReplacingReversedObserver(observeArray) {
     };
 }
 
-exports.makeWindowObserver = makeNonReplacing(makeReplacingWindowObserver);
-function makeReplacingWindowObserver(observeArray, observeStart, observeLength) {
-    return function observeWindow(emit, value, parameters, beforeChange) {
-        return observeArray(autoCancelPrevious(function (array) {
-            return observeStart(autoCancelPrevious(function (start) {
-                return observeLength(autoCancelPrevious(function (length) {
-                    var end = start + length;
+exports.makeViewObserver = makeNonReplacing(makeReplacingViewObserver);
+function makeReplacingViewObserver(observeInput, observeStart, observeLength) {
+    return function observeView(emit, value, parameters, beforeChange) {
+        return observeInput(autoCancelPrevious(function (input) {
+            return observeLength(autoCancelPrevious(function (length) {
+                var previousStart;
+                return observeStart(autoCancelPrevious(function (start) {
                     var output = [];
                     function contentChange(plus, minus, index) {
-                        // TODO overlapping windows, multiple swaps
-                        output.swap(0, output.length, array.slice(start, start + length));
+                        var diff = plus.length - minus.length;
+                        if (index < start && diff < 0 && diff < length) { // shrink before
+                            // inject elements at the end
+                            output.swap(output.length, 0, input.slice(start + length + diff, start + length));
+                            // remove elements at the beginning
+                            output.splice(0, -diff);
+                        } else if (index < start && diff > 0 && diff < length) { // grow before
+                            // inject elements
+                            output.swap(0, 0, input.slice(start, start + diff));
+                            // remove elements from end
+                            output.splice(output.length - diff, diff);
+                        } else if (index >= start && diff < 0 && index < start + length) { // shrink within
+                            // inject elements to end
+                            output.swap(output.length, 0, input.slice(start + length + diff, start + length));
+                            // remove elements from within
+                            output.splice(index - start, -diff);
+                        } else if (index >= start && diff > 0 && index < start + length) { // grow within
+                            // inject elements within
+                            output.swap(index - start, 0, input.slice(index, index + diff));
+                            // remove elements from end
+                            output.splice(output.length - diff, diff);
+                        } else if (index < start + length) {
+                            output.swap(0, output.length, input.slice(start, start + length));
+                        }
                     }
-                    contentChange(array, [], 0);
+                    contentChange(input, [], 0);
                     var cancel = emit(output) || noop;
-                    array.addContentChangeListener(contentChange, beforeChange);
-                    return once(function cancelWindowObserver() {
+                    input.addContentChangeListener(contentChange, beforeChange);
+                    return once(function cancelViewObserver() {
                         cancel();
-                        array.removeContentChangeListener(contentChange, beforeChange);
+                        input.removeContentChangeListener(contentChange, beforeChange);
                     });
                 }), value, parameters, beforeChange);
             }), value, parameters, beforeChange);
