@@ -9,7 +9,7 @@ describe("observe map", function () {
 
         var array = [1,2,3];
 
-        var cancel = O.makeMapObserver(
+        var cancel = O.makeMapBlockObserver(
             O.makeLiteralObserver(array),
             O.makeRelationObserver(function (n) {
                 return n * 2;
@@ -41,7 +41,7 @@ describe("observe map", function () {
 
         var object = {array: [1,2,3]};
 
-        var cancel = O.makeMapObserver(
+        var cancel = O.makeMapBlockObserver(
             O.makePropertyObserver(
                 O.makeLiteralObserver(object),
                 O.makeLiteralObserver('array')

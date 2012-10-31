@@ -18,7 +18,7 @@ exports.not = function (b) {
 };
 
 exports.neg = function (n) {
-    return !n;
+    return -n;
 };
 
 exports.pow = function (a, b) {
@@ -84,4 +84,8 @@ exports.and = function (a, b) {
 exports.or = function (a, b) {
     return a || b;
 };
+
+// TODO startsWith
+// TODO endsWith
+// TODO contains
 

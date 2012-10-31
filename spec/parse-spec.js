@@ -62,7 +62,7 @@ describe("parse", function () {
 
         {
             input: "map{}",
-            output: {type: "map", args: [
+            output: {type: "mapBlock", args: [
                 {type: "value"},
                 {type: "value"}
             ]}
@@ -70,7 +70,7 @@ describe("parse", function () {
 
         {
             input: "a.map{}",
-            output: {type: "map", args: [
+            output: {type: "mapBlock", args: [
                 {type: "property", args: [
                     {type: "value"},
                     {type: "literal", value: "a"}
@@ -81,7 +81,7 @@ describe("parse", function () {
 
         {
             input: "a.map{b}",
-            output: {type: "map", args: [
+            output: {type: "mapBlock", args: [
                 {type: "property", args: [
                     {type: "value"},
                     {type: "literal", value: "a"}
@@ -120,7 +120,7 @@ describe("parse", function () {
         {
             input: "a.flatten{b}",
             output: {type: "flatten", args: [
-                {type: "map", args: [
+                {type: "mapBlock", args: [
                     {type: "property", args: [
                         {type: "value"},
                         {type: "literal", value: "a"}

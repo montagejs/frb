@@ -170,5 +170,25 @@ describe("bindings", function () {
         expect(bindings.bar).toBe(true);
     });
 
+    it("should sort by relation", function () {
+        var bindings = Bindings.defineBindings({
+            objects: [{foo: 10}, {foo: 30}, {foo: 20}]
+        }, {
+            sorted: {"<-": "objects.sorted{foo}"}
+        });
+        expect(bindings.sorted).toEqual([
+            {foo: 10},
+            {foo: 20},
+            {foo: 30}
+        ]);
+        bindings.objects.unshift({foo: 40});
+        expect(bindings.sorted).toEqual([
+            {foo: 10},
+            {foo: 20},
+            {foo: 30},
+            {foo: 40}
+        ]);
+    });
+
 });
 

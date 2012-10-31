@@ -119,6 +119,39 @@ describe("Tutorial", function () {
         expect(object.evens).toEqual([4, 6, 8]);
     });
 
+    it("Sorted", function () {
+        var object = {numbers: [5, 2, 7, 3, 8, 1, 6, 4]};
+        bind(object, "sorted", {"<-": "numbers.sorted{}"});
+        expect(object.sorted).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    });
+
+    it("Sorted (by property)", function () {
+        var object = {arrays: [[1, 2, 3], [1, 2], [], [1, 2, 3, 4], [1]]};
+        bind(object, "sorted", {"<-": "arrays.sorted{-length}"});
+        expect(object.sorted.map(function (array) {
+            return array.slice(); // to clone
+        })).toEqual([
+            [1, 2, 3, 4],
+            [1, 2, 3],
+            [1, 2],
+            [1],
+            []
+        ]);
+
+        // Continued...
+        object.arrays[0].push(4, 5);
+        expect(object.sorted.map(function (array) {
+            return array.slice(); // to clone
+        })).toEqual([
+            [1, 2, 3, 4, 5], // new
+            [1, 2, 3, 4],
+            // old
+            [1, 2],
+            [1],
+            []
+        ]);
+    });
+
     it("Enumerate", function () {
         var object = {letters: ['a', 'b', 'c', 'd']};
         bind(object, "lettersAtEvenIndicies", {

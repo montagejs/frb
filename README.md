@@ -232,6 +232,53 @@ object.numbers.shift();
 expect(object.evens).toEqual([4, 6, 8]);
 ```
 
+### Sorted
+
+A sorted block generates an incrementally updated sorted array.  The
+resulting array will contain all of the values from the source except in
+sorted order.
+
+```javascript
+var object = {numbers: [5, 2, 7, 3, 8, 1, 6, 4]};
+bind(object, "sorted", {"<-": "numbers.sorted{}"});
+expect(object.sorted).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+```
+
+The block may specify a property or expression by which to compare
+values.
+
+```javascript
+var object = {arrays: [[1, 2, 3], [1, 2], [], [1, 2, 3, 4], [1]]};
+bind(object, "sorted", {"<-": "arrays.sorted{-length}"});
+expect(object.sorted.map(function (array) {
+    return array.slice(); // to clone
+})).toEqual([
+    [1, 2, 3, 4],
+    [1, 2, 3],
+    [1, 2],
+    [1],
+    []
+]);
+```
+
+The sorted binding responds to changes to the sorted property by
+removing them at their former place and adding them back at their new
+position.
+
+```javascript
+object.arrays[0].push(4, 5);
+expect(object.sorted.map(function (array) {
+    return array.slice(); // to clone
+})).toEqual([
+    [1, 2, 3, 4, 5], // new
+    [1, 2, 3, 4],
+    // old
+    [1, 2],
+    [1],
+    []
+]);
+```
+
 ### Enumerate
 
 An enumeration observer produces `{index, value}` pairs.  You can bind

@@ -3,6 +3,7 @@ require("collections/array-shim"); // forEach, map
 require("collections/array"); // swap, set, sum, flatten
 require("./array"); // content change listeners
 var Properties = require("./properties"); // property change listeners
+var SortedArray = require("collections/sorted-array");
 
 // primitives
 
@@ -148,8 +149,29 @@ function makeContentObserver(observeArray) {
     };
 }
 
-exports.makeMapObserver = makeNonReplacing(makeReplacingMapObserver);
-function makeReplacingMapObserver(observeArray, observeRelation) {
+exports.makeMapFunctionObserver = makeNonReplacing(makeReplacingMapFunctionObserver);
+function makeReplacingMapFunctionObserver(observeCollection, observeRelation) {
+    return function (emit, value, parameters, beforeChange) {
+        return observeRelation(autoCancelPrevious(function replaceRelation(relation) {
+            return observeCollection(autoCancelPrevious(function replaceMapInput(input) {
+                var output = [];
+                function contentChange(plus, minus, index) {
+                    output.swap(index, minus.length, plus.map(relation));
+                }
+                contentChange(input, [], 0);
+                input.addContentChangeListener(contentChange);
+                var cancel = emit(output, input) || noop;
+                return function cancelMapObserver() {
+                    input.removeContentChangeListener(contentChange);
+                    cancel();
+                };
+            }), value, parameters, beforeChange);
+        }), value, parameters, beforeChange);
+    };
+}
+
+exports.makeMapBlockObserver = makeNonReplacing(makeReplacingMapBlockObserver);
+function makeReplacingMapBlockObserver(observeArray, observeRelation) {
     return function observeMap(emit, value, parameters, beforeChange) {
         return observeArray(autoCancelPrevious(function replaceMapInput(input) {
             var output = [];
@@ -199,9 +221,11 @@ function makeReplacingMapObserver(observeArray, observeRelation) {
     };
 }
 
-exports.makeFilterObserver = makeNonReplacing(makeReplacingFilterObserver);
-function makeReplacingFilterObserver(observeArray, observePredicate) {
-    var observePredicates = makeReplacingMapObserver(observeArray, observePredicate);
+// TODO makeFilterFunctionObserver
+
+exports.makeFilterBlockObserver = makeNonReplacing(makeReplacingFilterBlockObserver);
+function makeReplacingFilterBlockObserver(observeArray, observePredicate) {
+    var observePredicates = makeReplacingMapBlockObserver(observeArray, observePredicate);
     return function observeFilter(emit, value, parameters, beforeChange) {
         return observePredicates(autoCancelPrevious(function (predicates, input) {
             var output = [];
@@ -233,12 +257,61 @@ function makeReplacingFilterObserver(observeArray, observePredicate) {
             return once(function cancelFilterObserver() {
                 cancel();
                 cancelEach(cancelers);
-                input.removeContentChangeListener(contentChange, beforeChange);
+                predicates.removeContentChangeListener(contentChange, beforeChange);
             });
 
         }), value, parameters, beforeChange);
     };
 }
+
+// TODO makeSortedFunctionObserver
+
+exports.makeSortedBlockObserver = makeNonReplacing(makeReplacingSortedBlockObserver);
+function makeReplacingSortedBlockObserver(observeCollection, observeRelation) {
+    var observePack = makePackingObserver(observeRelation);
+    var observeMapPack = makeReplacingMapBlockObserver(observeCollection, observePack);
+    var observeSort = function (emit, value, parameters, beforeChange) {
+        return observeMapPack(autoCancelPrevious(function (input) {
+            var output = [];
+            var sorted = SortedArray(
+                output,
+                function equals(x, y) {
+                    return Object.equals(x.value, y.value);
+                },
+                function compare(x, y) {
+                    return Object.compare(x.value, y.value);
+                }
+            );
+            function contentChange(plus, minus) {
+                sorted.addEach(plus);
+                sorted.deleteEach(minus);
+            }
+            contentChange(input, []);
+            var cancel = emit(output) || noop;
+            input.addContentChangeListener(contentChange);
+            return function cancelSortedObserver() {
+                cancel();
+                input.removeContentChangeListener(contentChange);
+            };
+        }), value, parameters, beforeChange);
+    };
+    return makeReplacingMapBlockObserver(observeSort, observeUnpack);
+}
+
+function makePackingObserver(observeRelation) {
+    return function (emit, key, parameters, beforeChange) {
+        return observeRelation(autoCancelPrevious(function (value) {
+            return emit({key: key, value: value}) || noop;
+        }), key, parameters, beforeChange);
+    };
+}
+
+function observeUnpack(emit, item) {
+    return emit(item.key) || noop;
+}
+
+// TODO makeSortedSetFunctionObserver
+// TODO makeSortedSetBlockObserver
 
 exports.makeOperatorObserverMaker = makeOperatorObserverMaker;
 function makeOperatorObserverMaker(operator) {
