@@ -281,10 +281,10 @@ expect(object.sorted.map(function (array) {
 
 ### View
 
-Supposing that your source is a large data store, like a `SortedSet`
-from the [Collections][] package.  You might need to view a sliding
-window of from that collection as an array.  The `view` binding reacts
-to changes to the collection and the position and length of the window.
+Suppose that your source is a large data store, like a `SortedSet` from
+the [Collections][] package.  You might need to view a sliding window
+from that collection as an array.  The `view` binding reacts to changes
+to the collection and the position and length of the window.
 
 [Collections]: https://github.com/kriskowal/collections
 
