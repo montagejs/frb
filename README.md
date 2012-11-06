@@ -301,11 +301,17 @@ var cancel = bind(controller, "view", {
 
 expect(controller.view).toEqual([3, 4, 5, 6]);
 
+// change the window length
 controller.length = 3;
 expect(controller.view).toEqual([3, 4, 5]);
 
+// change the window position
 controller.start = 5;
 expect(controller.view).toEqual([6, 7, 8]);
+
+// add content behind the window
+controller.index.add(0);
+expect(controller.view).toEqual([5, 6, 7]);
 ```
 
 ### Enumerate
