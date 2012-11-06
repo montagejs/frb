@@ -1,5 +1,5 @@
 
-require("collections/object"); // shim equals, compare
+require("collections/shim-object"); // shim equals, compare
 
 // from highest to lowest precedence
 

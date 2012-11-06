@@ -152,6 +152,26 @@ describe("Tutorial", function () {
         ]);
     });
 
+    it("View", function () {
+        var SortedSet = require("collections/sorted-set");
+        var controller = {
+            index: SortedSet([1, 2, 3, 4, 5, 6, 7, 8]),
+            start: 2,
+            length: 4
+        };
+        var cancel = bind(controller, "view", {
+            "<-": "index.view(start, length)"
+        });
+
+        expect(controller.view).toEqual([3, 4, 5, 6]);
+
+        controller.length = 3;
+        expect(controller.view).toEqual([3, 4, 5]);
+
+        controller.start = 5;
+        expect(controller.view).toEqual([6, 7, 8]);
+    });
+
     it("Enumerate", function () {
         var object = {letters: ['a', 'b', 'c', 'd']};
         bind(object, "lettersAtEvenIndicies", {
@@ -377,7 +397,7 @@ describe("Tutorial", function () {
         var i = 0;
         var array = [[1, 2, 3], [4, 5, 6]];
         var cancel = observe(array, "map{sum()}", function (array) {
-            function contentChange() {
+            function rangeChange() {
                 if (i === 0) {
                     expect(array.slice()).toEqual([6, 15]);
                 } else if (i === 1) {
@@ -387,10 +407,10 @@ describe("Tutorial", function () {
                 }
                 i++;
             }
-            contentChange();
-            array.addContentChangeListener(contentChange);
-            return function cancelContentChange() {
-                array.removeContentChangeListener(contentChange);
+            rangeChange();
+            array.addRangeChangeListener(rangeChange);
+            return function cancelRangeChange() {
+                array.removeRangeChangeListener(rangeChange);
             };
         });
         array.push([0]);

@@ -279,6 +279,35 @@ expect(object.sorted.map(function (array) {
 ]);
 ```
 
+### View
+
+Supposing that your source is a large data store, like a `SortedSet`
+from the [Collections][] package.  You might need to view a sliding
+window of from that collection as an array.  The `view` binding reacts
+to changes to the collection and the position and length of the window.
+
+[Collections]: https://github.com/kriskowal/collections
+
+```javascript
+var SortedSet = require("collections/sorted-set");
+var controller = {
+    index: SortedSet([1, 2, 3, 4, 5, 6, 7, 8]),
+    start: 2,
+    length: 4
+};
+var cancel = bind(controller, "view", {
+    "<-": "index.view(start, length)"
+});
+
+expect(controller.view).toEqual([3, 4, 5, 6]);
+
+controller.length = 3;
+expect(controller.view).toEqual([3, 4, 5]);
+
+controller.start = 5;
+expect(controller.view).toEqual([6, 7, 8]);
+```
+
 ### Enumerate
 
 An enumeration observer produces `{index, value}` pairs.  You can bind

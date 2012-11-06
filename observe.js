@@ -29,10 +29,10 @@ function observe(object, path, descriptorOrFunction) {
 
     return observe(Observers.autoCancelPrevious(function (value) {
         if (typeof contentChange === "function") {
-            value.addContentChangeListener(contentChange);
-            return function () {
-                value.removeContentChangeListener(contentChange);
-            };
+            value.addRangeChangeListener(contentChange);
+            return Observers.once(function () {
+                value.removeRangeChangeListener(contentChange);
+            });
         } else {
             return descriptor.change.apply(object, arguments);
         }

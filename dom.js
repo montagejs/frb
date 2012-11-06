@@ -1,15 +1,15 @@
 
-var Properties = require("./properties");
+var PropertyChanges = require("collections/listen/property-changes");
 
 // for whatever reason, HTMLInputElement is not the same as the global of the
 // same name, at least in Chrome
 
 function changeChecked(event) {
-    Properties.dispatchPropertyChange(event.target, "checked", event.target.checked);
+    PropertyChanges.dispatchPropertyChange(event.target, "checked", event.target.checked);
 }
 
 function changeValue(event) {
-    Properties.dispatchPropertyChange(event.target, "value", event.target.value);
+    PropertyChanges.dispatchPropertyChange(event.target, "value", event.target.value);
 }
 
 function makeObservable(key) {

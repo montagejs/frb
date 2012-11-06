@@ -1,6 +1,5 @@
 
 var Observers = require("./observers");
-var Properties = require("./properties");
 var autoCancelPrevious = Observers.autoCancelPrevious;
 var once = Observers.once;
 
@@ -72,7 +71,7 @@ function makeContentBinder(observeTarget) {
     return function (observeSource, source, target, parameters, descriptor, trace) {
         return observeTarget(Observers.autoCancelPrevious(function (target) {
             return observeSource(Observers.autoCancelPrevious(function (source) {
-                function contentChange(plus, minus, index) {
+                function rangeChange(plus, minus, index) {
                     if (isActive(target))
                         return;
                     if (trace) {
@@ -85,10 +84,10 @@ function makeContentBinder(observeTarget) {
                         minus.forEach(target.remove || target["delete"], target);
                     }
                 }
-                source.addContentChangeListener(contentChange);
-                contentChange(Array.from(source), Array.from(target), 0);
+                source.addRangeChangeListener(rangeChange);
+                rangeChange(Array.from(source), Array.from(target), 0);
                 return once(function () {
-                    source.removeContentChangeListener(contentChange);
+                    source.removeRangeChangeListener(rangeChange);
                 });
             }), source, parameters, false, descriptor, trace);
         }), target, parameters, false, descriptor, trace);
@@ -100,16 +99,16 @@ function makeReversedBinder(observeTarget) {
     return function (observeSource, source, target, parameters, descriptor, trace) {
         return observeTarget(Observers.autoCancelPrevious(function (target) {
             return observeSource(Observers.autoCancelPrevious(function (source) {
-                function contentChange(plus, minus, index) {
+                function rangeChange(plus, minus, index) {
                     if (isActive(target))
                         return;
                     var reflected = target.length - index - minus.length;
                     target.swap(reflected, minus.length, plus.reversed());
                 }
-                source.addContentChangeListener(contentChange);
-                contentChange(source, target, 0);
+                source.addRangeChangeListener(rangeChange);
+                rangeChange(source, target, 0);
                 return once(function () {
-                    source.removeContentChangeListener(contentChange);
+                    source.removeRangeChangeListener(rangeChange);
                 });
             }), source, parameters, false, descriptor, trace);
         }), target, parameters, false, descriptor, trace);
@@ -118,8 +117,8 @@ function makeReversedBinder(observeTarget) {
 
 function isActive(target) {
     return (
-        target.getContentChangeDescriptor &&
-        target.getContentChangeDescriptor().isActive
+        target.getRangeChangeDescriptor &&
+        target.getRangeChangeDescriptor().isActive
     );
 }
 

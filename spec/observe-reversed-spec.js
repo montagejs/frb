@@ -12,11 +12,11 @@ describe("observe reversed", function () {
         var cancel = O.makeReversedObserver(
             O.makeLiteralObserver(array)
         )(function (reversed) {
-            function contentChange(plus, minus, index) {
+            function rangeChange(plus, minus, index) {
                 spy(index, minus.slice(), plus.slice());
             }
-            contentChange(reversed, [], 0);
-            reversed.addContentChangeListener(contentChange);
+            rangeChange(reversed, [], 0);
+            reversed.addRangeChangeListener(rangeChange);
         });
 
         array.push(4);

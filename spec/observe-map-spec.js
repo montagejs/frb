@@ -15,11 +15,11 @@ describe("observe map", function () {
                 return n * 2;
             })
         )(function (mapped) {
-            function contentChange(plus, minus, index) {
+            function rangeChange(plus, minus, index) {
                 spy(index, minus.slice(), plus.slice());
             }
-            contentChange(mapped, [], 0);
-            mapped.addContentChangeListener(contentChange);
+            rangeChange(mapped, [], 0);
+            mapped.addRangeChangeListener(rangeChange);
         });
 
         array.push(4);
@@ -50,11 +50,11 @@ describe("observe map", function () {
                 return n * 2;
             })
         )(function (mapped) {
-            function contentChange(plus, minus, index) {
+            function rangeChange(plus, minus, index) {
                 spy(index, minus.slice(), plus.slice());
             }
-            contentChange(mapped, [], 0);
-            mapped.addContentChangeListener(contentChange);
+            rangeChange(mapped, [], 0);
+            mapped.addRangeChangeListener(rangeChange);
         });
 
         object.array.push(4);
