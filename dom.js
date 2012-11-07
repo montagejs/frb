@@ -5,11 +5,11 @@ var PropertyChanges = require("collections/listen/property-changes");
 // same name, at least in Chrome
 
 function changeChecked(event) {
-    PropertyChanges.dispatchPropertyChange(event.target, "checked", event.target.checked);
+    PropertyChanges.dispatchOwnPropertyChange(event.target, "checked", event.target.checked);
 }
 
 function changeValue(event) {
-    PropertyChanges.dispatchPropertyChange(event.target, "value", event.target.value);
+    PropertyChanges.dispatchOwnPropertyChange(event.target, "value", event.target.value);
 }
 
 function makeObservable(key) {

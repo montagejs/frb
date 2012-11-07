@@ -74,11 +74,11 @@ function makePropertyObserver(observeObject, observeKey) {
                     cancel();
                     cancel = emit(value, key, object) || noop;
                 }
-                PropertyChanges.addPropertyChangeListener(object, key, propertyChange, beforeChange);
+                PropertyChanges.addOwnPropertyChangeListener(object, key, propertyChange, beforeChange);
                 propertyChange(object[key], key, object);
                 return once(function cancelPropertyObserver() {
                     cancel();
-                    PropertyChanges.removePropertyChangeListener(object, key, propertyChange, beforeChange);
+                    PropertyChanges.removeOwnPropertyChangeListener(object, key, propertyChange, beforeChange);
                 });
             }), value, parameters, beforeChange);
         }), value, parameters, beforeChange);
