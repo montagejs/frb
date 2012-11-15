@@ -322,7 +322,6 @@ function makeObserversObserver(observers) {
         var output = Array(observers.length);
         var cancelers = observers.map(function observeObserver(observe, index) {
             return observe(function replaceValue(value) {
-                debugger;
                 output.set(index, value);
             }, value, parameters, beforeChange);
         })
