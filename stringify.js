@@ -139,6 +139,36 @@ stringify.semantics = {
             }
         },
 
+        get: function (syntax, stringify) {
+            var left;
+            if (syntax.args[0].type === "value") {
+                left = "()";
+            } else {
+                left = stringify(syntax.args[0])
+            }
+            return left + "[" + stringify(syntax.args[1]) + "]";
+        },
+
+        rangeContent: function (syntax, stringify) {
+            var left;
+            if (syntax.args[0].type === "value") {
+                left = "";
+            } else {
+                left = stringify(syntax.args[0]) + ".";
+            }
+            return left + "*";
+        },
+
+        mapContent: function (syntax, stringify) {
+            var left;
+            if (syntax.args[0].type === "value") {
+                left = "()";
+            } else {
+                left = stringify(syntax.args[0])
+            }
+            return left + "[*]";
+        },
+
         not: function (syntax, stringify) {
             if (syntax.args[0].type === "equals") {
                 return (

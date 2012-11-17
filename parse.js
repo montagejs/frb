@@ -44,6 +44,15 @@ var operatorTokens = {
 var operatorTrie = makeTrie(operatorTokens);
 var parseOperator = makeParserFromTrie(operatorTrie);
 
+var tailOpenerTokens = {
+    ".": ".",
+    "[": "[",
+    "[*]": "[*]"
+};
+
+var tailOpenerTrie = makeTrie(tailOpenerTokens);
+var parseTailOpener = makeParserFromTrie(tailOpenerTrie);
+
 module.exports = parse;
 function parse(text) {
     if (Array.isArray(text)) {
@@ -227,7 +236,7 @@ parse.semantics = {
                 })(character);
             } else if (character === "*") {
                 return callback({
-                    type: "content",
+                    type: "rangeContent",
                     args: [previous]
                 });
             } else if (character === "$") {
@@ -329,13 +338,39 @@ parse.semantics = {
         });
     },
 
+    parseTailOpener: parseTailOpener,
+
     parseTail: function (callback, previous) {
         var self = this;
-        return self.parseDot(function (dot) {
-            if (dot) {
+        return self.parseTailOpener(function (opener, rewind) {
+            if (opener === ".") {
                 return self.parsePrimary(callback, previous);
+            } else if (opener === "[") {
+                return self.parsePrimary(function (key) {
+                    return self.parseTupleEnd(function (end, loc) {
+                        if (end) {
+                            return self.parseTail(callback, {
+                                type: "get",
+                                args: [
+                                    previous,
+                                    key
+                                ]
+                            });
+                        } else {
+                            var error = new Error("Expected \"]\"");
+                            error.loc = loc;
+                            throw error;
+                        }
+                    });
+                });
+            } else if (opener === "[*]") {
+                return self.parseTail(callback, {
+                    type: "mapContent", args: [
+                        previous
+                    ]
+                });
             } else {
-                return callback(previous);
+                return rewind(callback(previous));
             }
         });
     },
@@ -366,7 +401,7 @@ parse.semantics = {
         return self.parseOpenParen(function () {
             return self.parseExpression(function (expression) {
                 return self.parseCloseParen(function () {
-                    return callback(expression);
+                    return self.parseTail(callback, expression);
                 });
             });
         });

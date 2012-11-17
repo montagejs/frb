@@ -286,6 +286,39 @@ module.exports = [
     },
 
     {
+        path: "()['a']",
+        syntax: {type: "get", args: [
+            {type: "value"},
+            {type: "literal", value: "a"}
+        ]}
+    },
+
+    {
+        path: "x['a']",
+        syntax: {type: "get", args: [
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "x"}
+            ]},
+            {type: "literal", value: "a"}
+        ]}
+    },
+
+    {
+        path: "*",
+        syntax: {type: "rangeContent", args: [
+            {type: "value"}
+        ]}
+    },
+
+    {
+        path: "()[*]",
+        syntax: {type: "mapContent", args: [
+            {type: "value"}
+        ]}
+    },
+
+    {
         path: "#id",
         syntax: {type: "element", id: "id"}
     },
