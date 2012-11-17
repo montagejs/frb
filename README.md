@@ -1277,13 +1277,7 @@ object.array.push(10); // emits [10]
 ```
 
 
-### The Language
-
-Bindings and observers used a small query language intended to resemble
-the same code that you would write in JavaScript to update a binding by
-brute force.
-
-#### Grammar
+### Grammar
 
 -   **expression** = **logical-or-expression**
 -   **logical-or-expression** = **logical-and-expression** ( `||`
@@ -1340,7 +1334,7 @@ brute force.
     -   **string-literal** = `'` ( **non-quote-character** *or* `\`
         **character** )* `'`
 
-#### Semantics
+### Semantics
 
 An expression is observed with a source value and emits a target
 one or more times.  All expressions emit an initial value.  Array
@@ -1433,7 +1427,7 @@ The collection can be any collection that implements the "observable
 content" interface including `dispatchContentChange(plus, minus,
 index)`, `addContentChangeListener`, and `removeContentChangeListener`.
 
-#### Interface
+### Language Interface
 
 ```javascript
 var parse = require("frb/parse");
@@ -1454,7 +1448,7 @@ var compileBinder = require("frb/compile-binder");
     conceivably be any function with a clear inverse operation like
     `map` and `reversed`.
 
-#### Syntax Tree
+### Syntax Tree
 
 The syntax tree is JSON serializable and has a "type" property.  Nodes
 have the following types:
