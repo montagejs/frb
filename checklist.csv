@@ -12,6 +12,7 @@ record,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 ,,,,,,,,,,
 property,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 get,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
+with,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 has,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 if,N,N,N,N,X,N,N,N,X,N
 ,,,,,,,,,,

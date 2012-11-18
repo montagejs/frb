@@ -539,6 +539,43 @@ In this case, the source of the binding is a different object than the
 target, so the binding descriptor specifies the alternate source.
 
 
+### Equals
+
+You can bind to whether expressions are equal.
+
+```javascript
+var fruit = {apples: 1, oranges: 2};
+bind(fruit, "equal", {"<-": "apples == oranges"});
+expect(fruit.equal).toBe(false);
+fruit.orange = 1;
+expect(fruit.equal).toBe(true);
+```
+
+Equality can be bound both directions.  In this example, we do a two-way
+binding between whether a radio button is checked and a corresponding
+value in our model.
+
+```javascript
+var component = {
+    orangeElement: {checked: false},
+    appleElement: {checked: true}
+};
+Bindings.defineBindings(component, {
+    "orangeElement.checked": {"<->": "fruit = 'orange'"},
+    "appleElement.checked": {"<->": "fruit = 'apple'"},
+});
+
+component.orangeElement.checked = true;
+expect(component.fruit).toEqual("orange");
+
+component.appleElement.checked = true;
+expect(component.fruit).toEqual("apple");
+```
+
+Because equality and assignment are interchanged in this language, you
+can use either `=` or `==`.
+
+
 ### Array and Map Content
 
 In JavaScript, arrays behave both like objects (in the sense that every
@@ -656,41 +693,42 @@ distingiush the form from `0` which would be a numeric literal, and why
 you can use `()[0]` to map the zeroeth key of a map or array, to
 distinguish the form from `[0]` which would be an array literal.
 
-### Equals
+### With Context Value
 
-You can bind to whether expressions are equal.
-
-```javascript
-var fruit = {apples: 1, oranges: 2};
-bind(fruit, "equal", {"<-": "apples == oranges"});
-expect(fruit.equal).toBe(false);
-fruit.orange = 1;
-expect(fruit.equal).toBe(true);
-```
-
-Equality can be bound both directions.  In this example, we do a two-way
-binding between whether a radio button is checked and a corresponding
-value in our model.
+Expressions can be evaluated in the context of another value using a
+variant of property notation.  A parenthesized expression can follow a
+path.
 
 ```javascript
-var component = {
-    orangeElement: {checked: false},
-    appleElement: {checked: true}
+var object = {
+    context: {a: 10, b: 20}
 };
-Bindings.defineBindings(component, {
-    "orangeElement.checked": {"<->": "fruit = 'orange'"},
-    "appleElement.checked": {"<->": "fruit = 'apple'"},
+Bindings.defineBinding(object, "sum", {
+    "<-": "context.(a + b)"
 });
+expect(object.sum).toBe(30);
 
-component.orangeElement.checked = true;
-expect(component.fruit).toEqual("orange");
-
-component.appleElement.checked = true;
-expect(component.fruit).toEqual("apple");
+Bindings.cancelBinding(object, "sum");
+object.context.a = 20;
+expect(object.sum).toBe(30); // unchanged
 ```
 
-Because equality and assignment are interchanged in this language, you
-can use either `=` or `==`.
+To observe a constructed array or object literal, the expression does
+not need parentheses.
+
+```javascript
+var object = {
+    context: {a: 10, b: 20}
+};
+Bindings.defineBindings(object, {
+    "duple": {"<-": "context.[a, b]"},
+    "pair": {"<-": "context.{key: a, value: b}"}
+});
+expect(object.duple).toEqual([10, 20]);
+expect(object.pair).toEqual({key: 10, value: 20});
+
+Bindings.cancelBindings(object);
+```
 
 ### Operators
 
@@ -1566,11 +1604,16 @@ expect(path).toBe("a && b");
     -   `@` **component-label** **tail-expression** *(component by label)*
 -   **tail-expression** =
     -   **property-expression** or
+    -   **with-expression** or
     -   **get-expression** or
     -   **range-content-expression** or
     -   **map-content-expression**
 -   **property-expression** = `.` **property-name** **tail-expression**
     *(property)*
+-   **with-expression** = `.`
+    -   `(` **expression** `)` **tail-expression** or
+    -   **array-expression** **tail-expression** or
+    -   **object-expression** **tail-expression**
 -   **get-expression** = `[` **expression** `]` **tail-expression**
     *(get)*
 -   **range-content-expression** = `.*` *(rangeContent)*
@@ -1626,7 +1669,8 @@ available.
 -   Parameters terms provide the parameters.
 -   In a path-expression, the first term is evaluated with the source
     value.
--   Each subsequent term uses the target of the previous as its source.
+-   Each subsequent term of a path expression uses the target of the
+    previous as its source.
 -   A property-expression observes the named key of the source object
     using `Object.addPropertyChangeListener`.
 -   A get-expression observes the value for the given key in a
@@ -1807,6 +1851,8 @@ nodes (or an "args" object for `record`).
     argument of the left argument.
 -   `get`: corresponds to observing the value for a key (second
     argument) in a collection (first argument).
+-   `with`: corresponds to observing the right expression using the left
+    expression as the source.
 -   `has`: corresponds to whether the key (second argument) exists
     within a collection (first argument)
 -   `mapBlock`: the left is the input, the right is an expression to

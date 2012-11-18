@@ -427,6 +427,36 @@ describe("Tutorial", function () {
         expect(component.fruit).toEqual("apple");
     });
 
+    // No tests for Value section
+
+    it("With", function () {
+        var object = {
+            context: {a: 10, b: 20}
+        };
+        Bindings.defineBinding(object, "sum", {
+            "<-": "context.(a + b)"
+        });
+        expect(object.sum).toBe(30);
+
+        Bindings.cancelBinding(object, "sum");
+        object.context.a = 20;
+        expect(object.sum).toBe(30); // unchanged
+    });
+
+    it("With (tuple)", function () {
+        var object = {
+            context: {a: 10, b: 20}
+        };
+        Bindings.defineBindings(object, {
+            "duple": {"<-": "context.[a, b]"},
+            "pair": {"<-": "context.{key: a, value: b}"}
+        });
+        expect(object.duple).toEqual([10, 20]);
+        expect(object.pair).toEqual({key: 10, value: 20});
+
+        Bindings.cancelBindings(object);
+    });
+
     it("Operators", function () {
         var object = {height: 10};
         bind(object, "heightPx", {"<-": "height + 'px'"});

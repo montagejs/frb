@@ -143,6 +143,11 @@ stringify.semantics = {
             }
         },
 
+        "with": function (syntax, stringify) {
+            var right = stringify(syntax.args[1], syntax);
+            return stringify(syntax.args[0]) + "." + right;
+        },
+
         get: function (syntax, stringify) {
             var left;
             if (syntax.args[0].type === "value") {

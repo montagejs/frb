@@ -33,29 +33,72 @@ module.exports = [
         ]}
     },
 
-    // TODO
-    //{
-    //    path: "a.[b, c]",
-    //    syntax: {type: "property", args: [
-    //        {"type": "property", args: [
-    //            {type: "value"},
-    //            {type: "literal", value: "a"}
-    //        ]}
-    //        {type: "tuple", args: [
-    //            {type: "property", args: [
-    //                {type: "value"},
-    //                {type: "literal", value: "b"}
-    //            ]},
-    //            {type: "property", args: [
-    //                {type: "value"},
-    //                {type: "literal", value: "c"}
-    //            ]}
-    //        ]},
-    //    ]}
-    //},
+    {
+        path: "a.[b, c]",
+        syntax: {type: "with", args: [
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "a"},
+            ]},
+            {type: "tuple", args: [
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "b"},
+                ]},
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "c"},
+                ]}
+            ]}
+        ]}
+    },
 
-    // TODO a.(b + c)
-    // TODO a.{x: a, y: b}
+    {
+        path: "a.{foo: x}",
+        syntax: {type: "with", args: [
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "a"},
+            ]},
+            {type: "record", args: {
+                foo: {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "x"}
+                ]}
+            }}
+        ]}
+    },
+
+    {
+        path: "a.(b + c)",
+        syntax: {type: "with", args: [
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "a"},
+            ]},
+            {type: "add", args: [
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "b"},
+                ]},
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "c"},
+                ]}
+            ]}
+        ]}
+    },
+
+    {
+        path: "a.('a')",
+        syntax: {type: "with", args: [
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "a"},
+            ]},
+            {type: "literal", value: "a"}
+        ]}
+    },
 
     {
         path: "[]",

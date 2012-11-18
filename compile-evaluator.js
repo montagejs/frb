@@ -41,6 +41,12 @@ var compilers = {
             return evaluateCollection(value, parameters)
             .sorted(Function.by(evaluateRelation(value, parameters)))
         };
+    },
+
+    "with": function (evaluateContext, evaluateExpression) {
+        return function (value, parameters) {
+            return evaluateExpression(evaluateContext(value, parameters), parameters);
+        };
     }
 
 };

@@ -130,6 +130,36 @@ module.exports = [
     },
 
     {
+        path: "scope.{foo: x}",
+        input: {scope: {x: 10}},
+        output: {foo: 10}
+    },
+
+    {
+        path: "scope.(a + b)",
+        input: {scope: {a: 2, b: 3}},
+        output: 5
+    },
+
+    {
+        path: "scope.(a + b).(() + 2)",
+        input: {scope: {a: 2, b: 3}},
+        output: 7
+    },
+
+    {
+        path: "scope.(a + b).(+2)",
+        input: {scope: {a: 2, b: 3}},
+        output: 2
+    },
+
+    {
+        path: "scope.[a, b]",
+        input: {scope: {a: 2, b: 3}},
+        output: [2, 3]
+    },
+
+    {
         path: "map{* 2}",
         input: [1, 2, 3],
         output: [2, 4, 6]

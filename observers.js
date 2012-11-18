@@ -109,6 +109,17 @@ function makeGetObserver(observeCollection, observeKey) {
     }
 }
 
+exports.makeWithObserver = makeWithObserver;
+function makeWithObserver(observeContext, observeExpression) {
+    return function observeWith(emit, value, parameters, beforeChange) {
+        return observeContext(autoCancelPrevious(function replaceContext(context) {
+            return observeExpression(autoCancelPrevious(function replaceValue(value) {
+                return emit(value) || Function.noop;
+            }), context, parameters, beforeChange);
+        }), value, parameters, beforeChange);
+    };
+}
+
 exports.makeRecordObserver = makeRecordObserver;
 function makeRecordObserver(observers) {
     return function observeRecord(emit, value, parameters, beforeChange) {

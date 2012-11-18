@@ -12,6 +12,7 @@ var semantics = compile.semantics = {
     compilers: {
         property: Observers.makePropertyObserver,
         get: Observers.makeGetObserver,
+        "with": Observers.makeWithObserver,
         rangeContent: Function.identity,
         mapContent: Function.identity,
         map: Observers.makeMapFunctionObserver,
