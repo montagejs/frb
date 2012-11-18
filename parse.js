@@ -46,6 +46,7 @@ var parseOperator = makeParserFromTrie(operatorTrie);
 
 var tailOpenerTokens = {
     ".": ".",
+    ".*": ".*",
     "[": "[",
     "[*]": "[*]"
 };
@@ -234,11 +235,6 @@ parse.semantics = {
                         });
                     }
                 })(character);
-            } else if (character === "*") {
-                return callback({
-                    type: "rangeContent",
-                    args: [previous]
-                });
             } else if (character === "$") {
                 return self.parsePrimary(callback, {
                     type: "parameters"
@@ -262,7 +258,9 @@ parse.semantics = {
             } else if (character === "(") {
                 return self.parseParenthetical(callback)(character, loc);
             } else if (character === "[") {
-                return self.parseTuple(callback)(character, loc);
+                return self.parseTuple(function (tuple) {
+                    return self.parseTail(callback, tuple);
+                })(character, loc);
             } else if (character === "{") {
                 return self.parseRecord(callback)(character);
             } else {
@@ -333,7 +331,7 @@ parse.semantics = {
                     }
                 };
             } else {
-                return callback(previous);
+                return self.parseTail(callback, previous);
             }
         });
     },
@@ -346,7 +344,7 @@ parse.semantics = {
             if (opener === ".") {
                 return self.parsePrimary(callback, previous);
             } else if (opener === "[") {
-                return self.parsePrimary(function (key) {
+                return self.parseExpression(function (key) {
                     return self.parseTupleEnd(function (end, loc) {
                         if (end) {
                             return self.parseTail(callback, {
@@ -362,6 +360,12 @@ parse.semantics = {
                             throw error;
                         }
                     });
+                });
+            } else if (opener === ".*") {
+                return callback({
+                    type: "rangeContent", args: [
+                        previous
+                    ]
                 });
             } else if (opener === "[*]") {
                 return self.parseTail(callback, {

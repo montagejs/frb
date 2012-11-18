@@ -131,7 +131,11 @@ stringify.semantics = {
 
         property: function (syntax, stringify) {
             if (syntax.args[0].type === "value") {
-                return syntax.args[1].value;
+                if (typeof syntax.args[1].value === "string") {
+                    return syntax.args[1].value;
+                } else {
+                    return "." + syntax.args[1].value;
+                }
             } else if (syntax.args[0].type === "parameters") {
                 return "$" + syntax.args[1].value;
             } else {
@@ -150,13 +154,7 @@ stringify.semantics = {
         },
 
         rangeContent: function (syntax, stringify) {
-            var left;
-            if (syntax.args[0].type === "value") {
-                left = "";
-            } else {
-                left = stringify(syntax.args[0]) + ".";
-            }
-            return left + "*";
+            return stringify(syntax.args[0]) + ".*";
         },
 
         mapContent: function (syntax, stringify) {

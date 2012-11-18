@@ -12,8 +12,8 @@ var semantics = compile.semantics = {
     compilers: {
         property: Observers.makePropertyObserver,
         get: Observers.makeGetObserver,
-        rangeContent: identity,
-        mapContent: identity,
+        rangeContent: Function.identity,
+        mapContent: Function.identity,
         map: Observers.makeMapFunctionObserver,
         mapBlock: Observers.makeMapBlockObserver,
         // TODO filter: Observers.makeFilterFunctionObserver,
@@ -28,6 +28,8 @@ var semantics = compile.semantics = {
         view: Observers.makeViewObserver,
         sum: Observers.makeSumObserver,
         has: Observers.makeHasObserver,
+        // TODO min
+        // TODO max
         average: Observers.makeAverageObserver,
         tuple: Observers.makeTupleObserver
     },
@@ -65,6 +67,4 @@ var compilers = semantics.compilers;
 Object.keys(Operators).forEach(function (name) {
     compilers[name] = Observers.makeOperatorObserverMaker(Operators[name]);
 });
-
-function identity(x) { return x; }
 

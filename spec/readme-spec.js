@@ -181,7 +181,7 @@ describe("Tutorial", function () {
     it("Enumerate", function () {
         var object = {letters: ['a', 'b', 'c', 'd']};
         bind(object, "lettersAtEvenIndicies", {
-            "<-": "letters.enumerate().filter{!(index % 2)}.map{value}"
+            "<-": "letters.enumerate().filter{!(.0 % 2)}.map{.1}"
         });
         expect(object.lettersAtEvenIndicies).toEqual(['a', 'c']);
         object.letters.shift();
@@ -333,6 +333,75 @@ describe("Tutorial", function () {
         expect(object.b.toObject()).toEqual({a: 10, b: 20});
     });
 
+    it("Array Content", function () {
+        var object = {
+            array: [1, 2, 3]
+        };
+        Bindings.defineBindings(object, {
+            first: {"<-": "array.0"},
+            second: {"<-": "array[1]"}
+        });
+        expect(object.first).toBe(1);
+        expect(object.second).toBe(2);
+
+        // ...continued
+        var array = [1, 2, 3];
+        var object = {};
+        Bindings.defineBindings(object, {
+            first: {
+                "<-": ".0",
+                source: array
+            },
+            second: {
+                "<-": "()[1]",
+                source: array
+            }
+        });
+        expect(object.first).toBe(1);
+        expect(object.second).toBe(2);
+
+        // ... continued
+        var object = {
+            array: [1, 2, 3],
+            index: 0
+        };
+        Bindings.defineBinding(object, "last", {
+            "<-": "array[array.length - 1]"
+        });
+        expect(object.last).toBe(3);
+
+        object.array.pop();
+        expect(object.last).toBe(2);
+
+        // ... continued
+        var SortedSet = require("collections/sorted-set");
+        var object = {
+            set: SortedSet(),
+            array: []
+        };
+        Bindings.defineBindings(object, {
+            "array.*": {"<-": "set"}
+        });
+        object.set.addEach([5, 2, 6, 1, 4, 3]);
+        expect(object.array).toEqual([1, 2, 3, 4, 5, 6]);
+
+        // ... continued
+        var Map = require("collections/map");
+        var object = {
+            map: Map(),
+            array: []
+        };
+        Bindings.defineBinding(object, "map[*]", {
+            "<-": "array"
+        });
+        object.array.push(1, 2, 3);
+        expect(object.map.toObject()).toEqual({
+            0: 1,
+            1: 2,
+            2: 3
+        });
+    });
+
     it("Equals", function () {
         var fruit = {apples: 1, oranges: 2};
         bind(fruit, "equal", {"<-": "apples == oranges"});
@@ -362,6 +431,17 @@ describe("Tutorial", function () {
         var object = {height: 10};
         bind(object, "heightPx", {"<-": "height + 'px'"});
         expect(object.heightPx).toEqual("10px");
+
+        // ... continued
+        var object = {
+            number: null,
+            string: null,
+        };
+        Bindings.defineBinding(object, "+number", {
+            "<-": "string"
+        });
+        object.string = '10';
+        expect(object.number).toBe(10);
     });
 
     it("Algebra", function () {
@@ -789,6 +869,45 @@ describe("Bindings", function () {
         cancel();
 
     });
+
+    it("Evaluate (compile)", function () {
+        var parse = require("../parse");
+        var compile = require("../compile-evaluator");
+
+        // example begins here...
+        var syntax = parse("a.b");
+        var evaluate = compile(syntax);
+        var c = evaluate({a: {b: 10}})
+        expect(c).toBe(10);
+    });
+
+    it("Evaluate", function () {
+        var evaluate = require("../evaluate");
+
+        // example begins here...
+        var c = evaluate("a.b", {a: {b: 10}})
+        expect(c).toBe(10);
+    });
+
+    it("Stringify", function () {
+        var stringify = require("../stringify");
+
+        // example begins here...
+        var syntax = {type: "and", args: [
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "a"}
+            ]},
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "b"}
+            ]}
+        ]};
+
+        var path = stringify(syntax);
+        expect(path).toBe("a && b");
+    });
+
 });
 
 describe("Reference", function () {
