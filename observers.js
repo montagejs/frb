@@ -2,6 +2,7 @@
 var ArrayChanges = require("collections/listen/array-changes");
 var PropertyChanges = require("collections/listen/property-changes");
 var SortedArray = require("collections/sorted-array");
+var Operators = require("./operators");
 
 // primitives
 
@@ -190,7 +191,7 @@ function makeReplacingMapFunctionObserver(observeCollection, observeRelation) {
     };
 }
 
-exports.makeMapBlockObserver = makeNonReplacing(makeReplacingMapBlockObserver);
+var makeMapBlockObserver = exports.makeMapBlockObserver = makeNonReplacing(makeReplacingMapBlockObserver);
 function makeReplacingMapBlockObserver(observeArray, observeRelation) {
     return function observeMap(emit, value, parameters, beforeChange) {
         return observeArray(autoCancelPrevious(function replaceMapInput(input) {
@@ -241,7 +242,7 @@ function makeReplacingMapBlockObserver(observeArray, observeRelation) {
 
 // TODO makeFilterFunctionObserver
 
-exports.makeFilterBlockObserver = makeNonReplacing(makeReplacingFilterBlockObserver);
+var makeFilterBlockObserver = exports.makeFilterBlockObserver = makeNonReplacing(makeReplacingFilterBlockObserver);
 function makeReplacingFilterBlockObserver(observeArray, observePredicate) {
     var observePredicates = makeReplacingMapBlockObserver(observeArray, observePredicate);
     return function observeFilter(emit, value, parameters, beforeChange) {
@@ -280,6 +281,28 @@ function makeReplacingFilterBlockObserver(observeArray, observePredicate) {
         }), value, parameters, beforeChange);
     };
 }
+
+exports.makeSomeBlockObserver = makeSomeBlockObserver;
+function makeSomeBlockObserver(observeCollection, observePredicate) {
+    // collection.some{predicate} is equivalent to
+    // collection.map{predicate}.length !== 0
+    var observeFilter = makeFilterBlockObserver(observeCollection, observePredicate);
+    var observeLength = makePropertyObserver(observeFilter, observeLengthLiteral);
+    return makeConverterObserver(observeLength, Boolean);
+}
+
+exports.makeEveryBlockObserver = makeEveryBlockObserver;
+function makeEveryBlockObserver(observeCollection, observePredicate) {
+    // collection.every{predicate} is equivalent to
+    // collection.map{!predicate}.length === 0
+    var observeNotPredicate = makeConverterObserver(observePredicate, Operators.not);
+    var observeFilter = makeFilterBlockObserver(observeCollection, observeNotPredicate);
+    var observeLength = makePropertyObserver(observeFilter, observeLengthLiteral);
+    return makeConverterObserver(observeLength, Operators.not);
+}
+
+// used by both some and every blocks
+var observeLengthLiteral = makeLiteralObserver("length");
 
 // TODO makeSortedFunctionObserver
 

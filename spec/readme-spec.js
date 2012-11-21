@@ -119,6 +119,36 @@ describe("Tutorial", function () {
         expect(object.evens).toEqual([4, 6, 8]);
     });
 
+    it("Some", function () {
+        var object = Bindings.defineBindings({
+            options: [
+                {checked: true},
+                {checked: false},
+                {checked: false}
+            ]
+        }, {
+            anyChecked: {
+                "<-": "options.some{checked}"
+            }
+        });
+        expect(object.anyChecked).toBe(true);
+    });
+
+    it("Every", function () {
+        var object = Bindings.defineBindings({
+            options: [
+                {checked: true},
+                {checked: false},
+                {checked: false}
+            ]
+        }, {
+            allChecked: {
+                "<-": "options.every{checked}"
+            }
+        });
+        expect(object.allChecked).toBe(false);
+    });
+
     it("Sorted", function () {
         var object = {numbers: [5, 2, 7, 3, 8, 1, 6, 4]};
         bind(object, "sorted", {"<-": "numbers.sorted{}"});
