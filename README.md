@@ -529,7 +529,7 @@ var object = {
 var cancel = bind(object, "selected", {
     "<-": "source[key]"
 });
-expect(object.selected).toBe(null);
+expect(object.selected).toBe(undefined);
 
 object.key = a;
 expect(object.selected).toBe(10);
@@ -542,7 +542,7 @@ expect(object.selected).toBe(30);
 
 var SortedMap = require("collections/sorted-map");
 object.source = SortedMap();
-expect(object.selected).toBe(30); // no change
+expect(object.selected).toBe(undefined);
 
 object.source.set(b, 40);
 expect(object.selected).toBe(40);

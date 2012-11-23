@@ -229,5 +229,16 @@ describe("bindings", function () {
         expect(object.someEqualZero).toBe(false);
     });
 
+    it("should observe undefined when an array retreats behind an observed index", function () {
+        var object = Bindings.defineBindings({
+            bar: ["a", "b", "c"]
+        }, {
+            foo: {"<-": "bar.2"}
+        });
+        object.bar.pop();
+        expect(object.foo).toBe(undefined);
+        expect(object.bar.length).toBe(2);
+    });
+
 });
 
