@@ -1,14 +1,14 @@
 
-// TODO dependent properties
-// TODO custom property observer definition
-
-var WeakMap = require("collections/weak-map");
+var Map = require("collections/map");
 var bind = require("./bind");
 var compute = require("./compute");
 var observe = require("./observe");
 
-var bindingsForObject = new WeakMap();
+var bindingsForObject = new Map();
 var owns = Object.prototype.hasOwnProperty;
+
+exports.count = 0;
+exports.bindings = bindingsForObject;
 
 exports.defineBindings = defineBindings;
 function defineBindings(object, descriptors, parameters) {
@@ -35,6 +35,7 @@ function defineBinding(object, name, descriptor, parameters) {
             descriptor.cancel = bind(object, name, descriptor);
         }
         bindingsForName[name] = descriptor;
+        exports.count++;
     } else {
         if (!("get" in descriptor) && !("set" in descriptor) && !("writable" in descriptor)) {
             descriptor.writable = true;
@@ -81,8 +82,11 @@ function cancelBinding(object, name) {
     if (binding && binding.cancel) {
         binding.cancel();
         delete bindings[name];
+        exports.count--;
+        for (var name in bindings) {
+            return; // if there are any remaining bindings, short-circuit
+        }
+        bindingsForObject["delete"](object);
     }
 }
-
-function noop () {}
 
