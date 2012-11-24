@@ -240,5 +240,18 @@ describe("bindings", function () {
         expect(object.bar.length).toBe(2);
     });
 
+    it("should understand undefined values in a some block", function () {
+        var object = Bindings.defineBindings({
+            array: []
+        }, {
+            some: {"<-": "array.some{a.b}"}
+        });
+        expect(object.some).toBe(false);
+        object.array.push({a: {b: 1}});
+        expect(object.some).toBe(true);
+        object.array.set(0, {a: null});
+        expect(object.some).toBe(false);
+    });
+
 });
 

@@ -287,8 +287,8 @@ function makeReplacingFilterBlockObserver(observeArray, observePredicate) {
 
             function rangeChange(plusPredicates, minusPredicates, index) {
                 var plusValues = input.slice(index, index + plusPredicates.length);
-                var oldLength = minusPredicates.sum();
-                var newLength = plusPredicates.sum();
+                var oldLength = minusPredicates.map(Boolean).sum();
+                var newLength = plusPredicates.map(Boolean).sum();
                 var length = newLength - oldLength;
                 var plusOutput = plusValues.filter(function (value, offset) {
                     return plusPredicates[offset];
