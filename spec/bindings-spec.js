@@ -253,5 +253,15 @@ describe("bindings", function () {
         expect(object.some).toBe(false);
     });
 
+    it("should bind a property chain including a numeric property", function () {
+        var object = Bindings.defineBindings({
+        }, {
+            "baz": {"<-": "foo.0.bar"}
+        });
+        expect(object.baz).toBe(undefined);
+        object.foo = [{bar: 1}];
+        expect(object.baz).toBe(1);
+    });
+
 });
 

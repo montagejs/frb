@@ -173,7 +173,7 @@ parse.semantics = {
     parseDigits: function parseDigits(callback, digits) {
         digits = digits || "";
         return function (character, loc) {
-            if (/[\w\d]/.test(character)) {
+            if (/[\d]/.test(character)) {
                 return parseDigits(callback, digits + character);
             } else if (digits !== "") {
                 return callback(digits)(character, loc);
@@ -189,10 +189,17 @@ parse.semantics = {
             return self.parseDot(function (dot) {
                 if (dot) {
                     return self.parseDigits(function (fraction) {
-                        return callback({
-                            type: "literal",
-                            value: +(whole + "." + fraction)
-                        });
+                        if (fraction === undefined) {
+                            return callback({
+                                type: "literal",
+                                value: +whole
+                            })(dot);
+                        } else {
+                            return callback({
+                                type: "literal",
+                                value: +(whole + "." + fraction)
+                            });
+                        }
                     });
                 } else {
                     return callback({
@@ -228,16 +235,21 @@ parse.semantics = {
         previous = previous || {type: "value"};
         return function (character, loc) {
             if (/\d/.test(character)) {
-                return self.parseNumber(function (number) {
-                    if (root) {
-                        return callback(number);
-                    } else {
-                        return callback({
+                if (root) {
+                    return self.parseNumber(function (number) {
+                        return self.parseTail(callback, number);
+                    })(character, loc);
+                } else {
+                    return self.parseDigits(function (digits) {
+                        return self.parseTail(callback, {
                             type: "property",
-                            args: [previous, number]
+                            args: [previous, {
+                                type: "literal",
+                                value: +digits
+                            }]
                         });
-                    }
-                })(character);
+                    })(character, loc);
+                }
             } else if (character === "$") {
                 return self.parsePrimary(callback, {
                     type: "parameters"

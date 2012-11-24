@@ -34,6 +34,20 @@ module.exports = [
     },
 
     {
+        path: "a.0.b",
+        syntax: {type: "property", args: [
+            {type: "property", args: [
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "a"}
+                ]},
+                {type: "literal", value: 0}
+            ]},
+            {type: "literal", value: "b"}
+        ]}
+    },
+
+    {
         path: "a.[b, c]",
         syntax: {type: "with", args: [
             {type: "property", args: [
