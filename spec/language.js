@@ -48,6 +48,49 @@ module.exports = [
     },
 
     {
+        path: "(a + b).x",
+        syntax: {type: "property", args: [
+            {type: "add", args: [
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "a"}
+                ]},
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "b"}
+                ]}
+            ]},
+            {type: "literal", value: "x"}
+        ]}
+    },
+
+    {
+        path: "!a",
+        syntax: {type: "not", args: [
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "a"}
+            ]}
+        ]}
+    },
+
+    {
+        path: "!(a && b)",
+        syntax: {type: "not", args: [
+            {type: "and", args: [
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "a"}
+                ]},
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "b"}
+                ]}
+            ]}
+        ]}
+    },
+
+    {
         path: "a.[b, c]",
         syntax: {type: "with", args: [
             {type: "property", args: [

@@ -131,7 +131,9 @@ stringify.semantics = {
             } else if (syntax.args[0].type === "parameters") {
                 return "$" + syntax.args[1].value;
             } else {
-                return stringify(syntax.args[0]) + '.' + syntax.args[1].value;
+                return stringify(syntax.args[0], {
+                    type: "scope"
+                }) + '.' + syntax.args[1].value;
             }
         },
 

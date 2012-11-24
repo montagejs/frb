@@ -72,10 +72,10 @@ parse.semantics = {
 
     grammar: function () {
         var self = this;
-        self.makePrecedenceLevel(Function.noop, [
+        self.makePrecedenceLevel(Function.identity, [
             "tuple", "record"
         ]);
-        self.makePrecedenceLevel(Function.noop, [
+        self.makePrecedenceLevel(Function.identity, [
             "literal", "value", "parameters",
             "property",
             "element", "component",
@@ -85,6 +85,9 @@ parse.semantics = {
         self.makePrecedenceLevel(function () {
             return self.parseNegation.bind(self);
         }, ["not", "neg", "number"]);
+        self.makePrecedenceLevel(Function.identity, [
+            "scope"
+        ]);
         self.makeLeftToRightParser(["pow", "root", "log"]);
         self.makeLeftToRightParser(["mul", "div", "mod", "rem"]);
         self.makeLeftToRightParser(["add", "sub"]);
