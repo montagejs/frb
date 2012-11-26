@@ -127,6 +127,21 @@ function makeWithObserver(observeContext, observeExpression) {
     };
 }
 
+exports.makeConditionalObserver = makeConditionalObserver;
+function makeConditionalObserver(observeCondition, observeConsequent, observeAlternate) {
+    return function observeConditional(emit, value, parameters, beforeChange) {
+        return observeCondition(autoCancelPrevious(function replaceCondition(condition) {
+            if (condition == null) {
+                return
+            } else if (condition) {
+                return observeConsequent(emit, value, parameters, beforeChange);
+            } else {
+                return observeAlternate(emit, value, parameters, beforeChange);
+            }
+        }), value, parameters, beforeChange);
+    };
+}
+
 exports.makeRecordObserver = makeRecordObserver;
 function makeRecordObserver(observers) {
     return function observeRecord(emit, value, parameters, beforeChange) {

@@ -92,6 +92,20 @@ function makeEqualityBinder(bindLeft, observeRight) {
     };
 }
 
+exports.makeConditionalBinder = makeConditionalBinder;
+function makeConditionalBinder(observeCondition, bindConsequent, bindAlternate) {
+    return function (observeSource, source, target, parameters, descriptor, trace) {
+        return observeCondition(autoCancelPrevious(function replaceCondition(condition) {
+            if (condition == null) return;
+            if (condition) {
+                return bindConsequent(observeSource, source, target, parameters, descriptor, trace);
+            } else {
+                return bindAlternate(observeSource, source, target, parameters, descriptor, trace);
+            }
+        }), source, parameters);
+    };
+}
+
 exports.makeRangeContentBinder = makeRangeContentBinder;
 function makeRangeContentBinder(observeTarget) {
     return function (observeSource, source, target, parameters, descriptor, trace) {

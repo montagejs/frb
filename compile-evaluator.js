@@ -9,6 +9,64 @@ function compile(syntax) {
 
 var compilers = {
 
+    literal: function (syntax) {
+        return function () {
+            return syntax.value;
+        };
+    },
+
+    value: function (syntax) {
+        return function (value) {
+            return value;
+        };
+    },
+
+    parameters: function (syntax) {
+        return function (value, parameters) {
+            return parameters;
+        };
+    },
+
+    element: function (syntax) {
+        return function (value, parameters) {
+            return parameters.document.getElementById(syntax.id);
+        };
+    },
+
+    component: function (syntax) {
+        return function (value, parameters) {
+            return parameters.serialization.getObjectByLabel(syntax.label);
+        };
+    },
+
+    tuple: function (syntax) {
+        var argEvaluators = syntax.args.map(this.compile, this);
+        return function (value, parameters) {
+            return argEvaluators.map(function (evaluateArg) {
+                return evaluateArg(value, parameters);
+            });
+        };
+    },
+
+    record: function (syntax) {
+        var args = syntax.args;
+        var argEvaluators = {};
+        for (var name in args) {
+            argEvaluators[name] = this.compile(args[name]);
+        }
+        return function (value, parameters) {
+            var object = {};
+            for (var name in argEvaluators) {
+                object[name] = argEvaluators[name](value, parameters);
+            }
+            return object;
+        };
+    }
+
+};
+
+var argCompilers = {
+
     mapBlock: function (evaluateCollection, evaluateRelation) {
         return function (value, parameters) {
             return evaluateCollection(value, parameters)
@@ -65,6 +123,16 @@ var compilers = {
         return function (value, parameters) {
             return evaluateExpression(evaluateContext(value, parameters), parameters);
         };
+    },
+
+    "if": function (evaluateCondition, evaluateConsequent, evaluateAlternate) {
+        return function (value, parameters) {
+            if (evaluateCondition(value, parameters)) {
+                return evaluateConsequent(value, parameters);
+            } else {
+                return evaluateAlternate(value, parameters);
+            }
+        }
     }
 
 };
@@ -91,6 +159,8 @@ Object.addEach(operators, {
 
 });
 
+// generate operators for syntax types that delegate to an eponymous method of
+// the first argument
 [
     "reversed",
     "flatten",
@@ -108,53 +178,14 @@ Object.addEach(operators, {
 var semantics = compile.semantics = {
 
     compilers: compilers,
-
+    argCompilers: argCompilers,
     operators: operators,
 
     compile: function (syntax) {
         var compilers = this.compilers;
+        var argCompilers = this.argCompilers;
         var operators = this.operators;
-        if (syntax.type === 'literal') {
-            return function () {
-                return syntax.value;
-            };
-        } else if (syntax.type === 'value') {
-            return function (value) {
-                return value;
-            };
-        } else if (syntax.type === 'parameters') {
-            return function (value, parameters) {
-                return parameters;
-            };
-        } else if (syntax.type === 'element') {
-            return function (value, parameters) {
-                return parameters.document.getElementById(syntax.id);
-            };
-        } else if (syntax.type === 'component') {
-            return function (value, parameters) {
-                return parameters.serialization.getObjectByLabel(syntax.label);
-            };
-        } else if (syntax.type === 'tuple') {
-            var argEvaluators = syntax.args.map(this.compile, this);
-            return function (value, parameters) {
-                return argEvaluators.map(function (evaluateArg) {
-                    return evaluateArg(value, parameters);
-                });
-            };
-        } else if (syntax.type === 'record') {
-            var args = syntax.args;
-            var argEvaluators = {};
-            for (var name in args) {
-                argEvaluators[name] = this.compile(args[name]);
-            }
-            return function (value, parameters) {
-                var object = {};
-                for (var name in argEvaluators) {
-                    object[name] = argEvaluators[name](value, parameters);
-                }
-                return object;
-            };
-        } else if (operators.hasOwnProperty(syntax.type)) {
+        if (operators.hasOwnProperty(syntax.type)) {
             var operator = operators[syntax.type];
             var argEvaluators = syntax.args.map(this.compile, this);
             return function (value, parameters) {
@@ -164,8 +195,10 @@ var semantics = compile.semantics = {
                 return operator.apply(null, args);
             };
         } else if (compilers.hasOwnProperty(syntax.type)) {
+            return compilers[syntax.type].call(this, syntax);
+        } else if (argCompilers.hasOwnProperty(syntax.type)) {
             var argEvaluators = syntax.args.map(this.compile, this);
-            return compilers[syntax.type].apply(null, argEvaluators);
+            return argCompilers[syntax.type].apply(null, argEvaluators);
         } else {
             throw new Error("Can't compile evaluator for " + JSON.stringify(syntax));
         }

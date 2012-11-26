@@ -38,7 +38,9 @@ var operatorTokens = {
     "==": "equals",
     "!=": "notEquals",
     "&&": "and",
-    "||": "or"
+    "||": "or",
+    "?": "then",
+    ":": "else"
 };
 
 var operatorTrie = makeTrie(operatorTokens);
@@ -94,6 +96,7 @@ parse.semantics = {
         self.makeComparisonParser(); // equals, notEquals, gt, lt, ge, le
         self.makeLeftToRightParser(["and"]);
         self.makeLeftToRightParser(["or"]);
+        self.makeConditionalParser(); // if
         self.parseExpression = self.makePrecedenceLevel();
         self.parseMemoized = Parser.makeParser(self.parseExpression);
     },
@@ -646,6 +649,41 @@ parse.semantics = {
                 });
             };
         }, comparisons);
+    },
+
+    makeConditionalParser: function () {
+        var self = this;
+        return self.makePrecedenceLevel(function (parsePrevious) {
+            return function (callback) {
+                return parsePrevious(function (condition) {
+                    return self.skipWhiteSpace(function () {
+                        return self.parseOperator(function (operator, rewind) {
+                            if (operator === "then") {
+                                return self.parseExpression(function (consequent) {
+                                    return self.skipWhiteSpace(function () {
+                                        return self.parseOperator(function (operator, rewind) {
+                                            if (operator === "else") {
+                                                return self.parseExpression(function (alternate) {
+                                                    return callback({type: "if", args: [
+                                                        condition,
+                                                        consequent,
+                                                        alternate
+                                                    ]});
+                                                });
+                                            } else {
+                                                throw new Error("Expected \":\"");
+                                            }
+                                        });
+                                    });
+                                });
+                            } else {
+                                return rewind(callback(condition));
+                            }
+                        });
+                    });
+                });
+            };
+        }, ["if"]);
     },
 
     parseOperator: function (callback) {

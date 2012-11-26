@@ -25,6 +25,11 @@ compile.semantics = {
             var bindLeft = this.compile(syntax.args[0]);
             var observeRight = compileObserver(syntax.args[1]);
             return Binders.makeEqualityBinder(bindLeft, observeRight);
+        } else if (syntax.type === "if") {
+            var observeCondition = compileObserver(syntax.args[0]);
+            var bindConsequent = this.compile(syntax.args[1]);
+            var bindAlternate = this.compile(syntax.args[2]);
+            return Binders.makeConditionalBinder(observeCondition, bindConsequent, bindAlternate);
         } else if (compilers.hasOwnProperty(syntax.type)) {
             var argObservers = syntax.args.map(compileObserver, compileObserver.semantics);
             return compilers[syntax.type].apply(null, argObservers);

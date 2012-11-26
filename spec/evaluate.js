@@ -337,6 +337,18 @@ module.exports = [
         path: "()[*]",
         input: [1, 2, 3],
         output: [1, 2, 3]
+    },
+
+    {
+        path: "? 1 : 2",
+        input: true,
+        output: 1
+    },
+
+    {
+        path: "? 1 : 2",
+        input: false,
+        output: 2
     }
 
 ];

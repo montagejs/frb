@@ -45,6 +45,12 @@ var cases = [
         input: "y + z",
         with: "@a",
         output: "@a.y + @a.z"
+    },
+
+    {
+        input: "?:",
+        with: "$0",
+        output: "$0 ? $0 : $0"
     }
 
 ];

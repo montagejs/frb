@@ -81,11 +81,13 @@ ArithmeticExpression ::=
 RelationalExpression ::=
     ArithmeticExpression
     ( ( "==" | "<" | "<=" | ">" | ">=" ) ArithmeticExpression )?
-LogicalUnionExpression ::=
-    RelationalExpression ( "||" RelationalExpression )*
 LogicalIntersectionExpression ::=
-    LogicalUnionExpression ( "&&" LogicalUnionExpression )*
-Expression ::= LogicalIntersectionExpression
+    RelationalExpression ( "&&" LogicalIntersectionExpression )?
+LogicalUnionExpression ::=
+    LogicalIntersectionExpression ( "||" LogicalUnionExpression )?
+ConditionalExpression ::=
+    LogicalUnionExpression ( "?" Expression ":" Expression )?
+Expression ::= ConditionalExpression
 
 Literal ::= NumberLiteral | StringLiteral
 NumberLiteral ::= [0-9][1-9]* ( '.' [0-9]+ )?

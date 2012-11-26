@@ -799,6 +799,38 @@ object.string = '10';
 expect(object.number).toBe(10);
 ```
 
+### Conditional
+
+FRB supports the ternary conditional operator, if `?` then `:` else.
+
+```javascript
+var object = Bindings.defineBindings({
+    condition: null,
+    consequent: 10,
+    alternate: 20
+}, {
+    choice: {"<->": "condition ? consequent : alternate"}
+});
+
+expect(object.choice).toBe(undefined); // no choice made
+
+object.condition = true;
+expect(object.choice).toBe(10);
+
+object.condition = false;
+expect(object.choice).toBe(20);
+```
+
+The ternary operator can bind in both directions.
+
+```javascript
+object.choice = 30;
+expect(object.alternate).toBe(30);
+
+object.condition = true;
+object.choice = 40;
+expect(object.consequent).toBe(40);
+```
 
 ### Algebra
 
@@ -1612,6 +1644,8 @@ expect(path).toBe("a && b");
 ### Grammar
 
 -   **expression** = **logical-or-expression**
+-   **conditional-expression** = **logical-or-expression** ( `?`
+    **expression** `:` **expression** )?
 -   **logical-or-expression** = **logical-and-expression** ( `||` *(or)*
     **relation expression** )?
 -   **logical-and-expression** = **relation-expression** ( `&&` *(and)*
@@ -1820,6 +1854,15 @@ Binary operators:
 -   "and" logical union
 -   "or" logical intersection
 
+Ternary operator:
+
+-   "if" observes the condition (first argument, expression before the
+    `?`).  If the expression is true, the result observes the consequent
+    expression (second argument, between the question mark and the
+    colon), and if it is false, the result observes the alternate (the
+    third argument, after the colon).  If the condition is null or
+    undefined, the result is null or undefined.
+
 On the left hand side of a binding, the last term has alternate
 semantics.  Binders receive a target as well as a source.
 
@@ -1846,6 +1889,9 @@ semantics.  Binders receive a target as well as a source.
     the value is false and the value does appear in the collection one
     or more times, the binder uses the `delete` or `remove` method of
     the collection to remove all occurrences of the sought value.
+-   An "if" binding observes the condition and binds the target either
+    to the consequent or alternate.  If the condition is null or
+    undefined, the target is not bound.
 
 If the target expression ends with `.*`, the content of the target is
 bound instead of the property.  This is useful for binding the content
@@ -1969,6 +2015,10 @@ For all binary operators, the node types are:
     algebraically.
 -   ```&&```, `and`, logical and
 -   ```||```, `or`, logical or
+
+For the ternary operator:
+
+-   ```?``` and ```:```: `if`, ternary conditional
 
 For all function calls, the right hand side is a tuple of arguments,
 presently ignored.

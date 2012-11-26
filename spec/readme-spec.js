@@ -504,6 +504,32 @@ describe("Tutorial", function () {
         expect(object.number).toBe(10);
     });
 
+    it("Conditional", function () {
+        var object = Bindings.defineBindings({
+            condition: null,
+            consequent: 10,
+            alternate: 20
+        }, {
+            choice: {"<->": "condition ? consequent : alternate"}
+        });
+
+        expect(object.choice).toBe(undefined); // no choice made
+
+        object.condition = true;
+        expect(object.choice).toBe(10);
+
+        object.condition = false;
+        expect(object.choice).toBe(20);
+
+        // continued...
+        object.choice = 30;
+        expect(object.alternate).toBe(30);
+
+        object.condition = true;
+        object.choice = 40;
+        expect(object.consequent).toBe(40);
+    });
+
     it("Algebra", function () {
         var caesar = {toBe: false};
         bind(caesar, "notToBe", {"<->": "!toBe"});

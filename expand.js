@@ -29,6 +29,7 @@ expand.semantics = {
     ]),
 
     traverseAll: Set([
+        "if",
         "tuple",
         "property",
         "get",

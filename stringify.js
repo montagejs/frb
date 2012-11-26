@@ -184,6 +184,14 @@ stringify.semantics = {
 
         number: function (syntax, stringify) {
             return '+' + stringify(syntax.args[0], syntax)
+        },
+
+        if: function (syntax, stringify) {
+            return (
+                stringify(syntax.args[0], syntax) + " ? " +
+                stringify(syntax.args[1]) + " : " +
+                stringify(syntax.args[2])
+            );
         }
 
     }

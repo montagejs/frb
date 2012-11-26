@@ -615,6 +615,118 @@ module.exports = [
     {
         path: "@owner",
         syntax: {type: "component", label: "owner"}
+    },
+
+    {
+        path: "x ? a : b",
+        syntax: {type: "if", args: [
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "x"}
+            ]},
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "a"}
+            ]},
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "b"}
+            ]}
+        ]}
+    },
+
+    {
+        path: "x ? a : y ? b : c",
+        syntax: {type: "if", args: [
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "x"}
+            ]},
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "a"}
+            ]},
+            {type: "if", args: [
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "y"}
+                ]},
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "b"}
+                ]},
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "c"}
+                ]}
+            ]}
+        ]}
+    },
+
+    {
+        path: "x ? y ? a : b : z ? c : d",
+        syntax: {type: "if", args: [
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "x"}
+            ]},
+            {type: "if", args: [
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "y"}
+                ]},
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "a"}
+                ]},
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "b"}
+                ]}
+            ]},
+            {type: "if", args: [
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "z"}
+                ]},
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "c"}
+                ]},
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "d"}
+                ]}
+            ]}
+        ]}
+    },
+
+    {
+        path: "(x ? a : b) ? c : d",
+        syntax: {type: "if", args: [
+            {type: "if", args: [
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "x"}
+                ]},
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "a"}
+                ]},
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "b"}
+                ]}
+            ]},
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "c"}
+            ]},
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "d"}
+            ]}
+        ]}
     }
 
 ];
