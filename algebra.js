@@ -9,11 +9,29 @@ function solve(target, source) {
 solve.semantics = {
 
     solve: function (target, source) {
+        if (this.simplifiers.hasOwnProperty(target.type)) {
+            target = this.simplifiers[target.type](target);
+        }
         while (this.solvers.hasOwnProperty(target.type)) {
             source = this.solvers[target.type](target, source);
             target = target.args[0];
+            if (this.simplifiers.hasOwnProperty(target.type)) {
+                target = this.simplifiers[target.type](target);
+            }
         }
         return [target, source];
+    },
+
+    simplifiers: {
+        add: function (syntax) {
+            var left = syntax.args[0];
+            if (left.type === "literal" && left.value === "") {
+                return {
+                    type: "string",
+                    args: [syntax.args[1]]
+                };
+            }
+        }
     },
 
     solvers: {
@@ -33,6 +51,9 @@ solve.semantics = {
             ]};
         },
         number: function (target, source) {
+            return this.reflect(target, source);
+        },
+        string: function (target, source) {
             return this.reflect(target, source);
         },
         not: function (target, source) {

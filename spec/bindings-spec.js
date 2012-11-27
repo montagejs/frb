@@ -263,5 +263,23 @@ describe("bindings", function () {
         expect(object.baz).toBe(1);
     });
 
+    it("should handle bidirectional string to number bindings", function () {
+        var object = Bindings.defineBindings({
+        }, {
+            "+n": {"<->": "'' + s"}
+        });
+        expect(object.n).toBe(undefined);
+        expect(object.s).toBe(undefined);
+
+        object.n = 10;
+        expect(object.s).toBe("10");
+
+        object.s = "20";
+        expect(object.n).toBe(20);
+
+        object.n = undefined;
+        expect(object.s).toBe(undefined);
+    });
+
 });
 

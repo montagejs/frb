@@ -13,6 +13,16 @@ exports.number = function (s) {
     }
 };
 
+exports.string = function (n) {
+    if (typeof n === "string") {
+        return n;
+    } else if (typeof n === "number") {
+        return "" + n;
+    } else {
+        return "";
+    }
+};
+
 exports.not = function (b) {
     return !b;
 };
