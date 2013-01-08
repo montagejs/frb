@@ -30,6 +30,8 @@ solve.semantics = {
                     type: "string",
                     args: [syntax.args[1]]
                 };
+            } else {
+                return syntax;
             }
         }
     },
