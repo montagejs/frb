@@ -166,7 +166,7 @@ parse.semantics = {
     parseWord: function parseWord(callback, word) {
         word = word || "";
         return function (character, loc) {
-            if (/[\w\d]/.test(character)) {
+            if (/[\w\d_]/.test(character)) {
                 return parseWord(callback, word + character);
             } else if (word !== "") {
                 return callback(word)(character, loc);
