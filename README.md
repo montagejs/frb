@@ -838,7 +838,7 @@ FRB can automatically invert algebraic operators as long as they operate
 strictly on numbers and the left-most expressions on both the source and
 target are bindable properties.
 
-In this examlple, the primary binding is ```notToBe <- !toBe```, and the
+In this example, the primary binding is ```notToBe <- !toBe```, and the
 inverse binding is automatically computed ```toBe <- !notToBe```.
 
 ```javascript

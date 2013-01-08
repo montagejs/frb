@@ -47,7 +47,7 @@ function makeRelationObserver(relation, thisp) {
 
 exports.makeConverterObserver = makeConverterObserver;
 function makeConverterObserver(observeValue, convert, thisp) {
-    return function (emit, value, parameters, beforeChange) {
+    return function observeConversion(emit, value, parameters, beforeChange) {
         emit = makeUniq(emit);
         return observeValue(autoCancelPrevious(function replaceValue(value) {
             return emit(convert.call(thisp, value));
@@ -146,6 +146,8 @@ function makeWithObserver(observeContext, observeExpression) {
     };
 }
 
+// condition ? consequent : alternate
+// {type: "if", args: [condition, consequent, alternate]}
 exports.makeConditionalObserver = makeConditionalObserver;
 function makeConditionalObserver(observeCondition, observeConsequent, observeAlternate) {
     return function observeConditional(emit, value, parameters, beforeChange) {
@@ -161,6 +163,9 @@ function makeConditionalObserver(observeCondition, observeConsequent, observeAlt
     };
 }
 
+// {type: "record", args: {key: observe}}
+// {a: 10, b: c + d}
+// {type: "record", args: {a: {type: "literal", value: 10 ...
 exports.makeRecordObserver = makeRecordObserver;
 function makeRecordObserver(observers) {
     return function observeRecord(emit, value, parameters, beforeChange) {
@@ -249,10 +254,12 @@ function makeReplacingMapFunctionObserver(observeCollection, observeRelation) {
     };
 }
 
+// object.array.splice(0, 1, 2);
+// object.array = [1, 2, 3]
 var makeMapBlockObserver = exports.makeMapBlockObserver = makeNonReplacing(makeReplacingMapBlockObserver);
-function makeReplacingMapBlockObserver(observeArray, observeRelation) {
+function makeReplacingMapBlockObserver(observeCollection, observeRelation) {
     return function observeMap(emit, value, parameters, beforeChange) {
-        return observeArray(autoCancelPrevious(function replaceMapInput(input) {
+        return observeCollection(autoCancelPrevious(function replaceMapInput(input) {
             if (!input) return emit();
 
             var output = [];
@@ -347,7 +354,7 @@ function makeReplacingFilterBlockObserver(observeArray, observePredicate) {
 exports.makeSomeBlockObserver = makeSomeBlockObserver;
 function makeSomeBlockObserver(observeCollection, observePredicate) {
     // collection.some{predicate} is equivalent to
-    // collection.map{predicate}.length !== 0
+    // collection.filter{predicate}.length !== 0
     var observeFilter = makeFilterBlockObserver(observeCollection, observePredicate);
     var observeLength = makePropertyObserver(observeFilter, observeLengthLiteral);
     return makeConverterObserver(observeLength, Boolean);
@@ -356,7 +363,7 @@ function makeSomeBlockObserver(observeCollection, observePredicate) {
 exports.makeEveryBlockObserver = makeEveryBlockObserver;
 function makeEveryBlockObserver(observeCollection, observePredicate) {
     // collection.every{predicate} is equivalent to
-    // collection.map{!predicate}.length === 0
+    // collection.filter{!predicate}.length === 0
     var observeNotPredicate = makeConverterObserver(observePredicate, Operators.not);
     var observeFilter = makeFilterBlockObserver(observeCollection, observeNotPredicate);
     var observeLength = makePropertyObserver(observeFilter, observeLengthLiteral);

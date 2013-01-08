@@ -77,12 +77,15 @@ function makeHasBinder(observeSet, observeValue) {
     };
 }
 
+// a == b <-> c
 exports.makeEqualityBinder = makeEqualityBinder;
 function makeEqualityBinder(bindLeft, observeRight) {
     return function (observeEquals, source, target, parameters, descriptor, trace) {
+        // c
         return observeEquals(autoCancelPrevious(function (equals) {
             if (equals) {
                 trace && console.log("BIND", trace.targetPath, "TO", trace.sourcePath);
+                // a <-> b
                 var cancel = bindLeft(observeRight, source, source, parameters, descriptor, trace);
                 return function () {
                     trace && console.log("UNBIND", trace.targetPath, "FROM", trace.sourcePath);
@@ -92,20 +95,25 @@ function makeEqualityBinder(bindLeft, observeRight) {
     };
 }
 
+// (a ? b : c) <- d
 exports.makeConditionalBinder = makeConditionalBinder;
 function makeConditionalBinder(observeCondition, bindConsequent, bindAlternate) {
     return function (observeSource, source, target, parameters, descriptor, trace) {
+        // a
         return observeCondition(autoCancelPrevious(function replaceCondition(condition) {
             if (condition == null) return;
             if (condition) {
+                // b <- d
                 return bindConsequent(observeSource, source, target, parameters, descriptor, trace);
             } else {
+                // c <- d
                 return bindAlternate(observeSource, source, target, parameters, descriptor, trace);
             }
         }), source, parameters);
     };
 }
 
+// a.* <- b.*
 exports.makeRangeContentBinder = makeRangeContentBinder;
 function makeRangeContentBinder(observeTarget) {
     return function (observeSource, source, target, parameters, descriptor, trace) {
@@ -187,6 +195,7 @@ function makeMapContentBinder(observeTarget) {
     };
 }
 
+// a.reversed() <-> b
 exports.makeReversedBinder = makeReversedBinder;
 function makeReversedBinder(observeTarget) {
     return function (observeSource, source, target, parameters, descriptor, trace) {
