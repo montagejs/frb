@@ -66,6 +66,21 @@ function makeComputerObserver(observeArgs, compute, thisp) {
     };
 }
 
+exports.observeProperty = _observeProperty;
+function _observeProperty(object, key, emit, source, parameters, beforeChange) {
+    var cancel = Function.noop;
+    function propertyChange(value, key, object) {
+        cancel();
+        cancel = emit(value, key, object) || Function.noop;
+    }
+    PropertyChanges.addOwnPropertyChangeListener(object, key, propertyChange, beforeChange);
+    propertyChange(object[key], key, object);
+    return once(function cancelPropertyObserver() {
+        cancel();
+        PropertyChanges.removeOwnPropertyChangeListener(object, key, propertyChange, beforeChange);
+    });
+}
+
 exports.makePropertyObserver = makePropertyObserver;
 function makePropertyObserver(observeObject, observeKey) {
     return function observeProperty(emit, value, parameters, beforeChange) {
@@ -73,22 +88,32 @@ function makePropertyObserver(observeObject, observeKey) {
             if (key == null) return emit();
             return observeObject(autoCancelPrevious(function replaceObject(object) {
                 if (object == null) return emit();
-
-                var cancel = Function.noop;
-                function propertyChange(value, key, object) {
-                    cancel();
-                    cancel = emit(value, key, object) || Function.noop;
+                if (Object.can(object, "observeProperty")) {
+                    return object.observeProperty(key, emit, value, parameters, beforeChange);
+                } else {
+                    return _observeProperty(object, key, emit, value, parameters, beforeChange);
                 }
-                PropertyChanges.addOwnPropertyChangeListener(object, key, propertyChange, beforeChange);
-                propertyChange(object[key], key, object);
-
-                return once(function cancelPropertyObserver() {
-                    cancel();
-                    PropertyChanges.removeOwnPropertyChangeListener(object, key, propertyChange, beforeChange);
-                });
             }), value, parameters, beforeChange);
         }), value, parameters, beforeChange);
     };
+}
+
+exports.observeKey = _observeKey;
+function _observeKey(collection, key, emit, source, parameters, beforeChange) {
+    var cancel = Function.noop;
+    var equals = collection.contentEquals || Object.equals;
+    function mapChange(value, mapKey, collection) {
+        if (equals(key, mapKey)) {
+            cancel();
+            cancel = emit(value, key, collection) || Function.noop;
+        }
+    }
+    mapChange(collection.get(key), key, collection);
+    collection.addMapChangeListener(mapChange, beforeChange);
+    return once(function cancelMapObserver() {
+        cancel();
+        collection.removeMapChangeListener(mapChange, beforeChange);
+    });
 }
 
 exports.makeGetObserver = makeGetObserver;
@@ -96,21 +121,15 @@ function makeGetObserver(observeCollection, observeKey) {
     return function observeMap(emit, value, parameters, beforeChange) {
         return observeCollection(autoCancelPrevious(function replaceCollection(collection) {
             if (!collection) return emit();
-            var equals = collection.contentEquals || Object.equals;
             return observeKey(autoCancelPrevious(function replaceKey(key) {
-                var cancel = Function.noop;
-                function mapChange(value, mapKey, collection) {
-                    if (equals(key, mapKey)) {
-                        cancel();
-                        cancel = emit(value, key, collection) || Function.noop;
-                    }
+                if (key == null) return emit();
+                if (Object.can(collection, "observeKey")) {
+                    // polymorphic override
+                    return collection.observeKey(key, emit, value, parameters, beforeChange);
+                } else {
+                    // common case
+                    return _observeKey(collection, key, emit, value, parameters, beforeChange);
                 }
-                mapChange(collection.get(key), key, collection);
-                collection.addMapChangeListener(mapChange, beforeChange);
-                return once(function cancelMapObserver() {
-                    cancel();
-                    collection.removeMapChangeListener(mapChange, beforeChange);
-                });
             }), value, parameters, beforeChange);
         }), value, parameters, beforeChange);
     }

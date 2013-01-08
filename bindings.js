@@ -48,6 +48,7 @@ function defineBinding(object, name, descriptor, parameters) {
         }
         Object.defineProperty(object, name, descriptor);
     }
+    return object;
 }
 
 exports.getBindings = getBindings;
