@@ -29,12 +29,14 @@ function makeElementObserver(id) {
 }
 
 exports.makeComponentObserver = makeComponentObserver;
-function makeComponentObserver(label) {
+function makeComponentObserver(label, syntax) {
     return function (emit, value, parameters) {
         if (!parameters.serialization) {
             throw new Error("Can't observe components without serialization parameter");
         }
-        return emit(parameters.serialization.getObjectByLabel(label)) || Function.noop;
+        var component = parameters.serialization.getObjectByLabel(label)
+        syntax.component = component;
+        return emit(component) || Function.noop;
     };
 }
 

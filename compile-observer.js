@@ -49,7 +49,7 @@ var semantics = compile.semantics = {
         } else if (syntax.type === 'element') {
             return Observers.makeElementObserver(syntax.id);
         } else if (syntax.type === 'component') {
-            return Observers.makeComponentObserver(syntax.label);
+            return Observers.makeComponentObserver(syntax.label, syntax);
         } else if (syntax.type === 'record') {
             var observers = {};
             var args = syntax.args;

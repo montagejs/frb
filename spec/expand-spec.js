@@ -2,6 +2,7 @@
 var expand = require("../expand");
 var parse = require("../parse");
 var stringify = require("../stringify");
+var compileObserver = require("../compile-observer");
 
 var cases = [
 
@@ -56,11 +57,45 @@ var cases = [
 ];
 
 describe("expand", function () {
+
+    // generic cases
     cases.forEach(function (test) {
         it("should expand " + JSON.stringify(test.input) + " with " + JSON.stringify(test.with), function () {
             var output = stringify(expand(parse(test.input), parse(test.with)));
             expect(output).toEqual(test.output);
         });
     });
+
+
+    it("should expand component labels from a serializer", function () {
+
+        var syntax = parse("@a");
+        var a = {};
+        var serializer = {
+            getObjectLabel: function (_a) {
+                expect(_a).toBe(a);
+                return "b";
+            },
+        };
+        var deserializer = {
+            getObjectByLabel: function (label) {
+                expect(label).toBe("a");
+                return a;
+            }
+        };
+        var observe = compileObserver(syntax);
+        var cancel = observe(function (_a) {
+            expect(_a).toBe(a);
+        }, null, {serialization: deserializer});
+
+        expect(syntax.component).toBe(a);
+
+        var syntax = expand(syntax, null, {
+            serialization: serializer
+        });
+        expect(stringify(syntax)).toBe("@b");
+
+    });
+
 });
 
