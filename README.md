@@ -363,6 +363,25 @@ object.letters.shift();
 expect(object.lettersAtEvenIndicies).toEqual(['b', 'd']);
 ```
 
+### Range
+
+A range observes a given length and produces and incrementally updates
+an array of consecutive integers starting with zero with that given
+length.
+
+```javascript
+var object = Bindings.defineBinding({}, "stack", {
+    "<-": "&range(length)"
+});
+expect(object.stack).toEqual([]);
+
+object.length = 3;
+expect(object.stack).toEqual([0, 1, 2]);
+
+object.length = 1;
+expect(object.stack).toEqual([0]);
+```
+
 ### Flatten
 
 You can flatten nested arrays.  In this example, we have an array of
@@ -615,6 +634,10 @@ expect(component.fruit).toEqual("apple");
 Because equality and assignment are interchanged in this language, you
 can use either `=` or `==`.
 
+FRB also supports a comparison operator, `<=>`, which uses
+`Object.compare` to determines how two operands should be sorted in
+relation to each other.
+
 
 ### Array and Map Content
 
@@ -798,6 +821,14 @@ Bindings.defineBinding(object, "+number", {
 object.string = '10';
 expect(object.number).toBe(10);
 ```
+
+### Functions
+
+FRB supports some common functions.  `startsWith`, `endsWith`, and
+`contains` all operate on strings.  `join` concatenates an array of
+strings with a given delimiter (or empty string).  `split` breaks a
+string between every delimiter (or just between every character).
+
 
 ### Conditional
 
@@ -1653,7 +1684,8 @@ expect(path).toBe("a && b");
 -   **relation-expression** = **arithmetic expression** (
     **relation-operator** **arithmetic-expression** )?
     -   **relation-operator** = `==` *(equals)* or ```<``` *(lt)* or
-        ```<=``` *(le)* or ```>``` *(gt)* or ```>=``` *(ge)*
+        ```<=``` *(le)* or ```>``` *(gt)* or ```>=``` *(ge)* or
+        ```<=>``` *(compare)*
 -   **arithmetic-expression** = **multiplicative-expresion** delimited by **arithmetic-operator**
     -   **arithmetic-operator** = `+` *(add)* or `-` *(sub)*
 -   **multiplicative-expression** = **exponential-expression**
@@ -1672,10 +1704,11 @@ expect(path).toBe("a && b");
     -   **object-expression** *(record)* or
     -   `(` **expression** `)` **tail-expression** or
     -   **property-name** **tail-expression** *(property)* or
-    -   **function-call** **tail-expression** or
+    -   **function-call** *(piped)* **tail-expression** or
     -   **block-call** **tail-expression** or
     -   `#` **element-id** **tail-expression** *(element by id)* or
     -   `@` **component-label** **tail-expression** *(component by label)*
+    -   `&` **function-call** *(bare)* **tail-expression** or
 -   **tail-expression** =
     -   **property-expression** or
     -   **with-expression** or
@@ -1700,9 +1733,10 @@ expect(path).toBe("a && b");
 -   **property-name** = ( **non-space-character** )+
 -   **function-call** = **function-name** `(` **expression** delimited
     by `,` `)`
-    -   **function-name** = `flatten` or `reversed` or `enumerate`
-        or `sum` or `average` or `has` or `view` *(eponymous syntax node
-        types)*
+    -   **function-name** = `flatten` or `reversed` or `enumerate` or
+        `sum` or `average` or `has` or `view` or `startsWith` or
+        `endsWith` or `contains` or `join` or `split` or `range`
+        *(eponymous syntax node types)*
 -   **block-call** = **function-name** `{` **expression** `}`
     -   **block-name** = `map` *(mapBlock)* or `filter` *(filterBlock)*
         or `some` *(someBlock)* or `every` *(everyBlock)* or `sorted`
@@ -1812,6 +1846,22 @@ available.
     target array with elements corresponding to the respective
     expression in the tuple.  Each inner expression is evaluated with
     the same source value as the outer expression.
+-   A "startsWith" function call observes whether the left string
+    starts with the right string.
+-   An "endsWith" function call observes whether the right string
+    ends with the right string.
+-   A "contains" function call observes whether the left string contains
+    the right string.
+-   A "join" function observes the left array joined by the right
+    delimiter, or an empty string.   This is not an incremental
+    operation.
+-   A "split" function observes the left string broken into an array
+    between the right delimiter, or an empty string.  This is not an
+    incremental operation.
+-   A "range" function call observes an array with the given length
+    containing sequential numbers starting with zero.  The output array
+    is updated incrementally and will dispatch one range change each
+    time the size changes by any difference.
 -   `.*` at the end of a path has no effect on an observed value.
 -   `[*]` at the end of a path has no effect on an observed value.
 
@@ -1847,6 +1897,7 @@ Binary operators:
     0`.
 -   "ge" greater than or equal, as determined with `Object.compare(left,
     right) >= 0`.
+-   "compare" as determined by `Object.compare(left, right)`.
 -   "equals" whether the left is equal to the right as determined by
     `Object.equals(left, right)`.
 -   *Note: there is no "not equals" syntax node. The `!=` operator gets
@@ -2008,6 +2059,7 @@ For all binary operators, the node types are:
 -   ```<=```: `le`, less than or equal
 -   ```>```: `gt`, greater than
 -   ```>=```: `ge`, greater than or equal
+-   ```<=>```: `compare`
 -   ```==```: ``equals``, equality comparison and assignment
 -   ```!=``` produces unary negation and equality comparison or
     assignment so does not have a corresponding node type.  The
@@ -2020,14 +2072,19 @@ For the ternary operator:
 
 -   ```?``` and ```:```: `if`, ternary conditional
 
-For all function calls, the right hand side is a tuple of arguments,
-presently ignored.
+For all function calls, the right hand side is a tuple of arguments.
 
 -   `reversed`
 -   `enumerate`
 -   `flatten`
 -   `sum`
 -   `average`
+-   `startsWith`
+-   `endsWith`
+-   `contains`
+-   `join`
+-   `split`
+-   `range`
 
 
 ### Observers and Binders

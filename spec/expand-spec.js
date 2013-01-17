@@ -52,6 +52,12 @@ var cases = [
         input: "?:",
         with: "$0",
         output: "$0 ? $0 : $0"
+    },
+
+    {
+        input: "startsWith(())",
+        with: "@x",
+        output: "@x.startsWith(@x)"
     }
 
 ];

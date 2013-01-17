@@ -34,8 +34,9 @@ var operatorTokens = {
     ">": "gt",
     "<=": "le",
     ">=": "ge",
-    "=": "equals",
+    "=": "equals", // TODO redact
     "==": "equals",
+    "<=>": "compare",
     "!=": "notEquals",
     "&&": "and",
     "||": "or",
@@ -93,7 +94,7 @@ parse.semantics = {
         self.makeLeftToRightParser(["pow", "root", "log"]);
         self.makeLeftToRightParser(["mul", "div", "mod", "rem"]);
         self.makeLeftToRightParser(["add", "sub"]);
-        self.makeComparisonParser(); // equals, notEquals, gt, lt, ge, le
+        self.makeComparisonParser(); // equals, notEquals, gt, lt, ge, le, compare
         self.makeLeftToRightParser(["and"]);
         self.makeLeftToRightParser(["or"]);
         self.makeConditionalParser(); // if
@@ -274,10 +275,19 @@ parse.semantics = {
                         label: label
                     });
                 });
+            } else if (character === "&") {
+                return self.parseWord(function (name) {
+                    return self.parseArguments(function (tuple) {
+                        return self.parseTail(callback, {
+                            type: name,
+                            args: tuple.args
+                        });
+                    });
+                });
             } else if (character === "'") {
                 return self.parseStringTail(callback, "");
             } else if (character === "(") {
-                return self.chain(callback, self.parseParenthetical, previous)(character, loc);;
+                return self.chain(callback, self.parseParenthetical, previous)(character, loc);
             } else if (character === "[") {
                 return self.chain(callback, self.parseTuple, previous)(character, loc);
             } else if (character === "{") {
@@ -621,7 +631,7 @@ parse.semantics = {
 
     makeComparisonParser: function () {
         var self = this;
-        var comparisons = ["equals", "lt", "gt", "le", "ge"];
+        var comparisons = ["equals", "lt", "gt", "le", "ge", "compare"];
         return self.makePrecedenceLevel(function (parsePrevious) {
             return function (callback) {
                 return parsePrevious(function (left) {

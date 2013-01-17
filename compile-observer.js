@@ -34,8 +34,13 @@ var semantics = compile.semantics = {
         has: Observers.makeHasObserver,
         // TODO min
         // TODO max
+        // TODO zip
         average: Observers.makeAverageObserver,
-        tuple: Observers.makeTupleObserver
+        tuple: Observers.makeTupleObserver,
+        range: Observers.makeRangeObserver,
+        startsWith: Observers.makeStartsWithObserver,
+        endsWith: Observers.makeEndsWithObserver,
+        contains: Observers.makeContainsObserver
     },
 
     compile: function (syntax) {
@@ -69,6 +74,8 @@ var semantics = compile.semantics = {
 
 var compilers = semantics.compilers;
 Object.keys(Operators).forEach(function (name) {
-    compilers[name] = Observers.makeOperatorObserverMaker(Operators[name]);
+    if (!compilers[name]) {
+        compilers[name] = Observers.makeOperatorObserverMaker(Operators[name]);
+    }
 });
 

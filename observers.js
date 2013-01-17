@@ -637,6 +637,69 @@ function makeReplacingEnumerationObserver(observeArray) {
     };
 }
 
+exports.makeRangeObserver = makeRangeObserver;
+function makeRangeObserver(observeLength) {
+    return function observeRange(emit, value, parameters, beforeChange) {
+        var output = [];
+        var cancel = emit(output) || Function.noop;
+        var cancelLengthObserver = observeLength(function (length) {
+            if (length == null) {
+                output.clear();
+            } else if (length > output.length) {
+                // pre-fab the extension so the we only have to propagate one
+                // range change to the output.
+                var extension = [];
+                for (var i = output.length; i < length; i++) {
+                    extension.push(i);
+                }
+                output.swap(output.length, 0, extension);
+            } else if (length < output.length) {
+                output.splice(length, output.length);
+            }
+        }, value, parameters, beforeChange);
+        return function cancelObserveRange() {
+            cancel();
+            cancelLengthObserver();
+        };
+    };
+}
+
+exports.makeStartsWithObserver = makeStartsWithObserver;
+function makeStartsWithObserver(observeHaystack, observeNeedle) {
+    return function observeStartsWith(emit, value, parameters, beforeChange) {
+        return observeNeedle(function (needle) {
+            var expression = new RegExp("^" + RegExp.escape(needle));
+            return observeHaystack(function (haystack) {
+                return emit(expression.test(haystack)) || Function.noop;
+            }, value, parameters, beforeChange);
+        }, value, parameters, beforeChange);
+    }
+}
+
+exports.makeEndsWithObserver = makeEndsWithObserver;
+function makeEndsWithObserver(observeHaystack, observeNeedle) {
+    return function observeEndsWith(emit, value, parameters, beforeChange) {
+        return observeNeedle(function (needle) {
+            var expression = new RegExp(RegExp.escape(needle) + "$");
+            return observeHaystack(function (haystack) {
+                return emit(expression.test(haystack)) || Function.noop;
+            }, value, parameters, beforeChange);
+        }, value, parameters, beforeChange);
+    }
+}
+
+exports.makeContainsObserver = makeContainsObserver;
+function makeContainsObserver(observeHaystack, observeNeedle) {
+    return function observeContains(emit, value, parameters, beforeChange) {
+        return observeNeedle(function (needle) {
+            var expression = new RegExp(RegExp.escape(needle));
+            return observeHaystack(function (haystack) {
+                return emit(expression.test(haystack)) || Function.noop;
+            }, value, parameters, beforeChange);
+        }, value, parameters, beforeChange);
+    }
+}
+
 function cancelEach(cancelers) {
     cancelers.forEach(function (cancel) {
         if (cancel) {
@@ -718,6 +781,9 @@ function observeRangeChange(collection, emit, beforeChange) {
         cancelChild = emit(plus, minus, index) || Function.noop;
     }
     rangeChange(collection, [], 0);
+    if (!collection.addRangeChangeListener) {
+        throw new Error("Can't observe range changes on " + collection);
+    }
     var cancelRangeChange = collection.addRangeChangeListener(rangeChange, beforeChange);
     return once(function cancelRangeObserver() {
         cancelChild();

@@ -349,6 +349,99 @@ module.exports = [
         path: "? 1 : 2",
         input: false,
         output: 2
+    },
+
+    {
+        path: "&range(())",
+        input: 3,
+        output: [0, 1, 2]
+    },
+
+    {
+        path: "3.range()",
+        input: null,
+        output: [0, 1, 2]
+    },
+
+    {
+        path: "x.startsWith(y)",
+        input: {
+            x: "|.!",
+            y: "|."
+        },
+        output: true
+    },
+
+    {
+        path: "x.startsWith(y)",
+        input: {
+            x: "|.!",
+            y: ".!"
+        },
+        output: false
+    },
+
+    {
+        path: "x.endsWith(y)",
+        input: {
+            x: "|.!",
+            y: "|.!"
+        },
+        output: true
+    },
+
+    {
+        path: "x.endsWith(y)",
+        input: {
+            x: "|.!",
+            y: "|."
+        },
+        output: false
+    },
+
+    {
+        path: "&contains(x, y)",
+        input: {
+            x: "?!^*",
+            y: "^"
+        },
+        output: true
+    },
+
+    {
+        path: "join()",
+        input: ['a', 'b', 'c'],
+        output: 'abc'
+    },
+
+    {
+        path: "split()",
+        input: "abc",
+        output: ['a', 'b', 'c']
+    },
+
+    {
+        path: "split(', ')",
+        input: "a, b, c",
+        output: ['a', 'b', 'c']
+    },
+
+    {
+        path: "1 <=> 2",
+        input: null,
+        output: -1
+    },
+
+    {
+        path: "3 <=> 1",
+        input: null,
+        output: 2
+    },
+
+    {
+        path: "2 <=> 2",
+        input: null,
+        output: 0
     }
 
 ];

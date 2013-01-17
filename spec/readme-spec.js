@@ -218,6 +218,19 @@ describe("Tutorial", function () {
         expect(object.lettersAtEvenIndicies).toEqual(['b', 'd']);
     });
 
+    it("Range", function () {
+        var object = Bindings.defineBinding({}, "stack", {
+            "<-": "&range(length)"
+        });
+        expect(object.stack).toEqual([]);
+
+        object.length = 3;
+        expect(object.stack).toEqual([0, 1, 2]);
+
+        object.length = 1;
+        expect(object.stack).toEqual([0]);
+    });
+
     it("Flatten", function () {
         var arrays = [[1, 2, 3], [4, 5, 6]];
         var object = {};

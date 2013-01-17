@@ -17,7 +17,12 @@ function makePropertyBinder(observeObject, observeKey) {
                     try {
                         descriptor.isActive = true;
                         trace && console.log("SET", trace.targetPath, "TO", value, "ON", object, "BECAUSE", trace.sourcePath);
-                        object[key] = value;
+                        if (Array.isArray(object) && key >>> 0 === key) {
+                            // TODO spec this case
+                            object.set(key, value);
+                        } else {
+                            object[key] = value;
+                        }
                     } finally {
                         descriptor.isActive = false;
                     }

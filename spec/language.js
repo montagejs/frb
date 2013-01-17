@@ -727,6 +727,22 @@ module.exports = [
                 {type: "literal", value: "d"}
             ]}
         ]}
+    },
+
+    {
+        path: '&count(10)',
+        syntax: {type: "count", args: [
+            {type: "literal", value: 10}
+        ]},
+        nonCanon: true
+    },
+
+    {
+        path: "1 <=> 2",
+        syntax: {type: "compare", args: [
+            {type: "literal", value: 1},
+            {type: "literal", value: 2}
+        ]}
     }
 
 ];

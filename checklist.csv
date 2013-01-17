@@ -61,14 +61,19 @@ lt,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 le,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 gt,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 ge,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
-compare,N,N,N,N,N,X,N,N,N,X,N
+compare,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 ,,,,,,,,,,,
 and,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 or,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 ,,,,,,,,,,,
-startsWith,N,N,N,N,N,X,N,N,N,X,N
-endsWith,N,N,N,N,N,X,N,N,N,X,N
-contains,N,N,N,N,N,X,N,N,N,X,N
+startsWith,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
+endsWith,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
+contains,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
+join,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
+split,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
+,,,,,,,,,,,
+range(end),Y,Y,?,Y,Y,X,Y,Y,Y,X,Y
+"range(start, end)",Y,Y,?,?,?,X,N,Y,N,X,N
 ,,,,,,,,,,,
 toArray,N,N,N,N,N,X,N,N,N,X,N
 toObject,N,N,N,N,N,X,N,N,N,X,N

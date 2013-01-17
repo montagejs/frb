@@ -1,5 +1,6 @@
 
-require("collections/shim-object"); // shim equals, compare
+require("collections/shim-object"); // equals, compare
+require("collections/shim-regexp"); // escape
 
 // from highest to lowest precedence
 
@@ -83,9 +84,9 @@ exports.ge = function (a, b) {
     return Object.compare(a, b) >= 0;
 };
 
-exports.equals = function (a, b) {
-    return Object.equals(a, b);
-};
+exports.equals = Object.equals;
+
+exports.compare = Object.compare;
 
 exports.and = function (a, b) {
     return a && b;
@@ -95,7 +96,38 @@ exports.or = function (a, b) {
     return a || b;
 };
 
-// TODO startsWith
-// TODO endsWith
-// TODO contains
+// "startsWith", "endsWith", and "contains"  are overridden in
+// complile-observer so they can precompile the regular expression and reuse it
+// in each reaction.
+
+exports.startsWith = function (a, b) {
+    var expression = new RegExp("^" + RegExp.escape(b));
+    return expression.test(a);
+};
+
+exports.endsWith = function (a, b) {
+    var expression = new RegExp(RegExp.escape(b) + "$");
+    return expression.test(a);
+};
+
+exports.contains = function (a, b) {
+    var expression = new RegExp(RegExp.escape(b));
+    return expression.test(a);
+};
+
+exports.join = function (a, b) {
+    return a.join(b || "");
+};
+
+exports.split = function (a, b) {
+    return a.split(b || "");
+};
+
+exports.range = function (stop) {
+    var range = [];
+    for (var start = 0; start < stop; start++) {
+        range.push(start);
+    }
+    return range;
+};
 

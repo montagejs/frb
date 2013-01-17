@@ -49,9 +49,6 @@ expand.semantics = {
         "average",
         "min",
         "max",
-        "not",
-        "neg",
-        "number"
     ]).addEach(Object.keys(Operators)),
 
     expanders: Map({
