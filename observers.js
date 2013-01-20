@@ -822,7 +822,7 @@ function makeNonReplacing(wrapped) {
                         output.swap(index, minus.length, plus);
                     }
                     // TODO fix problem that this would get called twice on replacement
-                    return once(input.addRangeChangeListener(rangeChange, beforeChange));
+                    return once(input.addRangeChangeListener(rangeChange, null, beforeChange));
                 }
             }), value, parameters, beforeChange);
             var cancel = emit(output) || Function.noop;
