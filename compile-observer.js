@@ -26,6 +26,7 @@ var semantics = compile.semantics = {
         // TODO sorted: Observers.makeSortedFunctionObserver,
         // TODO sortedSetBlock: Observers.makeSortedSetBlockObserver,
         // TODO sortedSet: Observers.makeSortedSetFunctionObserver,
+        groupBlock: Observers.makeGroupBlockObserver,
         enumerate: Observers.makeEnumerationObserver,
         reversed: Observers.makeReversedObserver,
         flatten: Observers.makeFlattenObserver,
@@ -78,4 +79,5 @@ Object.keys(Operators).forEach(function (name) {
         compilers[name] = Observers.makeOperatorObserverMaker(Operators[name]);
     }
 });
+
 

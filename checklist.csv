@@ -24,6 +24,7 @@ sorted,Y,Y,Y,Y,N,X,N,Y,N,X,Y (TODO)
 sortedBlock,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 sortedSet,N,N,Y,N,N,X,N,N,N,X,N
 sortedSetBlock,N,N,Y,N,N,X,N,N,N,X,N
+groupBlock,Y,Y,Y,N,Y,X,N,N,N,X,N
 mapContent,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 rangeContent,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 someBlock,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y

@@ -2,6 +2,8 @@
 var ArrayChanges = require("collections/listen/array-changes");
 var PropertyChanges = require("collections/listen/property-changes");
 var SortedArray = require("collections/sorted-array");
+var Map = require("collections/map");
+var Set = require("collections/set");
 var Operators = require("./operators");
 
 // primitives
@@ -424,6 +426,100 @@ function observeUnpack(emit, item) {
 
 // TODO makeSortedSetFunctionObserver
 // TODO makeSortedSetBlockObserver
+
+exports.makeGroupBlockObserver = makeNonReplacing(makeReplacingGroupBlockObserver);
+function makeReplacingGroupBlockObserver(observeCollection, observeRelation) {
+    var observePack = makePackingObserver(observeRelation);
+    var observeMapPack = makeReplacingMapBlockObserver(observeCollection, observePack);
+    return function (emit, source, parameters, beforeChange) {
+        return observeMapPack(autoCancelPrevious(function (input) {
+            if (!input) return emit();
+
+            var groups = []; // [key, group] pairs
+            var inputIndexToGroupIndexRef = [];
+            var groupKeyToGroup = Map();
+            var groupKeyToGroupIndexRefs = Map();
+            var groupKeyToGroupsIndexRef = Map();
+
+            function rangeChange(plus, minus, index) {
+
+                var dirtyGroupKeys = Set();
+
+                minus.forEach(function (pack, offset) {
+                    var groupKey = pack.value;
+                    var groupIndex = inputIndexToGroupIndexRef[index + offset].index;
+                    var group = groupKeyToGroup.get(groupKey);
+                    var groupIndexRefs = groupKeyToGroupIndexRefs.get(groupKey);
+                    group.splice(groupIndex, 1);
+                    groupIndexRefs.splice(groupIndex, 1);
+
+                    // update index refs within the group
+                    for (; groupIndex < groupIndexRefs.length; groupIndex++) {
+                        groupIndexRefs[groupIndex].index = groupIndex;
+                    }
+
+                    // group may be empty at the end of the turn
+                    dirtyGroupKeys.add(groupKey);
+                });
+
+                inputIndexToGroupIndexRef.swap(
+                    index,
+                    minus.length,
+                    plus.map(function (pack, offset) {
+                        var groupKey = pack.value;
+
+                        // create new groups
+                        if (!groupKeyToGroup.has(groupKey)) {
+                            var group = [];
+                            var groupIndexRefs = [];
+                            groupKeyToGroup.set(groupKey, group);
+                            groupKeyToGroupIndexRefs.set(groupKey, groupIndexRefs);
+                            groupKeyToGroupsIndexRef.set(groupKey, groups.length);
+                            groups.push([groupKey, group]);
+                        } else {
+                        // retrieve existing groups
+                            group = groupKeyToGroup.get(groupKey);
+                            groupIndexRefs = groupKeyToGroupIndexRefs.get(groupKey);
+                        }
+
+                        // Add the value to the group and record the position we
+                        // put it in
+                        group.push(pack.key);
+                        var indexRef = {index: groupIndexRefs.length};
+                        groupIndexRefs.push(indexRef);
+                        return indexRef;
+                    })
+                );
+
+                // collect garbage groups
+                dirtyGroupKeys.forEach(function (groupKey) {
+                    var index;
+                    var firstIndex = Infinity;
+                    var group = groupKeyToGroup.get(groupKey);
+                    if (group.length === 0) {
+                        index = groupKeyToGroupsIndexRef.get(groupKey);
+                        groups.splice(index, 1);
+                        firstIndex = Math.min(index, firstIndex);
+                    }
+                    // update subsequent indexes
+                    for (index = firstIndex; index < groups.length; index++) {
+                        group = groupKeyToGroup.get(groups[index].value);
+                        var indexRef = groupKeyToGroupsIndexRef.get(key);
+                        indexRef.index = index;
+                    }
+                });
+
+            }
+
+            var cancelRangeChange = observeRangeChange(input, rangeChange, beforeChange);
+            var cancel = emit(groups) || Function.noop;
+            return function cancelGroupObserver() {
+                cancel();
+                cancelRangeChange();
+            };
+        }), source, parameters, beforeChange);
+    };
+}
 
 exports.makeOperatorObserverMaker = makeOperatorObserverMaker;
 function makeOperatorObserverMaker(operator) {

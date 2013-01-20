@@ -82,7 +82,7 @@ parse.semantics = {
             "literal", "value", "parameters",
             "property",
             "element", "component",
-            "mapBlock", "filterBlock", "sortedBlock",
+            "mapBlock", "filterBlock", "sortedBlock", "groupBlock",
             "with"
         ]);
         self.makePrecedenceLevel(function () {
@@ -326,6 +326,7 @@ parse.semantics = {
                                 identifier === "map" ||
                                 identifier === "filter" ||
                                 identifier === "sorted" ||
+                                identifier === "group" ||
                                 identifier === "every" ||
                                 identifier === "some"
                             ) {

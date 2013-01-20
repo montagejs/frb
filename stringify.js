@@ -120,6 +120,7 @@ stringify.semantics = {
         someBlock: makeBlockStringifier("some"),
         everyBlock: makeBlockStringifier("every"),
         sortedBlock: makeBlockStringifier("sorted"),
+        groupBlock: makeBlockStringifier("group"),
 
         property: function (syntax, stringify) {
             if (syntax.args[0].type === "value") {

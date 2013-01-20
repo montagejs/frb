@@ -24,7 +24,8 @@ expand.semantics = {
         "filterBlock",
         "someBlock",
         "everyBlock",
-        "sortedBlock"
+        "sortedBlock",
+        "groupBlock"
     ]),
 
     traverseAll: Set([
