@@ -240,24 +240,6 @@ function makeMapContentObserver(observeCollection) {
     };
 }
 
-exports.makeMapFunctionObserver = makeNonReplacing(makeReplacingMapFunctionObserver);
-function makeReplacingMapFunctionObserver(observeCollection, observeRelation) {
-    return function (emit, value, parameters, beforeChange) {
-        return observeRelation(autoCancelPrevious(function replaceRelation(relation) {
-            if (!relation) return emit();
-            return observeCollection(autoCancelPrevious(function replaceMapInput(input) {
-                if (!input) return emit();
-                var output = [];
-                var cancel = observeRangeChange(input, function rangeChange(plus, minus, index) {
-                    output.swap(index, minus.length, plus.map(relation));
-                }, beforeChange);
-                emit(output, input);
-                return cancel;
-            }), value, parameters, beforeChange);
-        }), value, parameters, beforeChange);
-    };
-}
-
 // object.array.splice(0, 1, 2);
 // object.array = [1, 2, 3]
 var makeMapBlockObserver = exports.makeMapBlockObserver = makeNonReplacing(makeReplacingMapBlockObserver);
@@ -310,8 +292,6 @@ function makeReplacingMapBlockObserver(observeCollection, observeRelation) {
         }), value, parameters, beforeChange);
     };
 }
-
-// TODO makeFilterFunctionObserver
 
 var makeFilterBlockObserver = exports.makeFilterBlockObserver = makeNonReplacing(makeReplacingFilterBlockObserver);
 function makeReplacingFilterBlockObserver(observeArray, observePredicate) {
@@ -377,8 +357,6 @@ function makeEveryBlockObserver(observeCollection, observePredicate) {
 // used by both some and every blocks
 var observeLengthLiteral = makeLiteralObserver("length");
 
-// TODO makeSortedFunctionObserver
-
 exports.makeSortedBlockObserver = makeNonReplacing(makeReplacingSortedBlockObserver);
 function makeReplacingSortedBlockObserver(observeCollection, observeRelation) {
     var observePack = makePackingObserver(observeRelation);
@@ -424,7 +402,6 @@ function observeUnpack(emit, item) {
     return emit(item.key) || Function.noop;
 }
 
-// TODO makeSortedSetFunctionObserver
 // TODO makeSortedSetBlockObserver
 
 exports.makeGroupBlockObserver = makeNonReplacing(makeReplacingGroupBlockObserver);

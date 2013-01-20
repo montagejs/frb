@@ -223,32 +223,6 @@ describe("bind", function () {
         expect(object.baz).toEqual([10, 20, 30, 40]);
     });
 
-    describe("map function", function () {
-        var object = {
-            foo: [
-                {bar: 10, baz: 1},
-                {bar: 20, baz: 2},
-                {bar: 30, baz: 3}
-            ]
-        };
-        var cancel = bind(object, "mapped", {
-            "<-": "foo.map(get)"
-        });
-        expect(object.mapped).toEqual([]);
-        object.get = function (object) {
-            return object.bar;
-        };
-        expect(object.mapped).toEqual([10, 20, 30]);
-        object.foo.push({bar: 40, baz: 4});
-        expect(object.mapped).toEqual([10, 20, 30, 40]);
-        object.foo.shift();
-        expect(object.mapped).toEqual([20, 30, 40]);
-        object.get = function (object) {
-            return object.baz;
-        };
-        expect(object.mapped).toEqual([2, 3, 4]);
-    });
-
     describe("filter", function () {
         var object = {
             foo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]

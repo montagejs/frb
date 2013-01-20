@@ -221,13 +221,6 @@ module.exports = [
         output: [3, 2, 1]
     },
 
-    {
-        path: "map($by)",
-        parameters: {by: function (x) {return x.foo}},
-        input: [{foo: 1}, {foo: 2}, {foo: 3}],
-        output: [1, 2, 3]
-    },
-
     //{
     //    path: "filter($predicate)",
     //    parameters: {predicate: function (x) {return !(x.foo % 2)}},
