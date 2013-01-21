@@ -182,6 +182,7 @@ describe("Tutorial", function () {
         ]);
     });
 
+
     it("Min and Max", function () {
         var object = Bindings.defineBindings({}, {
             min: {"<-": "values.min{}"},
@@ -212,6 +213,28 @@ describe("Tutorial", function () {
 
         object.rounds[1].score = 300;
         expect(object.winner).toEqual("Obi Wan");
+    });
+
+    it("Group", function () {
+        var store = Bindings.defineBindings({}, {
+            "clothingByColor": {"<-": "clothing.group{color}"}
+        });
+        store.clothing = [
+            {type: 'shirt', color: 'blue'},
+            {type: 'pants', color: 'red'},
+            {type: 'blazer', color: 'blue'},
+            {type: 'hat', color: 'red'}
+        ];
+        expect(store.clothingByColor).toEqual([
+            ['blue', [
+                {type: 'shirt', color: 'blue'},
+                {type: 'blazer', color: 'blue'}
+            ]],
+            ['red', [
+                {type: 'pants', color: 'red'},
+                {type: 'hat', color: 'red'}
+            ]]
+        ]);
     });
 
     it("View", function () {

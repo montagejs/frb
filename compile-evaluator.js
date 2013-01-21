@@ -112,10 +112,12 @@ var argCompilers = {
         };
     },
 
-    sorted: function (evaluateCollection, evaluateRelation) {
+    groupBlock: function (evaluateCollection, evaluateRelation) {
         return function (value, parameters) {
             return evaluateCollection(value, parameters)
-            .sorted(Function.by(evaluateRelation(value, parameters)))
+            .group(function (value) {
+                return evaluateRelation(value, parameters);
+            });
         };
     },
 

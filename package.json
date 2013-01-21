@@ -29,7 +29,7 @@
   },
   "main": "bindings",
   "dependencies": {
-    "collections": "~0.1.9"
+    "collections": "~0.1.10"
   },
   "devDependencies": {
     "jasmine-node": "1.x.x"

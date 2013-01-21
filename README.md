@@ -355,6 +355,36 @@ object.rounds[1].score = 300;
 expect(object.winner).toEqual("Obi Wan");
 ```
 
+### Group
+
+FRB can incrementally track equivalence classes within in a collection.
+The group block accepts an expression that determines the equivalence
+class for each object in a collection.  The result is a nested data
+structure: an array of [key, class] pairs, where each class is itself an
+array of all members of the collection that have the corresponding key.
+
+```javascript
+var store = Bindings.defineBindings({}, {
+    "clothingByColor": {"<-": "clothing.group{color}"}
+});
+store.clothing = [
+    {type: 'shirt', color: 'blue'},
+    {type: 'pants', color: 'red'},
+    {type: 'blazer', color: 'blue'},
+    {type: 'hat', color: 'red'}
+];
+expect(store.clothingByColor).toEqual([
+    ['blue', [
+        {type: 'shirt', color: 'blue'},
+        {type: 'blazer', color: 'blue'}
+    ]],
+    ['red', [
+        {type: 'pants', color: 'red'},
+        {type: 'hat', color: 'red'}
+    ]]
+]);
+```
+
 ### View
 
 Suppose that your source is a large data store, like a `SortedSet` from
@@ -1782,7 +1812,8 @@ expect(path).toBe("a && b");
     -   **block-name** = `map` *(mapBlock)* or `filter` *(filterBlock)*
         or `some` *(someBlock)* or `every` *(everyBlock)* or `sorted`
         *(sortedBlock)* or `min` *(minBlock)* or `max` *(maxBlock)* or
-        **function-name** *(map followed by function-call)*
+        `group` *(groupBlock)* or **function-name** *(map followed by
+        function-call)*
 -   **literal** = **string-literal** or **number-literal**
     -   **number-literal** = **digits** ( `.` **digits** )? *(literal
         and value is a number)*
@@ -1859,6 +1890,14 @@ available.
     produces the smallest value through the given relation.
 -   A "max" block observes the which of the values in a given collection
     produces the largest value through the given relation.
+-   A "group" block observes which values belong to corresponding
+    equivalence classes as determined by the result of a given
+    expression on each value.  The observer is responsible for adding
+    and removing classes as they are populated and depopulated.  Each
+    class tracks the key (result of the block expression for every
+    member of a class), and an the values of the corresponding class as
+    an array.  Values are added to the end of each array as they are
+    discovered.
 -   Any function call with a "block" implies calling the function on the
     result of a "map" block.
 -   A "flatten" function call observes a source array and produces a
@@ -2050,20 +2089,13 @@ nodes (or an "args" object for `record`).
 -   `everyBlock`: the left is the input, the right is a criterion.
 -   `sortedBlock`: the left is the input, the right is a relation on
     each value of the input on which to compare to determine the order.
--   `map`: the left is the input, the right is a function that accepts
-    a value and returns the mapped result for each value of the input.
--   `filter` (not implemented): the left is the input, the right is a
-    function that accepts a value and returns whether to include that
-    value in the output.
--   `sorted`: the left is the input, the right is a function that
-    accepts a value and returns a value to compare to determine the
-    order of the sorted output.
--   `min`: the left is the input, the right is a function that accepts a
-    value from the input and returns a value to compare to determine the
-    minimum value.
--   `max`: the left is the input, the right is a function that accepts a
-    value from the input and returns a value to compare to determine the
-    maximum value.
+-   `minBlock`: the left is the input, the right is a relation on each
+    value of the input by which to compare the value to others.
+-   `maxBlock`: the left is the input, the right is a relation on each
+    value of the input by which to compare the value to others.
+-   `groupBlock`: the left is the input, the right is an expression that
+    provides the key for an equivalence class for each value in the
+    input.
 -   `tuple`: has any number of arguments, each an expression to observe
     in terms of the source value.
 -   `record`: as an args object. The keys are property names for the
