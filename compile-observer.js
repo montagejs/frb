@@ -23,14 +23,14 @@ var semantics = compile.semantics = {
         sortedBlock: Observers.makeSortedBlockObserver,
         // TODO sortedSetBlock: Observers.makeSortedSetBlockObserver,
         groupBlock: Observers.makeGroupBlockObserver,
+        minBlock: Observers.makeMinBlockObserver,
+        maxBlock: Observers.makeMaxBlockObserver,
         enumerate: Observers.makeEnumerationObserver,
         reversed: Observers.makeReversedObserver,
         flatten: Observers.makeFlattenObserver,
         view: Observers.makeViewObserver,
         sum: Observers.makeSumObserver,
         has: Observers.makeHasObserver,
-        // TODO min
-        // TODO max
         // TODO zip
         average: Observers.makeAverageObserver,
         tuple: Observers.makeTupleObserver,

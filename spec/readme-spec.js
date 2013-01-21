@@ -182,6 +182,38 @@ describe("Tutorial", function () {
         ]);
     });
 
+    it("Min and Max", function () {
+        var object = Bindings.defineBindings({}, {
+            min: {"<-": "values.min{}"},
+            max: {"<-": "values.max{}"}
+        });
+
+        expect(object.min).toBe(null);
+        expect(object.max).toBe(null);
+
+        object.values = [2, 3, 2, 1, 2];
+        expect(object.min).toBe(1);
+        expect(object.max).toBe(3);
+    });
+
+    it("Min and Max (by property)", function () {
+        var object = Bindings.defineBindings({}, {
+            loser: {"<-": "rounds.min{score}.player"},
+            winner: {"<-": "rounds.max{score}.player"}
+        });
+
+        object.rounds = [
+            {score: 0, player: "Luke"},
+            {score: 100, player: "Obi Wan"},
+            {score: 250, player: "Vader"}
+        ];
+        expect(object.loser).toEqual("Luke");
+        expect(object.winner).toEqual("Vader");
+
+        object.rounds[1].score = 300;
+        expect(object.winner).toEqual("Obi Wan");
+    });
+
     it("View", function () {
         var SortedSet = require("collections/sorted-set");
         var controller = {

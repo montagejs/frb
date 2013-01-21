@@ -573,6 +573,17 @@ module.exports = [
     },
 
     {
+        path: "min{x}",
+        syntax: {type: "minBlock", args: [
+            {type: "value"},
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "x"}
+            ]}
+        ]}
+    },
+
+    {
         path: "array.max()",
         syntax: {type: "max", args: [
             {type: "property", args: [

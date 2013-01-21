@@ -121,6 +121,8 @@ stringify.semantics = {
         everyBlock: makeBlockStringifier("every"),
         sortedBlock: makeBlockStringifier("sorted"),
         groupBlock: makeBlockStringifier("group"),
+        minBlock: makeBlockStringifier("min"),
+        maxBlock: makeBlockStringifier("max"),
 
         property: function (syntax, stringify) {
             if (syntax.args[0].type === "value") {

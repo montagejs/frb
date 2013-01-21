@@ -4,6 +4,7 @@ var PropertyChanges = require("collections/listen/property-changes");
 var SortedArray = require("collections/sorted-array");
 var Map = require("collections/map");
 var Set = require("collections/set");
+var Heap = require("collections/heap");
 var Operators = require("./operators");
 
 // primitives
@@ -408,7 +409,7 @@ exports.makeGroupBlockObserver = makeNonReplacing(makeReplacingGroupBlockObserve
 function makeReplacingGroupBlockObserver(observeCollection, observeRelation) {
     var observePack = makePackingObserver(observeRelation);
     var observeMapPack = makeReplacingMapBlockObserver(observeCollection, observePack);
-    return function (emit, source, parameters, beforeChange) {
+    return function observeGroup(emit, source, parameters, beforeChange) {
         return observeMapPack(autoCancelPrevious(function (input) {
             if (!input) return emit();
 
@@ -496,6 +497,60 @@ function makeReplacingGroupBlockObserver(observeCollection, observeRelation) {
             };
         }), source, parameters, beforeChange);
     };
+}
+
+function makeHeapBlockObserver(observeCollection, observeRelation, order) {
+    var observePack = makePackingObserver(observeRelation);
+    var observeMapPack = makeReplacingMapBlockObserver(observeCollection, observePack);
+
+    function packCompare(a, b) {
+        return Object.compare(a.value, b.value) * order;
+    }
+    function packEquals(a, b) {
+        return Object.equals(a.value, b.value);
+    }
+
+    return function (emit, source, parameters, beforeChange) {
+
+        return observeMapPack(autoCancelPrevious(function (input) {
+            if (!input) return emit(null);
+
+            var heap = new Heap(null, packEquals, packCompare);
+
+            function rangeChange(plus, minus) {
+                heap.addEach(plus);
+                heap.deleteEach(minus);
+            }
+
+            function heapChange(value, key) {
+                if (key === 0) {
+                    if (!value) {
+                        return emit(null);
+                    } else {
+                        return emit(value.key);
+                    }
+                }
+            }
+
+            var cancelRangeChange = observeRangeChange(input, rangeChange);
+            var cancelHeapChange = observeMapChange(heap, heapChange, beforeChange);
+
+            return function cancelHeapObserver() {
+                cancelRangeChange();
+                cancelHeapChange();
+            };
+        }), source, parameters, beforeChange);
+    };
+}
+
+exports.makeMaxBlockObserver = makeMaxBlockObserver;
+function makeMaxBlockObserver(observeCollection, observeRelation) {
+    return makeHeapBlockObserver(observeCollection, observeRelation, 1);
+}
+
+exports.makeMinBlockObserver = makeMinBlockObserver;
+function makeMinBlockObserver(observeCollection, observeRelation) {
+    return makeHeapBlockObserver(observeCollection, observeRelation, -1);
 }
 
 exports.makeOperatorObserverMaker = makeOperatorObserverMaker;
@@ -865,15 +920,19 @@ function observeRangeChange(collection, emit, beforeChange) {
 }
 
 function observeMapChange(collection, emit, beforeChange) {
-    var cancelChild = Function.noop;
-    function mapChange() {
+    var cancelers = Map();
+    function mapChange(value, key, collection) {
+        var cancelChild = cancelers.get(key) || Function.noop;
         cancelChild();
-        cancelChild = emit(collection) || Function.noop;
+        cancelChild = emit(value, key, collection) || Function.noop;
+        cancelers.set(key, cancelChild);
     }
-    mapChange();
+    collection.forEach(mapChange);
     var cancelMapChange = collection.addMapChangeListener(mapChange, beforeChange);
     return once(function cancelMapObserver() {
-        cancelChild();
+        cancelers.forEach(function (cancel) {
+            cancel();
+        });
         cancelMapChange();
     });
 }

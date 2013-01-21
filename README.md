@@ -314,6 +314,47 @@ expect(object.sorted.map(function (array) {
 ]);
 ```
 
+### Min and Max
+
+A binding can observe the minimum or maximum of a collection.  FRB uses
+a binary heap internally to incrementally track the minimum or maximum
+value of the collection.
+
+```javascript
+var object = Bindings.defineBindings({}, {
+    min: {"<-": "values.min{}"},
+    max: {"<-": "values.max{}"}
+});
+
+expect(object.min).toBe(null);
+expect(object.max).toBe(null);
+
+object.values = [2, 3, 2, 1, 2];
+expect(object.min).toBe(1);
+expect(object.max).toBe(3);
+```
+
+Min and max blocks accept an expression on which to compare values from
+the collection.
+
+```javascript
+var object = Bindings.defineBindings({}, {
+    loser: {"<-": "rounds.min{score}.player"},
+    winner: {"<-": "rounds.max{score}.player"}
+});
+
+object.rounds = [
+    {score: 0, player: "Luke"},
+    {score: 100, player: "Obi Wan"},
+    {score: 250, player: "Vader"}
+];
+expect(object.loser).toEqual("Luke");
+expect(object.winner).toEqual("Vader");
+
+object.rounds[1].score = 300;
+expect(object.winner).toEqual("Obi Wan");
+```
+
 ### View
 
 Suppose that your source is a large data store, like a `SortedSet` from
@@ -1740,8 +1781,8 @@ expect(path).toBe("a && b");
 -   **block-call** = **function-name** `{` **expression** `}`
     -   **block-name** = `map` *(mapBlock)* or `filter` *(filterBlock)*
         or `some` *(someBlock)* or `every` *(everyBlock)* or `sorted`
-        *(sortedBlock)* or **function-name** *(map followed by
-        function-call)*
+        *(sortedBlock)* or `min` *(minBlock)* or `max` *(maxBlock)* or
+        **function-name** *(map followed by function-call)*
 -   **literal** = **string-literal** or **number-literal**
     -   **number-literal** = **digits** ( `.` **digits** )? *(literal
         and value is a number)*
@@ -1814,6 +1855,10 @@ available.
     property of each value described in the block, or itself if empty.
     Sorted arrays are incrementally updating as values are added and
     deleted from the source.
+-   A "min" block observes the which of the values in a given collection
+    produces the smallest value through the given relation.
+-   A "max" block observes the which of the values in a given collection
+    produces the largest value through the given relation.
 -   Any function call with a "block" implies calling the function on the
     result of a "map" block.
 -   A "flatten" function call observes a source array and produces a
@@ -2010,9 +2055,15 @@ nodes (or an "args" object for `record`).
 -   `filter` (not implemented): the left is the input, the right is a
     function that accepts a value and returns whether to include that
     value in the output.
--   `sorted` (not implemented): the left is the input, the right is a
-    function that accepts a value and returns a value to compare to
-    determine the order of the sorted output.
+-   `sorted`: the left is the input, the right is a function that
+    accepts a value and returns a value to compare to determine the
+    order of the sorted output.
+-   `min`: the left is the input, the right is a function that accepts a
+    value from the input and returns a value to compare to determine the
+    minimum value.
+-   `max`: the left is the input, the right is a function that accepts a
+    value from the input and returns a value to compare to determine the
+    maximum value.
 -   `tuple`: has any number of arguments, each an expression to observe
     in terms of the source value.
 -   `record`: as an args object. The keys are property names for the

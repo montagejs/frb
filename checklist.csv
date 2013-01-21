@@ -16,11 +16,8 @@ with,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 has,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 if,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 ,,,,,,,,,,,
-map,Y,Y,Y,Y,Y,X,N,Y,Y,X,Y
 mapBlock,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
-filter,Y,Y,Y,Y,N,X,N,Y,N,X,Y (TODO)
 filterBlock,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
-sorted,Y,Y,Y,Y,N,X,N,Y,N,X,Y (TODO)
 sortedBlock,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 sortedSet,N,N,Y,N,N,X,N,N,N,X,N
 sortedSetBlock,N,N,Y,N,N,X,N,N,N,X,N
@@ -40,8 +37,8 @@ order,N,N,Y,N,N,X,N,N,N,X,N
 ,,,,,,,,,,,
 sum,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 average,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
-min,Y,Y,Y,N,N,X,N,N,N,X,N
-max,Y,Y,Y,N,N,X,N,N,N,X,N
+minBlock,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
+maxBlock,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 ,,,,,,,,,,,
 not,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 neg,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y

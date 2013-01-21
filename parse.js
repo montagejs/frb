@@ -328,7 +328,9 @@ parse.semantics = {
                                 identifier === "sorted" ||
                                 identifier === "group" ||
                                 identifier === "every" ||
-                                identifier === "some"
+                                identifier === "some" ||
+                                identifier === "min" ||
+                                identifier === "max"
                             ) {
                                 return self.parseTail(callback, {
                                     type: identifier + "Block",

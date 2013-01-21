@@ -119,6 +119,24 @@ var argCompilers = {
         };
     },
 
+    minBlock: function (evaluateCollection, evaluateRelation) {
+        return function (value, parameters) {
+            return evaluateCollection(value, parameters)
+            .min(Function.by(function (value) {
+                return evaluateRelation(value, parameters);
+            }))
+        };
+    },
+
+    maxBlock: function (evaluateCollection, evaluateRelation) {
+        return function (value, parameters) {
+            return evaluateCollection(value, parameters)
+            .max(Function.by(function (value) {
+                return evaluateRelation(value, parameters);
+            }))
+        };
+    },
+
     "with": function (evaluateContext, evaluateExpression) {
         return function (value, parameters) {
             return evaluateExpression(evaluateContext(value, parameters), parameters);

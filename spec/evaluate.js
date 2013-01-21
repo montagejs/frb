@@ -221,19 +221,17 @@ module.exports = [
         output: [3, 2, 1]
     },
 
-    //{
-    //    path: "filter($predicate)",
-    //    parameters: {predicate: function (x) {return !(x.foo % 2)}},
-    //    input: [{foo: 1}, {foo: 2}, {foo: 3}, {foo: 4}],
-    //    output: [{foo: 2}, {foo: 4}]
-    //},
+    {
+        path: "max{x}",
+        input: [{x: 0}, {x: 2}, {x: 1}],
+        output: {x: 2}
+    },
 
-    //{
-    //    path: "sorted($by).map{foo}.reversed()",
-    //    parameters: {by: function (x) {return x.foo}},
-    //    input: [{foo: 4}, {foo: 1}, {foo: 3}, {foo: 2}],
-    //    output: [4, 3, 2, 1]
-    //}
+    {
+        path: "min{x}",
+        input: [{x: 0}, {x: 2}, {x: 1}],
+        output: {x: 0}
+    },
 
     //{
     //    path: "min()",
