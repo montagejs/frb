@@ -16,8 +16,8 @@ describe("min and max blocks", function () {
             min: {"<-": "objects.min{x}"}
         });
 
-        expect(object.max).toBe(null);
-        expect(object.min).toBe(null);
+        expect(object.max).toBe(void 0);
+        expect(object.min).toBe(void 0);
 
         object.objects = [d, a, c, b];
         expect(object.max.x).toBe(a.x);
@@ -36,16 +36,16 @@ describe("min and max blocks", function () {
         expect(object.min.x).toBe(1);
 
         object.objects.clear();
-        expect(object.max).toBe(null);
-        expect(object.min).toBe(null);
+        expect(object.max).toBe(void 0);
+        expect(object.min).toBe(void 0);
 
         object.objects = [d];
         expect(object.max).toBe(d);
         expect(object.min).toBe(d);
 
         object.objects = null;
-        expect(object.max).toBe(null);
-        expect(object.min).toBe(null);
+        expect(object.max).toBe(void 0);
+        expect(object.min).toBe(void 0);
 
     });
 });

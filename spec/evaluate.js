@@ -231,6 +231,15 @@ module.exports = [
     },
 
     {
+        path: "groupMap{score}.items()",
+        input: [{score: 1, name: "Josh"}, {score: 1, name: "Ben"}, {score: 2, name: "Alice"}],
+        output: [
+            [1, [{score: 1, name: "Josh"}, {score: 1, name: "Ben"}]],
+            [2, [{score: 2, name: "Alice"}]]
+        ]
+    },
+
+    {
         path: "max{x}",
         input: [{x: 0}, {x: 2}, {x: 1}],
         output: {x: 2}

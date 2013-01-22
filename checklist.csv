@@ -22,12 +22,17 @@ sortedBlock,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 sortedSet,N,N,Y,N,N,X,N,N,N,X,N
 sortedSetBlock,N,N,Y,N,N,X,N,N,N,X,N
 groupBlock,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
+groupMapBlock,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 mapContent,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 rangeContent,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 someBlock,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 everyBlock,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
-one,N,N,Y,N,N,X,N,N,N,X,N
-only,N,N,Y,N,N,N,N,N,N,N,N
+one,Y,Y,Y,Y,Y,X,N,N,N,X,N
+only,Y,Y,Y,Y,Y,N,N,N,N,N,N
+,,,,,,,,,,,
+items,Y,Y,Y,Y,Y,X,Y,Y,Y,X,N
+values,Y,Y,Y,Y,Y,X,Y,Y,Y,X,N
+keys,Y,Y,Y,Y,Y,X,Y,Y,Y,X,N
 ,,,,,,,,,,,
 enumerate,Y,Y,Y,Y,Y,X,Y,Y,Y,X,Y
 reversed,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
@@ -80,7 +85,3 @@ toSortedSet,N,N,N,N,N,X,N,N,N,X,N
 toDict,N,N,N,N,N,X,N,N,N,X,N
 toList,N,N,N,N,N,X,N,N,N,X,N
 toMap,N,N,N,N,N,X,N,N,N,X,N
-,,,,,,,,,,,
-items,N,N,N,N,N,X,N,N,N,X,N
-values,N,N,N,N,N,X,N,N,N,X,N
-keys,N,N,N,N,N,X,N,N,N,X,N

@@ -121,6 +121,7 @@ stringify.semantics = {
         everyBlock: makeBlockStringifier("every"),
         sortedBlock: makeBlockStringifier("sorted"),
         groupBlock: makeBlockStringifier("group"),
+        groupMapBlock: makeBlockStringifier("groupMap"),
         minBlock: makeBlockStringifier("min"),
         maxBlock: makeBlockStringifier("max"),
 

@@ -189,8 +189,8 @@ describe("Tutorial", function () {
             max: {"<-": "values.max{}"}
         });
 
-        expect(object.min).toBe(null);
-        expect(object.max).toBe(null);
+        expect(object.min).toBe(undefined);
+        expect(object.max).toBe(undefined);
 
         object.values = [2, 3, 2, 1, 2];
         expect(object.min).toBe(1);
@@ -234,6 +234,24 @@ describe("Tutorial", function () {
                 {type: 'pants', color: 'red'},
                 {type: 'hat', color: 'red'}
             ]]
+        ]);
+
+        // continued...
+        Bindings.cancelBinding(store, "clothingByColor");
+        Bindings.defineBindings(store, {
+            "clothingByColor": {"<-": "clothing.groupMap{color}"}
+        });
+        var blueClothes = store.clothingByColor.get('blue');
+        expect(blueClothes).toEqual([
+            {type: 'shirt', color: 'blue'},
+            {type: 'blazer', color: 'blue'}
+        ]);
+
+        store.clothing.push({type: 'gloves', color: 'blue'});
+        expect(blueClothes).toEqual([
+            {type: 'shirt', color: 'blue'},
+            {type: 'blazer', color: 'blue'},
+            {type: 'gloves', color: 'blue'}
         ]);
     });
 
@@ -429,6 +447,25 @@ describe("Tutorial", function () {
         object.b.set('b', 20);
         expect(object.a.toObject()).toEqual({a: 10, b: 20});
         expect(object.b.toObject()).toEqual({a: 10, b: 20});
+    });
+
+    it("Keys, Values, Items", function () {
+        var Map = require("collections/map");
+        var object = Bindings.defineBindings({}, {
+            keys: {"<-": "map.keys()"},
+            values: {"<-": "map.values()"},
+            items: {"<-": "map.items()"}
+        });
+        object.map = Map({a: 10, b: 20, c: 30});
+        expect(object.keys).toEqual(['a', 'b', 'c']);
+        expect(object.values).toEqual([10, 20, 30]);
+        expect(object.items).toEqual([['a', 10], ['b', 20], ['c', 30]]);
+
+        object.map.set('d', 40);
+        object.map.delete('a');
+        expect(object.keys).toEqual(['b', 'c', 'd']);
+        expect(object.values).toEqual([20, 30, 40]);
+        expect(object.items).toEqual([['b', 20], ['c', 30], ['d', 40]]);
     });
 
     it("Array Content", function () {

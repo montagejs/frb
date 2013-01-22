@@ -16,11 +16,13 @@ function makeLiteralObserver(literal) {
     };
 }
 
-exports.observeValue = function (emit, value) {
+exports.observeValue = observeValue;
+function observeValue(emit, value) {
     return emit(value) || Function.noop;
-};
+}
 
-exports.observeParameters = function (emit, value, parameters) {
+exports.observeParameters = observeParameters;
+function observeParameters(emit, value, parameters) {
     return emit(parameters) || Function.noop;
 };
 
@@ -358,8 +360,8 @@ function makeEveryBlockObserver(observeCollection, observePredicate) {
 // used by both some and every blocks
 var observeLengthLiteral = makeLiteralObserver("length");
 
-exports.makeSortedBlockObserver = makeNonReplacing(makeReplacingSortedBlockObserver);
-function makeReplacingSortedBlockObserver(observeCollection, observeRelation) {
+exports.makeSortedBlockObserver = makeSortedBlockObserver;
+function makeSortedBlockObserver(observeCollection, observeRelation) {
     var observePack = makePackingObserver(observeRelation);
     var observeMapPack = makeReplacingMapBlockObserver(observeCollection, observePack);
     var observeSort = function (emit, value, parameters, beforeChange) {
@@ -388,7 +390,7 @@ function makeReplacingSortedBlockObserver(observeCollection, observeRelation) {
             };
         }), value, parameters, beforeChange);
     };
-    return makeReplacingMapBlockObserver(observeSort, observeUnpack);
+    return makeMapBlockObserver(observeSort, observeUnpack);
 }
 
 function makePackingObserver(observeRelation) {
@@ -405,95 +407,53 @@ function observeUnpack(emit, item) {
 
 // TODO makeSortedSetBlockObserver
 
-exports.makeGroupBlockObserver = makeNonReplacing(makeReplacingGroupBlockObserver);
-function makeReplacingGroupBlockObserver(observeCollection, observeRelation) {
+exports.makeGroupBlockObserver = makeGroupBlockObserver;
+function makeGroupBlockObserver(observeCollection, observeRelation) {
+    var observeGroup = makeGroupMapBlockObserver(observeCollection, observeRelation);
+    return makeItemsObserver(observeGroup);
+}
+
+exports.makeGroupMapBlockObserver = makeGroupMapBlockObserver;
+function makeGroupMapBlockObserver(observeCollection, observeRelation) {
     var observePack = makePackingObserver(observeRelation);
     var observeMapPack = makeReplacingMapBlockObserver(observeCollection, observePack);
     return function observeGroup(emit, source, parameters, beforeChange) {
-        return observeMapPack(autoCancelPrevious(function (input) {
+        return observeMapPack(autoCancelPrevious(function (input, original) {
             if (!input) return emit();
 
-            var groups = []; // [key, group] pairs
-            var inputIndexToGroupIndexRef = [];
-            var groupKeyToGroup = Map();
-            var groupKeyToGroupIndexRefs = Map();
-            var groupKeyToGroupsIndexRef = Map();
+            var groups = Map();
 
             function rangeChange(plus, minus, index) {
-
-                var dirtyGroupKeys = Set();
-
-                minus.forEach(function (pack, offset) {
-                    var groupKey = pack.value;
-                    var groupIndex = inputIndexToGroupIndexRef[index + offset].index;
-                    var group = groupKeyToGroup.get(groupKey);
-                    var groupIndexRefs = groupKeyToGroupIndexRefs.get(groupKey);
-                    group.splice(groupIndex, 1);
-                    groupIndexRefs.splice(groupIndex, 1);
-
-                    // update index refs within the group
-                    for (; groupIndex < groupIndexRefs.length; groupIndex++) {
-                        groupIndexRefs[groupIndex].index = groupIndex;
-                    }
-
-                    // group may be empty at the end of the turn
-                    dirtyGroupKeys.add(groupKey);
+                var dirtyGroups = Set();
+                minus.forEach(function (pack) {
+                    // ASSERT groups.has(pack.value);
+                    var group = groups.get(pack.value);
+                    group["delete"](pack.key);
+                    dirtyGroups.add(pack.value);
                 });
-
-                inputIndexToGroupIndexRef.swap(
-                    index,
-                    minus.length,
-                    plus.map(function (pack, offset) {
-                        var groupKey = pack.value;
-
-                        // create new groups
-                        if (!groupKeyToGroup.has(groupKey)) {
-                            var group = [];
-                            var groupIndexRefs = [];
-                            groupKeyToGroup.set(groupKey, group);
-                            groupKeyToGroupIndexRefs.set(groupKey, groupIndexRefs);
-                            groupKeyToGroupsIndexRef.set(groupKey, groups.length);
-                            groups.push([groupKey, group]);
-                        } else {
-                        // retrieve existing groups
-                            group = groupKeyToGroup.get(groupKey);
-                            groupIndexRefs = groupKeyToGroupIndexRefs.get(groupKey);
-                        }
-
-                        // Add the value to the group and record the position we
-                        // put it in
-                        group.push(pack.key);
-                        var indexRef = {index: groupIndexRefs.length};
-                        groupIndexRefs.push(indexRef);
-                        return indexRef;
-                    })
-                );
-
-                // collect garbage groups
-                dirtyGroupKeys.forEach(function (groupKey) {
-                    var index;
-                    var firstIndex = Infinity;
-                    var group = groupKeyToGroup.get(groupKey);
+                plus.forEach(function (pack) {
+                    if (!groups.has(pack.value)) {
+                        // constructClone ensures that the equivalence classes
+                        // are the same type as the input.  It is shimmed on
+                        // Array by Collections, and supported by all others.
+                        groups.set(pack.value, original.constructClone());
+                    }
+                    var group = groups.get(pack.value);
+                    group.add(pack.key);
+                });
+                dirtyGroups.forEach(function (key) {
+                    var group = groups.get(key);
                     if (group.length === 0) {
-                        index = groupKeyToGroupsIndexRef.get(groupKey);
-                        groups.splice(index, 1);
-                        firstIndex = Math.min(index, firstIndex);
-                    }
-                    // update subsequent indexes
-                    for (index = firstIndex; index < groups.length; index++) {
-                        group = groupKeyToGroup.get(groups[index].value);
-                        var indexRef = groupKeyToGroupsIndexRef.get(key);
-                        indexRef.index = index;
+                        groups["delete"](key);
                     }
                 });
-
             }
 
             var cancelRangeChange = observeRangeChange(input, rangeChange, beforeChange);
             var cancel = emit(groups) || Function.noop;
             return function cancelGroupObserver() {
-                cancel();
                 cancelRangeChange();
+                cancel();
             };
         }), source, parameters, beforeChange);
     };
@@ -513,7 +473,7 @@ function makeHeapBlockObserver(observeCollection, observeRelation, order) {
     return function (emit, source, parameters, beforeChange) {
 
         return observeMapPack(autoCancelPrevious(function (input) {
-            if (!input) return emit(null);
+            if (!input) return emit();
 
             var heap = new Heap(null, packEquals, packCompare);
 
@@ -525,7 +485,7 @@ function makeHeapBlockObserver(observeCollection, observeRelation, order) {
             function heapChange(value, key) {
                 if (key === 0) {
                     if (!value) {
-                        return emit(null);
+                        return emit();
                     } else {
                         return emit(value.key);
                     }
@@ -902,6 +862,7 @@ function makeCollectionObserverMaker(setup) {
     };
 }
 
+exports.observeRangeChange = observeRangeChange;
 function observeRangeChange(collection, emit, beforeChange) {
     var cancelChild = Function.noop;
     function rangeChange(plus, minus, index) {
@@ -919,6 +880,7 @@ function observeRangeChange(collection, emit, beforeChange) {
     });
 }
 
+exports.observeMapChange = observeMapChange;
 function observeMapChange(collection, emit, beforeChange) {
     var cancelers = Map();
     function mapChange(value, key, collection) {
@@ -935,6 +897,67 @@ function observeMapChange(collection, emit, beforeChange) {
         });
         cancelMapChange();
     });
+}
+
+var makeItemsObserver = exports.makeItemsObserver = makeNonReplacing(makeReplacingItemsObserver);
+function makeReplacingItemsObserver(observeCollection) {
+    return function _observeItems(emit, source, parameters, beforeChange) {
+        return observeCollection(autoCancelPrevious(function (collection) {
+            if (!collection) return emit();
+            return observeItems(collection, emit, beforeChange);
+        }), source, parameters, beforeChange);
+    };
+}
+
+exports.observeItems = observeItems;
+function observeItems(collection, emit, beforeChange) {
+    var items = [];
+    var keyToItem = Map();
+    var cancel = emit(items) || Function.noop;
+    // TODO observe addition and deletion with separate observers
+    function mapChange(value, key, collection) {
+        var item, index;
+        if (!keyToItem.has(key)) { // add
+            item = [key, value];
+            keyToItem.set(key, item);
+            items.push(item);
+        } else if (value == null) { // delete
+            item = keyToItem.get(key);
+            keyToItem["delete"](key);
+            index = items.indexOf(item);
+            items.splice(index, 1);
+        } else { // update
+            item = keyToItem.get(key);
+            item.set(1, value);
+        }
+    }
+    var cancelMapChange = observeMapChange(collection, mapChange, beforeChange);
+    return once(function cancelObserveItems() {
+        cancel();
+        cancelMapChange();
+    });
+}
+
+exports.makeKeysObserver = makeKeysObserver;
+function makeKeysObserver(observeCollection) {
+    var observeItems = makeItemsObserver(observeCollection);
+    return makeMapBlockObserver(observeItems, observeItemKey);
+}
+
+function observeItemKey(emit, source) {
+    if (!source) return emit();
+    return emit(source[0]) || Function.noop;
+}
+
+exports.makeValuesObserver = makeValuesObserver;
+function makeValuesObserver(observeCollection) {
+    var observeItems = makeItemsObserver(observeCollection);
+    return makeMapBlockObserver(observeItems, observeItemValue);
+}
+
+function observeItemValue(emit, source) {
+    if (!source) return emit();
+    return emit(source[1]) || Function.noop;
 }
 
 // wraps an emitter such that repeated values are ignored

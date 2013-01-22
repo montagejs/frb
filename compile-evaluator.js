@@ -1,5 +1,6 @@
 
 var Object = require("collections/shim-object");
+var Map = require("collections/map");
 var Operators = require("./operators");
 
 module.exports = compile;
@@ -121,6 +122,15 @@ var argCompilers = {
         };
     },
 
+    groupMapBlock: function (evaluateCollection, evaluateRelation) {
+        return function (value, parameters) {
+            return new Map(evaluateCollection(value, parameters)
+            .group(function (value) {
+                return evaluateRelation(value, parameters);
+            }));
+        };
+    },
+
     minBlock: function (evaluateCollection, evaluateRelation) {
         return function (value, parameters) {
             return evaluateCollection(value, parameters)
@@ -187,10 +197,17 @@ Object.addEach(operators, {
     "sum",
     "average",
     "map",
-    "filter"
+    "filter",
+    "keys",
+    "values",
+    "items",
+    "one",
+    "only"
 ].forEach(function (name) {
     operators[name] = function (object) {
         var args = Array.prototype.slice.call(arguments, 1);
+        if (!object[name])
+            throw new TypeError("Can't call " + JSON.stringify(name) + " of " + object);
         return object[name].apply(object, args);
     };
 });

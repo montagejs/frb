@@ -16,6 +16,9 @@ var semantics = compile.semantics = {
         "if": Observers.makeConditionalObserver,
         rangeContent: Function.identity,
         mapContent: Function.identity,
+        keys: Observers.makeKeysObserver,
+        values: Observers.makeValuesObserver,
+        items: Observers.makeItemsObserver,
         mapBlock: Observers.makeMapBlockObserver,
         filterBlock: Observers.makeFilterBlockObserver,
         everyBlock: Observers.makeEveryBlockObserver,
@@ -23,6 +26,7 @@ var semantics = compile.semantics = {
         sortedBlock: Observers.makeSortedBlockObserver,
         // TODO sortedSetBlock: Observers.makeSortedSetBlockObserver,
         groupBlock: Observers.makeGroupBlockObserver,
+        groupMapBlock: Observers.makeGroupMapBlockObserver,
         minBlock: Observers.makeMinBlockObserver,
         maxBlock: Observers.makeMaxBlockObserver,
         enumerate: Observers.makeEnumerationObserver,
@@ -75,5 +79,4 @@ Object.keys(Operators).forEach(function (name) {
         compilers[name] = Observers.makeOperatorObserverMaker(Operators[name]);
     }
 });
-
 

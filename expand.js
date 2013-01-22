@@ -25,7 +25,8 @@ expand.semantics = {
         "someBlock",
         "everyBlock",
         "sortedBlock",
-        "groupBlock"
+        "groupBlock",
+        "groupMapBlock"
     ]),
 
     traverseAll: Set([
@@ -50,6 +51,9 @@ expand.semantics = {
         "average",
         "min",
         "max",
+        "keys",
+        "values",
+        "items"
     ]).addEach(Object.keys(Operators)),
 
     expanders: Map({

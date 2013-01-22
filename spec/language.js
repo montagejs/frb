@@ -754,6 +754,22 @@ module.exports = [
             {type: "literal", value: 1},
             {type: "literal", value: 2}
         ]}
+    },
+
+    {
+        path: "group{}",
+        syntax: {type: "groupBlock", args: [
+            {type: "value"},
+            {type: "value"}
+        ]}
+    },
+
+    {
+        path: "groupMap{}",
+        syntax: {type: "groupMapBlock", args: [
+            {type: "value"},
+            {type: "value"}
+        ]}
     }
 
 ];

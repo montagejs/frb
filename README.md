@@ -326,8 +326,8 @@ var object = Bindings.defineBindings({}, {
     max: {"<-": "values.max{}"}
 });
 
-expect(object.min).toBe(null);
-expect(object.max).toBe(null);
+expect(object.min).toBe(undefined);
+expect(object.max).toBe(undefined);
 
 object.values = [2, 3, 2, 1, 2];
 expect(object.min).toBe(1);
@@ -384,6 +384,40 @@ expect(store.clothingByColor).toEqual([
     ]]
 ]);
 ```
+
+Tracking the positions of every key and every value in its equivalence
+class can be expensive.  Internally, `group` blocks are implemented with
+a `groupMap` block followed by an `items()` observer.  The `groupMap`
+produces a `Map` data structure and does not waste any time, but does
+not produce range change events.  The `items()` observer projects the
+map of classes into the nested array data structure.
+
+You can use the `groupMap` block directly.
+
+```javascript
+Bindings.cancelBinding(store, "clothingByColor");
+Bindings.defineBindings(store, {
+    "clothingByColor": {"<-": "clothing.groupMap{color}"}
+});
+var blueClothes = store.clothingByColor.get('blue');
+expect(blueClothes).toEqual([
+    {type: 'shirt', color: 'blue'},
+    {type: 'blazer', color: 'blue'}
+]);
+
+store.clothing.push({type: 'gloves', color: 'blue'});
+expect(blueClothes).toEqual([
+    {type: 'shirt', color: 'blue'},
+    {type: 'blazer', color: 'blue'},
+    {type: 'gloves', color: 'blue'}
+]);
+```
+
+The `group` and `groupMap` blocks both respect the type of the source
+collection.  If instead of an array you were to use a `SortedSet`, the
+equivalence classes would each be sorted sets.  This is useful because
+replacing values in a sorted set can be performed with much less waste
+than with a large array.
 
 ### View
 
@@ -668,6 +702,31 @@ expect(object.b.toObject()).toEqual({a: 10, b: 20});
 In this case, the source of the binding is a different object than the
 target, so the binding descriptor specifies the alternate source.
 
+### Keys, Values, Items
+
+If the source of a binding is a map, FRB can also translate changes to
+the map into changes on an array.  The `keys`, `values`, and `items`
+observers produce incrementally updated projections of the
+key-value-mappings onto an array.
+
+```javascript
+var Map = require("collections/map");
+var object = Bindings.defineBindings({}, {
+    keys: {"<-": "map.keys()"},
+    values: {"<-": "map.values()"},
+    items: {"<-": "map.items()"}
+});
+object.map = Map({a: 10, b: 20, c: 30});
+expect(object.keys).toEqual(['a', 'b', 'c']);
+expect(object.values).toEqual([10, 20, 30]);
+expect(object.items).toEqual([['a', 10], ['b', 20], ['c', 30]]);
+
+object.map.set('d', 40);
+object.map.delete('a');
+expect(object.keys).toEqual(['b', 'c', 'd']);
+expect(object.values).toEqual([20, 30, 40]);
+expect(object.items).toEqual([['b', 20], ['c', 30], ['d', 40]]);
+```
 
 ### Equals
 
@@ -1806,14 +1865,14 @@ expect(path).toBe("a && b");
     by `,` `)`
     -   **function-name** = `flatten` or `reversed` or `enumerate` or
         `sum` or `average` or `has` or `view` or `startsWith` or
-        `endsWith` or `contains` or `join` or `split` or `range`
-        *(eponymous syntax node types)*
+        `endsWith` or `contains` or `join` or `split` or `range` or
+        `keys` or `values` or `items` *(eponymous syntax node types)*
 -   **block-call** = **function-name** `{` **expression** `}`
     -   **block-name** = `map` *(mapBlock)* or `filter` *(filterBlock)*
         or `some` *(someBlock)* or `every` *(everyBlock)* or `sorted`
         *(sortedBlock)* or `min` *(minBlock)* or `max` *(maxBlock)* or
-        `group` *(groupBlock)* or **function-name** *(map followed by
-        function-call)*
+        `group` *(groupBlock)* or `groupMap` *(groupMapBlock)* or
+        **function-name** *(map followed by function-call)*
 -   **literal** = **string-literal** or **number-literal**
     -   **number-literal** = **digits** ( `.` **digits** )? *(literal
         and value is a number)*
@@ -1946,6 +2005,15 @@ available.
     containing sequential numbers starting with zero.  The output array
     is updated incrementally and will dispatch one range change each
     time the size changes by any difference.
+-   A "keys" function call observes an incrementally updated array of
+    the keys that a given map contains.  The keys are maintained in
+    insertion order.
+-   A "values" function call observes an incrementally updated array of
+    the values that a given map contains.  The values are maintained in
+    insertion order.
+-   An "items" function call observes an incrementally updated array of
+    [key, value] pairs from a given mapping.  The items are retained in
+    insertion order.
 -   `.*` at the end of a path has no effect on an observed value.
 -   `[*]` at the end of a path has no effect on an observed value.
 
@@ -2095,7 +2163,10 @@ nodes (or an "args" object for `record`).
     value of the input by which to compare the value to others.
 -   `groupBlock`: the left is the input, the right is an expression that
     provides the key for an equivalence class for each value in the
-    input.
+    input.  The output is an array of items, `[key, class]`, with the
+    shared key of every value in the equivalence class.
+-   `groupMapBlock`: has the same input semantics as `groupBlock`, but
+    the output is a `Map` instance instead of an array of items.
 -   `tuple`: has any number of arguments, each an expression to observe
     in terms of the source value.
 -   `record`: as an args object. The keys are property names for the
@@ -2168,6 +2239,9 @@ For all function calls, the right hand side is a tuple of arguments.
 -   `join`
 -   `split`
 -   `range`
+-   `keys`
+-   `values`
+-   `items`
 
 
 ### Observers and Binders
