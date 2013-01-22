@@ -454,7 +454,7 @@ module.exports = [
     },
 
     {
-        path: "path.eval()",
+        path: "path.evaluate()",
         input: {x: 2, y: 3, path: "x + y"},
         output: 5
     }

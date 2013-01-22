@@ -165,7 +165,7 @@ var argCompilers = {
         }
     },
 
-    "eval": function (evaluatePath) {
+    "evaluate": function (evaluatePath) {
         return function (value, parameters) {
             var evaluate = require("./evaluate");
             var path = evaluatePath(value, parameters);

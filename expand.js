@@ -54,7 +54,7 @@ expand.semantics = {
         "keys",
         "values",
         "items",
-        "eval"
+        "evaluate"
     ]).addEach(Object.keys(Operators)),
 
     expanders: Map({

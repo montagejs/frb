@@ -1,10 +1,10 @@
 var Bindings = require("../bindings");
 
-describe("eval", function () {
+describe("evaluate", function () {
     it("should do evil", function () {
 
         var object = Bindings.defineBindings({}, {
-            "result": {"<-": "&eval(path)"}
+            "result": {"<-": "&evaluate(path)"}
         });
 
         expect(object.result).toBe();

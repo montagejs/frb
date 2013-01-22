@@ -960,8 +960,8 @@ function observeItemValue(emit, source) {
     return emit(source[1]) || Function.noop;
 }
 
-exports.makeEvalObserver = makeEvalObserver;
-function makeEvalObserver(observePath) {
+exports.makeEvaluateObserver = makeEvaluateObserver;
+function makeEvaluateObserver(observePath) {
     var parse = require("./parse");
     var compileObserver = require("./compile-observer");
     return function (emit, source, parameters, beforeChange) {

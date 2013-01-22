@@ -42,7 +42,7 @@ var semantics = compile.semantics = {
         startsWith: Observers.makeStartsWithObserver,
         endsWith: Observers.makeEndsWithObserver,
         contains: Observers.makeContainsObserver,
-        eval: Observers.makeEvalObserver
+        evaluate: Observers.makeEvaluateObserver
     },
 
     compile: function (syntax) {
