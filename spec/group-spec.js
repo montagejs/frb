@@ -134,7 +134,6 @@ describe("group block", function () {
             "<-": "folks.groupMap{gender}"
         });
 
-        var criterion = Function.by(Function.get('name'));
         object.folks = new SortedSet([max, sam], function (a, b) {
             return a.name === b.name;
         }, function (a, b) {
