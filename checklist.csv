@@ -85,3 +85,5 @@ toSortedSet,N,N,N,N,N,X,N,N,N,X,N
 toDict,N,N,N,N,N,X,N,N,N,X,N
 toList,N,N,N,N,N,X,N,N,N,X,N
 toMap,N,N,N,N,N,X,N,N,N,X,N
+,,,,,,,,,,,
+eval,Y,Y,Y,Y,Y,X,N,N,N,N,N

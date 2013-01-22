@@ -960,6 +960,20 @@ function observeItemValue(emit, source) {
     return emit(source[1]) || Function.noop;
 }
 
+exports.makeEvalObserver = makeEvalObserver;
+function makeEvalObserver(observePath) {
+    var parse = require("./parse");
+    var compileObserver = require("./compile-observer");
+    return function (emit, source, parameters, beforeChange) {
+        return observePath(autoCancelPrevious(function replacePath(path) {
+            if (!path) return emit();
+            var syntax = parse(path);
+            var observePathEvaluator = compileObserver(syntax);
+            return observePathEvaluator(emit, source, parameters, beforeChange);
+        }), source, parameters, beforeChange);
+    };
+}
+
 // wraps an emitter such that repeated values are ignored
 exports.makeUniq = makeUniq;
 function makeUniq(emit) {

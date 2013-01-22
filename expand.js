@@ -53,7 +53,8 @@ expand.semantics = {
         "max",
         "keys",
         "values",
-        "items"
+        "items",
+        "eval"
     ]).addEach(Object.keys(Operators)),
 
     expanders: Map({

@@ -163,6 +163,14 @@ var argCompilers = {
                 return evaluateAlternate(value, parameters);
             }
         }
+    },
+
+    "eval": function (evaluatePath) {
+        return function (value, parameters) {
+            var evaluate = require("./evaluate");
+            var path = evaluatePath(value, parameters);
+            return evaluate(path, value, parameters);
+        }
     }
 
 };
