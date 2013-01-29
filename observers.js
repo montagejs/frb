@@ -95,7 +95,7 @@ function makePropertyObserver(observeObject, observeKey) {
             if (key == null) return emit();
             return observeObject(autoCancelPrevious(function replaceObject(object) {
                 if (object == null) return emit();
-                if (Object.can(object, "observeProperty")) {
+                if (object.observeProperty) {
                     return object.observeProperty(key, emit, source, parameters, beforeChange);
                 } else {
                     return _observeProperty(object, key, emit, source, parameters, beforeChange);
@@ -130,7 +130,7 @@ function makeGetObserver(observeCollection, observeKey) {
             if (!collection) return emit();
             return observeKey(autoCancelPrevious(function replaceKey(key) {
                 if (key == null) return emit();
-                if (Object.can(collection, "observeKey")) {
+                if (collection.observeKey) {
                     // polymorphic override
                     return collection.observeKey(key, emit, source, parameters, beforeChange);
                 } else {
@@ -970,7 +970,7 @@ function makeToMapObserver(observeObject) {
             map.clear();
             if (!object) return;
 
-            if (Object.can(object, "addRangeChangeListener")) { // array/collection of items
+            if (object.addRangeChangeListener) { // array/collection of items
 
                 // TODO
 
