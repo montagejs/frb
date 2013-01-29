@@ -780,14 +780,6 @@ function makeContainsObserver(observeHaystack, observeNeedle) {
     }
 }
 
-function cancelEach(cancelers) {
-    cancelers.forEach(function (cancel) {
-        if (cancel) {
-            cancel();
-        }
-    });
-}
-
 // a utility for generating map and filter observers because they both replace
 // the output array whenever the input array is replaced.  instead, this
 // wrapper receives the replacement array and mirrors it on an output array
@@ -930,10 +922,6 @@ function observeItems(collection, emit, beforeChange) {
     });
 }
 
-function defined(x) {
-    return x != null;
-}
-
 exports.makeKeysObserver = makeKeysObserver;
 function makeKeysObserver(observeCollection) {
     var observeItems = makeItemsObserver(observeCollection);
@@ -972,6 +960,48 @@ function makeEvaluateObserver(observePath) {
     };
 }
 
+exports.makeToMapObserver = makeToMapObserver;
+function makeToMapObserver(observeObject) {
+    return function observeToMap(emit, source, parameters, beforeChange) {
+        var map = Map();
+        var cancel = emit(map) || Function.noop;
+
+        var cancelObjectObserver = observeObject(autoCancelPrevious(function replaceObject(object) {
+            map.clear();
+            if (!object) return;
+
+            if (Object.can(object, "addRangeChangeListener")) { // array/collection of items
+
+                // TODO
+
+            } else { // object literal
+
+                var cancelers = Object.keys(object).map(function (key) {
+                    return _observeProperty(object, key, autoCancelPrevious(function (value) {
+                        map.set(key, value);
+                    }), source, parameters, beforeChange);
+                });
+                return function cancelPropertyObservers() {
+                    cancelEach(cancelers);
+                };
+
+            }
+        }), source, parameters, beforeChange);
+
+        return function cancelObjectToMapObserver() {
+            cancel();
+            cancelObjectObserver();
+        };
+    };
+}
+
+// Utility Methods
+// ---------------
+
+function defined(x) {
+    return x != null;
+}
+
 // wraps an emitter such that repeated values are ignored
 exports.makeUniq = makeUniq;
 function makeUniq(emit) {
@@ -983,6 +1013,15 @@ function makeUniq(emit) {
             return result;
         }
     };
+}
+
+exports.cancelEach;
+function cancelEach(cancelers) {
+    cancelers.forEach(function (cancel) {
+        if (cancel) {
+            cancel();
+        }
+    });
 }
 
 // wraps an emitter that returns a canceler.  each time the wrapped function is

@@ -19,6 +19,7 @@ var semantics = compile.semantics = {
         keys: Observers.makeKeysObserver,
         values: Observers.makeValuesObserver,
         items: Observers.makeItemsObserver,
+        toMap: Observers.makeToMapObserver,
         mapBlock: Observers.makeMapBlockObserver,
         filterBlock: Observers.makeFilterBlockObserver,
         everyBlock: Observers.makeEveryBlockObserver,
@@ -34,9 +35,9 @@ var semantics = compile.semantics = {
         flatten: Observers.makeFlattenObserver,
         view: Observers.makeViewObserver,
         sum: Observers.makeSumObserver,
+        average: Observers.makeAverageObserver,
         has: Observers.makeHasObserver,
         // TODO zip
-        average: Observers.makeAverageObserver,
         tuple: Observers.makeTupleObserver,
         range: Observers.makeRangeObserver,
         startsWith: Observers.makeStartsWithObserver,

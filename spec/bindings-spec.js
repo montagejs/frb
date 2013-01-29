@@ -296,5 +296,26 @@ describe("bindings", function () {
         expect(map.get('one')).toBe(0);
     });
 
+    it("should bind object literals to maps", function () {
+
+        var object = Bindings.defineBinding({}, "map", {
+            "<-": "object.toMap()"
+        });
+        expect(object.map.toObject()).toEqual({});
+
+        object.object = {a: 10};
+        expect(object.map.toObject()).toEqual({a: 10});
+
+        object.object.a = 20;
+        expect(object.map.toObject()).toEqual({a: 20});
+
+        object.object.b = 30; // not observable
+        expect(object.map.toObject()).toEqual({a: 20});
+
+        object.object = {a: 20, b: 30};
+        expect(object.map.toObject()).toEqual({a: 20, b: 30});
+
+    });
+
 });
 
