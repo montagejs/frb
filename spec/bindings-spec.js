@@ -1,5 +1,6 @@
 
 var Bindings = require("..");
+var Map = require("collections/map");
 
 describe("bindings", function () {
 
@@ -279,6 +280,20 @@ describe("bindings", function () {
 
         object.n = undefined;
         expect(object.s).toBe(undefined);
+    });
+
+    it("should bind to a key in a map", function () {
+        var object = {one: 1, two: 2};
+        var map = Map();
+
+        Bindings.defineBinding(map, "()['one']", {
+            "<-": "one",
+            source: object
+        });
+
+        expect(map.get('one')).toBe(1);
+        object.one = 0;
+        expect(map.get('one')).toBe(0);
     });
 
 });

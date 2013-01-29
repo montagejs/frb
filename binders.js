@@ -50,9 +50,9 @@ function makeGetBinder(observeCollection, observeKey) {
                     } finally {
                         descriptor.isActive = false;
                     }
-                }), target, parameters);
-            }), source, parameters);
-        }), source, parameters);
+                }), source, parameters);
+            }), target, parameters);
+        }), target, parameters);
     };
 }
 
