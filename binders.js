@@ -76,9 +76,9 @@ function makeHasBinder(observeSet, observeValue) {
                             (set.remove || set['delete']).call(set, value);
                         }
                     }
-                }), target, parameters);
-            }), source, parameters);
-        }), source, parameters);
+                }), source, parameters);
+            }), target, parameters);
+        }), target, parameters);
     };
 }
 
