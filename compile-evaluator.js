@@ -240,6 +240,8 @@ var semantics = compile.semantics = {
                 var args = argEvaluators.map(function (evaluateArg) {
                     return evaluateArg(value, parameters);
                 });
+                if (!args.every(defined))
+                    return;
                 return operator.apply(null, args);
             };
         } else if (compilers.hasOwnProperty(syntax.type)) {
@@ -255,3 +257,6 @@ var semantics = compile.semantics = {
 
 };
 
+function defined(value) {
+    return value != null;
+}

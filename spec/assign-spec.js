@@ -36,6 +36,9 @@ describe("assign", function () {
     it("should be able to assign to consequent or alternate of a ternary operator", function () {
         var object = {a: 10, b: 20};
         assign(object, "guard == 'a' ? a : b", 30);
+        expect(object).toEqual({a: 10, b: 20});
+        object.guard = '';
+        assign(object, "guard == 'a' ? a : b", 30);
         expect(object.b).toBe(30);
         object.guard = 'a';
         assign(object, "guard == 'a' ? a : b", 40);
