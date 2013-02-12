@@ -1636,7 +1636,19 @@ A binding descriptor contains:
 -   `twoWay`: whether the binding goes in both directions, if ```<->```
     was the source path.
 -   `parameters`: the parameters, which default to `source`.
+-   `convert`: a function that converts the source value to the target
+    value, useful for coercing strings to dates, for example.
+-   `revert`: a function that converts the target value to the source
+    value, useful for two-way bindings.
+-   `converter`: an object with `convert` and optionally also a `revert`
+    method.  The implementation binds these methods to their converter
+    and stores them in `covert` and `revert`.
+-   `serializable`: a note from the Montage Deserializer, to the [Montage
+    Serializer][], indicating that the binding came from a
+    serialization, and to a serialization it must return.
 -   `cancel`: a function to cancel the binding
+
+[Montage Serializer]: https://github.com/montagejs/mousse
 
 ### Bind
 
