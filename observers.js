@@ -724,6 +724,7 @@ function makeRangeObserver(observeLength) {
         var output = [];
         var cancel = emit(output) || Function.noop;
         var cancelLengthObserver = observeLength(function (length) {
+            length = length >>> 0;
             if (length == null) {
                 output.clear();
             } else if (length > output.length) {
