@@ -456,7 +456,12 @@ parse.semantics = {
         var self = this;
         return self.parseOpenParen(function () {
             return self.parseExpression(function (expression) {
-                return self.parseCloseParen(function () {
+                return self.parseCloseParen(function (paren, loc) {
+                    if (!paren) {
+                        var error = new Error("Expected \")\"");
+                        error.loc = loc;
+                        throw error;
+                    }
                     return self.parseTail(callback, expression);
                 });
             });

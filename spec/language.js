@@ -770,6 +770,29 @@ module.exports = [
             {type: "value"},
             {type: "value"}
         ]}
+    },
+
+    // Invalid syntax
+
+    {
+        path: "(",
+        invalid: "Expected \")\""
+    },
+
+    {
+        path: ")",
+        invalid: "Unexpected \")\""
+    },
+
+    {
+        path: "[",
+        invalid: "Expected \"]\""
+    },
+
+    {
+        path: "]",
+        invalid: "Unexpected \"]\""
     }
+
 
 ];
