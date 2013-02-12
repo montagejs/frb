@@ -141,7 +141,7 @@ function makeRangeContentBinder(observeTarget) {
         return observeTarget(autoCancelPrevious(function (target) {
             if (!target) return;
             return observeSource(autoCancelPrevious(function (source) {
-                if (!source) {
+                if (!source || !source.addRangeChangeListener) {
                     target.clear();
                     return;
                 }
@@ -159,6 +159,7 @@ function makeRangeContentBinder(observeTarget) {
                         minus.forEach(target.remove || target["delete"], target);
                     }
                 }
+
                 source.addRangeChangeListener(rangeChange);
                 rangeChange(Array.from(source), Array.from(target), 0);
                 return once(function () {
