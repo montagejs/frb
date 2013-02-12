@@ -6,30 +6,40 @@ var once = Observers.once;
 exports.makePropertyBinder = makePropertyBinder;
 function makePropertyBinder(observeObject, observeKey) {
     return function (observeValue, source, target, parameters, descriptor, trace) {
-        return observeObject(autoCancelPrevious(function (object) {
-            if (!object) return;
-            return observeKey(autoCancelPrevious(function (key) {
-                return observeValue(autoCancelPrevious(function (value) {
-                    if (descriptor.isActive) {
-                        trace && console.log("IGNORED SET", trace.targetPath, "TO", value, "ON", object, "BECAUSE", trace.sourcePath, "ALREADY ACTIVE");
-                        return;
-                    }
-                    try {
-                        descriptor.isActive = true;
-                        trace && console.log("SET", trace.targetPath, "TO", value, "ON", object, "BECAUSE", trace.sourcePath);
-                        if (Array.isArray(object) && key >>> 0 === key) {
-                            // TODO spec this case
-                            object.set(key, value);
-                        } else {
-                            object[key] = value;
-                        }
-                    } finally {
-                        descriptor.isActive = false;
-                    }
-                }), source, parameters);
+        return observeKey(autoCancelPrevious(function (key) {
+            if (key == null) return;
+            return observeObject(autoCancelPrevious(function (object) {
+                if (object == null) return;
+                if (object.bindProperty) {
+                    return object.bindProperty(key, observeValue, source, parameters, descriptor, trace);
+                } else {
+                    return bindProperty(object, key, observeValue, source, parameters, descriptor, trace);
+                }
             }), target, parameters);
         }), target, parameters);
     };
+}
+
+exports.bindProperty = bindProperty;
+function bindProperty(object, key, observeValue, source, parameters, descriptor, trace) {
+    return observeValue(autoCancelPrevious(function (value) {
+        if (descriptor.isActive) {
+            trace && console.log("IGNORED SET", trace.targetPath, "TO", value, "ON", object, "BECAUSE", trace.sourcePath, "ALREADY ACTIVE");
+            return;
+        }
+        try {
+            descriptor.isActive = true;
+            trace && console.log("SET", trace.targetPath, "TO", value, "ON", object, "BECAUSE", trace.sourcePath);
+            if (Array.isArray(object) && key >>> 0 === key) {
+                // TODO spec this case
+                object.set(key, value);
+            } else {
+                object[key] = value;
+            }
+        } finally {
+            descriptor.isActive = false;
+        }
+    }), source, parameters);
 }
 
 exports.makeGetBinder = makeGetBinder;
@@ -38,22 +48,28 @@ function makeGetBinder(observeCollection, observeKey) {
         return observeCollection(autoCancelPrevious(function replaceCollection(collection) {
             if (!collection) return;
             return observeKey(autoCancelPrevious(function replaceKey(key) {
-                return observeValue(autoCancelPrevious(function replaceValue(value) {
-                    if (descriptor.isActive) {
-                        trace && console.log("IGNORED SET FOR KEY", key, "OF", trace.targetPath, "TO", value, "ON", collection, "BECAUSE", trace.sourcePath, "ALREADY ACTIVE");
-                        return;
-                    }
-                    try {
-                        descriptor.isActive = true;
-                        trace && console.log("SET FOR KEY", key, "TO", value, "ON", collection, "BECAUSE", trace.sourcePath);
-                        collection.set(key, value);
-                    } finally {
-                        descriptor.isActive = false;
-                    }
-                }), source, parameters);
+                if (key == null) return;
+                return bindKey(collection, key, observeValue, source, parameters, descriptor, trace);
             }), target, parameters);
         }), target, parameters);
     };
+}
+
+exports.bindKey = bindKey;
+function bindKey(collection, key, observeValue, source, parameters, descriptor, trace) {
+    return observeValue(autoCancelPrevious(function replaceValue(value) {
+        if (descriptor.isActive) {
+            trace && console.log("IGNORED SET FOR KEY", key, "OF", trace.targetPath, "TO", value, "ON", collection, "BECAUSE", trace.sourcePath, "ALREADY ACTIVE");
+            return;
+        }
+        try {
+            descriptor.isActive = true;
+            trace && console.log("SET FOR KEY", key, "TO", value, "ON", collection, "BECAUSE", trace.sourcePath);
+            collection.set(key, value);
+        } finally {
+            descriptor.isActive = false;
+        }
+    }), source, parameters);
 }
 
 exports.makeHasBinder = makeHasBinder;

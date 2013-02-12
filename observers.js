@@ -105,8 +105,9 @@ function makePropertyObserver(observeObject, observeKey) {
     };
 }
 
-exports.observeKey = _observeKey;
-function _observeKey(collection, key, emit, source, parameters, beforeChange) {
+exports.observeKey = observeGet; // deprecated
+exports.observeGet = observeGet;
+function observeGet(collection, key, emit, source, parameters, beforeChange) {
     var cancel = Function.noop;
     var equals = collection.contentEquals || Object.equals;
     function mapChange(value, mapKey, collection) {
@@ -135,7 +136,7 @@ function makeGetObserver(observeCollection, observeKey) {
                     return collection.observeKey(key, emit, source, parameters, beforeChange);
                 } else {
                     // common case
-                    return _observeKey(collection, key, emit, source, parameters, beforeChange);
+                    return observeGet(collection, key, emit, source, parameters, beforeChange);
                 }
             }), source, parameters, beforeChange);
         }), source, parameters, beforeChange);
