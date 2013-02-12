@@ -169,7 +169,10 @@ var argCompilers = {
         return function (value, parameters) {
             var evaluate = require("./evaluate");
             var path = evaluatePath(value, parameters);
-            return evaluate(path, value, parameters);
+            try {
+                return evaluate(path, value, parameters);
+            } catch (exception) {
+            }
         }
     }
 

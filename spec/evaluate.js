@@ -457,6 +457,31 @@ module.exports = [
         path: "path.evaluate()",
         input: {x: 2, y: 3, path: "x + y"},
         output: 5
+    },
+
+    {
+        path: "foo.($path.evaluate())",
+        input: {foo: {a: 10}},
+        parameters: {path: "a"},
+        output: 10
+    },
+
+    {
+        path: "&evaluate('(]')",
+        input: "i should not be",
+        output: void 0
+    },
+
+    {
+        path: "evaluate()",
+        input: "(]",
+        output: void 0
+    },
+
+    {
+        path: "evaluate()",
+        input: "(",
+        output: void 0
     }
 
 ];

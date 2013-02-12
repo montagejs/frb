@@ -954,8 +954,13 @@ function makeEvaluateObserver(observePath) {
     return function (emit, source, parameters, beforeChange) {
         return observePath(autoCancelPrevious(function replacePath(path) {
             if (!path) return emit();
-            var syntax = parse(path);
-            var observePathEvaluator = compileObserver(syntax);
+            var syntax, observePathEvaluator;
+            try {
+                syntax = parse(path);
+                observePathEvaluator = compileObserver(syntax);
+            } catch (exception) {
+                return emit();
+            }
             return observePathEvaluator(emit, source, parameters, beforeChange);
         }), source, parameters, beforeChange);
     };
