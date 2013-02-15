@@ -484,27 +484,65 @@ module.exports = [
     },
 
     {
+        path: "()[a]",
+        syntax: {type: "property", args: [
+            {type: "value"},
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "a"}
+            ]}
+        ]}
+    },
+
+    {
+        path: "()['~' + a]",
+        syntax: {type: "property", args: [
+            {type: "value"},
+            {type: "add", args: [
+                {type: "literal", value: "~"},
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "a"}
+                ]}
+            ]}
+        ]}
+    },
+
+    {
         path: "()['a']",
-        syntax: {type: "get", args: [
+        syntax: {type: "property", args: [
             {type: "value"},
             {type: "literal", value: "a"}
+        ]},
+        nonCanon: true
+    },
+
+    {
+        path: "x['!']",
+        syntax: {type: "property", args: [
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "x"}
+            ]},
+            {type: "literal", value: "!"}
         ]}
     },
 
     {
         path: "x['a']",
-        syntax: {type: "get", args: [
+        syntax: {type: "property", args: [
             {type: "property", args: [
                 {type: "value"},
                 {type: "literal", value: "x"}
             ]},
             {type: "literal", value: "a"}
-        ]}
+        ]},
+        nonCanon: true
     },
 
     {
         path: "array[array.length - 1]",
-        syntax: {type: "get", args: [
+        syntax: {type: "property", args: [
             {type: "property", args: [
                 {type: "value"},
                 {type: "literal", value: "array"}
@@ -590,20 +628,6 @@ module.exports = [
                 {type: "value"},
                 {type: "literal", value: "array"}
             ]}
-        ]}
-    },
-
-    {
-        path: ".*",
-        syntax: {type: "rangeContent", args: [
-            {type: "value"}
-        ]}
-    },
-
-    {
-        path: "()[*]",
-        syntax: {type: "mapContent", args: [
-            {type: "value"}
         ]}
     },
 
@@ -741,11 +765,12 @@ module.exports = [
     },
 
     {
-        path: '&count(10)',
-        syntax: {type: "count", args: [
-            {type: "literal", value: 10}
-        ]},
-        nonCanon: true
+        path: '&range(10, 20, 1)',
+        syntax: {type: "range", args: [
+            {type: "literal", value: 10},
+            {type: "literal", value: 20},
+            {type: "literal", value: 1}
+        ], inline: true}
     },
 
     {

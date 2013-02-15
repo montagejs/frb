@@ -6,7 +6,7 @@ describe("observe enumeration", function () {
     it("simple pipeline", function () {
         var input = ['a', 'b', 'c'];
         var output = [];
-        var cancel = bind(output, ".*", {
+        var cancel = bind(output, "rangeContent()", {
             "<-": "enumerate()",
             source: input
         });
@@ -31,7 +31,7 @@ describe("observe enumeration", function () {
     it("complex pipeline", function () {
         var input = ['b', 'c', 'd', 'e'];
         var output = [];
-        var cancel = bind(output, ".*", {
+        var cancel = bind(output, "rangeContent()", {
             "<-": "enumerate().map{!(.0 % 2)}",
             source: input
         });
@@ -43,7 +43,7 @@ describe("observe enumeration", function () {
     it("values at even indicies", function () {
         var input = ['b', 'c', 'd', 'e'];
         var output = [];
-        var cancel = bind(output, ".*", {
+        var cancel = bind(output, "rangeContent()", {
             "<-": "enumerate().filter{!(.0 % 2)}.map{.1}",
             source: input
         });

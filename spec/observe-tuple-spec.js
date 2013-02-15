@@ -1,5 +1,5 @@
 
-var O = require("../observers");
+var Observers = require("../observers");
 
 describe("tuple", function () {
 
@@ -8,18 +8,18 @@ describe("tuple", function () {
         var tuple;
         var object = {a: 1, b: 2, c: 3};
 
-        var cancel = O.makeTupleObserver(
-            O.makePropertyObserver(
-                O.makeLiteralObserver(object),
-                O.makeLiteralObserver('a')
+        var cancel = Observers.makeTupleObserver(
+            Observers.makePropertyObserver(
+                Observers.makeLiteralObserver(object),
+                Observers.makeLiteralObserver('a')
             ),
-            O.makePropertyObserver(
-                O.makeLiteralObserver(object),
-                O.makeLiteralObserver('b')
+            Observers.makePropertyObserver(
+                Observers.makeLiteralObserver(object),
+                Observers.makeLiteralObserver('b')
             ),
-            O.makePropertyObserver(
-                O.makeLiteralObserver(object),
-                O.makeLiteralObserver('c')
+            Observers.makePropertyObserver(
+                Observers.makeLiteralObserver(object),
+                Observers.makeLiteralObserver('c')
             )
         )(function (_tuple) {
             tuple = _tuple;

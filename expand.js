@@ -90,14 +90,12 @@ expand.semantics = {
             return {type: syntax.type, args: [
                 expand(syntax.args[0], value, parameters, expand)
             ].concat(syntax.args.slice(1))};
-        } else if (this.traverseAll.has(syntax.type)) {
-            return {type: syntax.type, args: syntax.args.map(function (arg) {
-                return expand(arg, value, parameters, expand);
-            })};
         } else if (this.reflexive.has(syntax.type)) {
             return syntax;
         } else {
-            throw new Error("Can't expand: " + JSON.stringify(syntax.type));
+            return {type: syntax.type, args: syntax.args.map(function (arg) {
+                return expand(arg, value, parameters, expand);
+            })};
         }
     }
 

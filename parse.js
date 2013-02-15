@@ -49,9 +49,7 @@ var parseOperator = makeParserFromTrie(operatorTrie);
 
 var tailOpenerTokens = {
     ".": ".",
-    ".*": ".*",
-    "[": "[",
-    "[*]": "[*]"
+    "[": "["
 };
 
 var tailOpenerTrie = makeTrie(tailOpenerTokens);
@@ -280,7 +278,8 @@ parse.semantics = {
                     return self.parseArguments(function (tuple) {
                         return self.parseTail(callback, {
                             type: name,
-                            args: tuple.args
+                            args: tuple.args,
+                            inline: true
                         });
                     });
                 });
@@ -400,7 +399,7 @@ parse.semantics = {
                     return self.parseTupleEnd(function (end, loc) {
                         if (end) {
                             return self.parseTail(callback, {
-                                type: "get",
+                                type: "property",
                                 args: [
                                     previous,
                                     key
@@ -412,18 +411,6 @@ parse.semantics = {
                             throw error;
                         }
                     });
-                });
-            } else if (opener === ".*") {
-                return callback({
-                    type: "rangeContent", args: [
-                        previous
-                    ]
-                });
-            } else if (opener === "[*]") {
-                return self.parseTail(callback, {
-                    type: "mapContent", args: [
-                        previous
-                    ]
                 });
             } else {
                 return rewind(callback(previous));

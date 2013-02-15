@@ -131,11 +131,3 @@ exports.range = function (stop) {
     return range;
 };
 
-exports.one = function (collection) {
-    return collection.one();
-};
-
-exports.only = function (collection) {
-    return collection.only();
-};
-

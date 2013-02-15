@@ -1,11 +1,11 @@
 var Bindings = require("../bindings");
 
-describe("evaluate", function () {
+describe("path", function () {
 
     it("should do evil", function () {
 
         var object = Bindings.defineBindings({}, {
-            "result": {"<-": "&evaluate(path)"}
+            "result": {"<-": "path(path)"}
         });
 
         expect(object.result).toBe();
@@ -22,7 +22,7 @@ describe("evaluate", function () {
 
         var object = {};
         Bindings.defineBindings(object, {
-            "result": {"<-": "source.map{&evaluate($path)}"}
+            "result": {"<-": "source.map{path($path)}"}
         }, object);
 
         object.source = [1, 2, 3];

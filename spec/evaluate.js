@@ -124,7 +124,7 @@ module.exports = [
     },
 
     {
-        path: "{a: ()[0], b: ()[1]}",
+        path: "{a: get(0), b: get(1)}",
         input: [10, 20],
         output: {a: 10, b: 20}
     },
@@ -337,13 +337,13 @@ module.exports = [
     },
 
     {
-        path: ".*",
+        path: "rangeContent()",
         input: [1, 2, 3],
         output: [1, 2, 3]
     },
 
     {
-        path: "()[*]",
+        path: "mapContent()",
         input: [1, 2, 3],
         output: [1, 2, 3]
     },
@@ -454,34 +454,62 @@ module.exports = [
     },
 
     {
-        path: "path.evaluate()",
+        path: "path(path)",
         input: {x: 2, y: 3, path: "x + y"},
         output: 5
     },
 
     {
-        path: "foo.($path.evaluate())",
+        path: "foo.path($path)",
         input: {foo: {a: 10}},
         parameters: {path: "a"},
         output: 10
     },
 
     {
-        path: "&evaluate('(]')",
+        path: "path('(]')",
         input: "i should not be",
         output: void 0
     },
 
     {
-        path: "evaluate()",
+        path: "path(())",
         input: "(]",
         output: void 0
     },
 
     {
-        path: "evaluate()",
+        path: "path(())",
         input: "(",
         output: void 0
+    },
+
+    {
+        path: "property(property)",
+        input: {
+            a: 10,
+            property: "a"
+        },
+        output: 10
+    },
+
+    {
+        path: "path(path)",
+        input: {
+            a: {b: 10},
+            path: "a.b"
+        },
+        output: 10
+    },
+
+    {
+        path: "borks('borkish')",
+        input: {
+            borks: function (borky) {
+                return borky == "borkish";
+            }
+        },
+        output: true
     }
 
 ];

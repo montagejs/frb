@@ -14,5 +14,19 @@ describe("evaluate", function () {
             }
         );
     });
+
+    it("should allow extensible polymorphic overrides", function () {
+
+        var isBound = evaluate("a.isBound()", {
+            a: {
+                isBound: function () {
+                    return true;
+                }
+            }
+        });
+        expect(isBound).toBe(true);
+
+    });
+
 });
 

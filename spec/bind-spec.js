@@ -86,7 +86,7 @@ describe("bind", function () {
         var foo = [1, 2, 3];
         var bar = [];
         var object = {foo: foo, bar: bar};
-        var cancel = bind(object, "bar.*", {"<->": "foo.*"});
+        var cancel = bind(object, "bar.rangeContent()", {"<->": "foo.rangeContent()"});
         expect(object.bar.slice()).toEqual([1, 2, 3]);
         foo.push(4);
         bar.push(5);
@@ -475,7 +475,7 @@ describe("bind", function () {
     describe("content binding from sorted set", function () {
         var array = ['a', 'c', 'b'];
         var set = SortedSet([4, 5, 1, 3, 45, 1, 8]);
-        var cancel = bind(array, ".*", {"<-": "", source: set});
+        var cancel = bind(array, "rangeContent()", {"<-": "", source: set});
         expect(array.slice()).toEqual([1, 3, 4, 5, 8, 45]);
         set.add(2);
         expect(array.slice()).toEqual([1, 2, 3, 4, 5, 8, 45]);
@@ -490,7 +490,7 @@ describe("bind", function () {
             length: 3
         };
         var target = [];
-        var cancel = bind(target, ".*", {
+        var cancel = bind(target, "rangeContent()", {
             "<-": "content.view(index, length)",
             source: source
         });
@@ -513,7 +513,7 @@ describe("bind", function () {
             index: 2,
             length: 3
         };
-        var cancel = bind(array, ".*", {
+        var cancel = bind(array, "rangeContent()", {
             "<-": "set.view(index, length)",
             source: source
         });
@@ -550,7 +550,7 @@ describe("bind", function () {
     it("should bind a mapped key", function () {
         var array = [1, 2, 3];
         var target = {};
-        var cancel = bind(target, "second", {"<-": "()[1]", source: array});
+        var cancel = bind(target, "second", {"<-": "get(1)", source: array});
         expect(target.second).toBe(2); // [1, 2, 3]
         array.shift();
         expect(target.second).toBe(3); // [2, 3]
@@ -564,7 +564,7 @@ describe("bind", function () {
     it("should bind map content to array content", function () {
         var array = [];
         var map = Map([[0, 1]]);
-        var cancel = bind(array, "()[*]", {"<-": "", source: map});
+        var cancel = bind(array, "mapContent()", {"<-": "", source: map});
         expect(array).toEqual([1]);
         map.set(1, 2);
         expect(array).toEqual([1, 2]);
@@ -578,7 +578,7 @@ describe("bind", function () {
     it("should bind map content to array content", function () {
         var array = [];
         var map = Map([[0, 1]]);
-        var cancel = bind(array, "()[*]", {"<-": "", source: map});
+        var cancel = bind(array, "mapContent()", {"<-": "", source: map});
         expect(array).toEqual([1]);
         map.set(1, 2);
         expect(array).toEqual([1, 2]);
@@ -592,7 +592,7 @@ describe("bind", function () {
     it("should bind array to map content", function () {
         var map = Map();
         var array = [1];
-        var cancel = bind(map, "()[*]", {"<-": "", source: array});
+        var cancel = bind(map, "mapContent()", {"<-": "", source: array});
         expect(map.toObject()).toEqual({0: 1});
         array.push(2);
         expect(map.toObject()).toEqual({0: 1, 1: 2});

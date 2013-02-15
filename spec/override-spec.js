@@ -11,17 +11,15 @@ describe("overriding observer", function () {
 
         var proxy = {
             object: object,
-            __proto__: {
-                observeProperty: function (key, emit, source, parameters, beforeChange) {
-                    return observeProperty(
-                        this.object,
-                        "~" + key,
-                        emit,
-                        source,
-                        parameters,
-                        beforeChange
-                    );
-                }
+            observeProperty: function (key, emit, source, parameters, beforeChange) {
+                return observeProperty(
+                    this.object,
+                    "~" + key,
+                    emit,
+                    source,
+                    parameters,
+                    beforeChange
+                );
             }
         };
 
@@ -39,10 +37,8 @@ describe("overriding observer", function () {
         var array = [1, 2, 3];
 
         var proxy = {
-            __proto__: {
-                observeKey: function (key, emit, source, parameters, beforeChange) {
-                    return observeKey(array, key, source, parameters, beforeChange);
-                }
+            observeKey: function (key, emit, source, parameters, beforeChange) {
+                return observeKey(array, key, source, parameters, beforeChange);
             }
         };
 

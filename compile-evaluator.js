@@ -165,12 +165,13 @@ var argCompilers = {
         }
     },
 
-    "evaluate": function (evaluatePath) {
+    path: function (evaluateObject, evaluatePath) {
         return function (value, parameters) {
             var evaluate = require("./evaluate");
+            var object = evaluateObject(value, parameters);
             var path = evaluatePath(value, parameters);
             try {
-                return evaluate(path, value, parameters);
+                return evaluate(path, object, parameters);
             } catch (exception) {
             }
         }
@@ -200,29 +201,6 @@ Object.addEach(operators, {
 
 });
 
-// generate operators for syntax types that delegate to an eponymous method of
-// the first argument
-[
-    "reversed",
-    "flatten",
-    "sum",
-    "average",
-    "map",
-    "filter",
-    "keys",
-    "values",
-    "items",
-    "one",
-    "only"
-].forEach(function (name) {
-    operators[name] = function (object) {
-        var args = Array.prototype.slice.call(arguments, 1);
-        if (!object[name])
-            throw new TypeError("Can't call " + JSON.stringify(name) + " of " + object);
-        return object[name].apply(object, args);
-    };
-});
-
 var semantics = compile.semantics = {
 
     compilers: compilers,
@@ -233,7 +211,20 @@ var semantics = compile.semantics = {
         var compilers = this.compilers;
         var argCompilers = this.argCompilers;
         var operators = this.operators;
-        if (operators.hasOwnProperty(syntax.type)) {
+        if (compilers.hasOwnProperty(syntax.type)) {
+            return compilers[syntax.type].call(this, syntax);
+        } else if (argCompilers.hasOwnProperty(syntax.type)) {
+            var argEvaluators = syntax.args.map(this.compile, this);
+            return argCompilers[syntax.type].apply(null, argEvaluators);
+        } else {
+            if (!operators.hasOwnProperty(syntax.type)) {
+                operators[syntax.type] = function (object) {
+                    var args = Array.prototype.slice.call(arguments, 1);
+                    if (!object[syntax.type])
+                        throw new TypeError("Can't call " + JSON.stringify(syntax.type) + " of " + object);
+                    return object[syntax.type].apply(object, args);
+                };
+            }
             var operator = operators[syntax.type];
             var argEvaluators = syntax.args.map(this.compile, this);
             return function (value, parameters) {
@@ -244,13 +235,6 @@ var semantics = compile.semantics = {
                     return;
                 return operator.apply(null, args);
             };
-        } else if (compilers.hasOwnProperty(syntax.type)) {
-            return compilers[syntax.type].call(this, syntax);
-        } else if (argCompilers.hasOwnProperty(syntax.type)) {
-            var argEvaluators = syntax.args.map(this.compile, this);
-            return argCompilers[syntax.type].apply(null, argEvaluators);
-        } else {
-            throw new Error("Can't compile evaluator for " + JSON.stringify(syntax));
         }
 
     }

@@ -56,7 +56,7 @@ describe("compute", function () {
     it("content changes", function () {
         var object = {values: [1, 2, 3], offset: 0};
         var cancel = compute(object, "sum", {
-            args: ["values.*", "offset"],
+            args: ["values.rangeContent()", "offset"],
             compute: function (values, offset) {
                 return values.map(function (value) {
                     return value + offset;

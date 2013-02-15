@@ -36,6 +36,14 @@ stringify.semantics = {
         if (stringifiers[syntax.type]) {
             // operators
             string = stringifiers[syntax.type](syntax, stringify);
+        } else if (syntax.inline) {
+            // inline invocations
+            string = (
+                "&" + syntax.type + "(" +
+                syntax.args.map(function (child) {
+                    return stringify(child);
+                }).join(", ") + ")"
+            );
         } else {
             // method invocations
             var chain;
@@ -129,15 +137,24 @@ stringify.semantics = {
             if (syntax.args[0].type === "value") {
                 if (typeof syntax.args[1].value === "string") {
                     return syntax.args[1].value;
-                } else {
+                } else if (syntax.args[1].type === "literal") {
                     return "." + syntax.args[1].value;
+                } else {
+                    return "()[" + stringify(syntax.args[1]) + "]";
                 }
             } else if (syntax.args[0].type === "parameters") {
                 return "$" + syntax.args[1].value;
-            } else {
+            } else if (
+                syntax.args[1].type === "literal" &&
+                /^[\w\d_]+$/.test(syntax.args[1].value)
+            ) {
                 return stringify(syntax.args[0], {
                     type: "scope"
                 }) + '.' + syntax.args[1].value;
+            } else {
+                return stringify(syntax.args[0], {
+                    type: "scope"
+                }) + '[' + stringify(syntax.args[1]) + ']';
             }
         },
 

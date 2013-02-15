@@ -12,6 +12,7 @@ var semantics = compile.semantics = {
     compilers: {
         property: Observers.makePropertyObserver,
         get: Observers.makeGetObserver,
+        path: Observers.makePathObserver,
         "with": Observers.makeWithObserver,
         "if": Observers.makeConditionalObserver,
         rangeContent: Function.identity,
@@ -42,8 +43,7 @@ var semantics = compile.semantics = {
         range: Observers.makeRangeObserver,
         startsWith: Observers.makeStartsWithObserver,
         endsWith: Observers.makeEndsWithObserver,
-        contains: Observers.makeContainsObserver,
-        evaluate: Observers.makeEvaluateObserver
+        contains: Observers.makeContainsObserver
     },
 
     compile: function (syntax) {
@@ -65,11 +65,12 @@ var semantics = compile.semantics = {
                 observers[name] = this.compile(args[name]);
             }
             return Observers.makeRecordObserver(observers);
-        } else if (compilers.hasOwnProperty(syntax.type)) {
+        } else {
+            if (!compilers.hasOwnProperty(syntax.type)) {
+                compilers[syntax.type] = Observers.makeMethodObserverMaker(syntax.type);
+            }
             var argObservers = syntax.args.map(this.compile, this);
             return compilers[syntax.type].apply(null, argObservers);
-        } else {
-            throw new Error("Can't compile observer for " + JSON.stringify(syntax));
         }
     }
 

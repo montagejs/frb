@@ -378,7 +378,7 @@ describe("Tutorial", function () {
             second: null
         };
         var cancel = bind(object, "second", {
-            "<->": "array[1]"
+            "<->": "array.get(1)"
         });
         expect(object.array.slice()).toEqual([1, 2, 3]);
         expect(object.second).toBe(2);
@@ -405,7 +405,7 @@ describe("Tutorial", function () {
         };
 
         var cancel = bind(object, "selected", {
-            "<-": "source[key]"
+            "<-": "source.get(key)"
         });
         expect(object.selected).toBe(undefined);
 
@@ -436,7 +436,7 @@ describe("Tutorial", function () {
             a: Map({a: 10}),
             b: Map()
         };
-        var cancel = bind(object, "a[*]", {"<->": "b[*]"});
+        var cancel = bind(object, "a.mapContent()", {"<->": "b.mapContent()"});
         expect(object.a.toObject()).toEqual({});
         expect(object.b.toObject()).toEqual({});
 
@@ -474,7 +474,7 @@ describe("Tutorial", function () {
         };
         Bindings.defineBindings(object, {
             first: {"<-": "array.0"},
-            second: {"<-": "array[1]"}
+            second: {"<-": "array.get(1)"}
         });
         expect(object.first).toBe(1);
         expect(object.second).toBe(2);
@@ -488,7 +488,7 @@ describe("Tutorial", function () {
                 source: array
             },
             second: {
-                "<-": "()[1]",
+                "<-": "get(1)",
                 source: array
             }
         });
@@ -501,7 +501,7 @@ describe("Tutorial", function () {
             index: 0
         };
         Bindings.defineBinding(object, "last", {
-            "<-": "array[array.length - 1]"
+            "<-": "array.get(array.length - 1)"
         });
         expect(object.last).toBe(3);
 
@@ -515,7 +515,7 @@ describe("Tutorial", function () {
             array: []
         };
         Bindings.defineBindings(object, {
-            "array.*": {"<-": "set"}
+            "array.rangeContent()": {"<-": "set"}
         });
         object.set.addEach([5, 2, 6, 1, 4, 3]);
         expect(object.array).toEqual([1, 2, 3, 4, 5, 6]);
@@ -526,7 +526,7 @@ describe("Tutorial", function () {
             map: Map(),
             array: []
         };
-        Bindings.defineBinding(object, "map[*]", {
+        Bindings.defineBinding(object, "map.mapContent()", {
             "<-": "array"
         });
         object.array.push(1, 2, 3);

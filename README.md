@@ -619,7 +619,7 @@ var object = {
     second: null
 };
 var cancel = bind(object, "second", {
-    "<->": "array[1]"
+    "<->": "array.get(1)"
 });
 expect(object.array.slice()).toEqual([1, 2, 3]);
 expect(object.second).toBe(2);
@@ -651,7 +651,7 @@ var object = {
 };
 
 var cancel = bind(object, "selected", {
-    "<-": "source[key]"
+    "<-": "source.get(key)"
 });
 expect(object.selected).toBe(undefined);
 
@@ -686,7 +686,7 @@ var object = {
     a: Map({a: 10}),
     b: Map()
 };
-var cancel = bind(object, "a[*]", {"<->": "b[*]"});
+var cancel = bind(object, "a.mapContent()", {"<->": "b.mapContent()"});
 expect(object.a.toObject()).toEqual({});
 expect(object.b.toObject()).toEqual({});
 
@@ -786,7 +786,7 @@ var object = {
 };
 Bindings.defineBindings(object, {
     first: {"<-": "array.0"},
-    second: {"<-": "array[1]"}
+    second: {"<-": "array.get(1)"}
 });
 expect(object.first).toBe(1);
 expect(object.second).toBe(2);
@@ -805,7 +805,7 @@ Bindings.defineBindings(object, {
         source: array
     },
     second: {
-        "<-": "()[1]",
+        "<-": "get(1)",
         source: array
     }
 });
@@ -821,7 +821,7 @@ var object = {
     index: 0
 };
 Bindings.defineBinding(object, "last", {
-    "<-": "array[array.length - 1]"
+    "<-": "array.get(array.length - 1)"
 });
 expect(object.last).toBe(3);
 
@@ -830,9 +830,10 @@ expect(object.last).toBe(2);
 ```
 
 You can also bind *all* of the content of an array by range or by
-mapping.  The notation for binding ranged content is `.*`.  Every change
-to an Array or SortedSet dispatches range changes and any collection
-that implements `splice` and `swap` can be a target for such changes.
+mapping.  The notation for binding ranged content is `rangeContent()`.
+Every change to an Array or SortedSet dispatches range changes and any
+collection that implements `splice` and `swap` can be a target for such
+changes.
 
 ```javascript
 var SortedSet = require("collections/sorted-set");
@@ -841,16 +842,16 @@ var object = {
     array: []
 };
 Bindings.defineBindings(object, {
-    "array.*": {"<-": "set"}
+    "array.rangeContent()": {"<-": "set"}
 });
 object.set.addEach([5, 2, 6, 1, 4, 3]);
 expect(object.array).toEqual([1, 2, 3, 4, 5, 6]);
 ```
 
 The notation for binding the content of any mapping collection using map
-changes is `[*]`.  On the target of a binding, this will note when
-values are added or removed on each key of the source collection and
-apply the same change to the target.  The target and source can be
+changes is `mapContent()`.  On the target of a binding, this will note
+when values are added or removed on each key of the source collection
+and apply the same change to the target.  The target and source can be
 arrays or map collections.
 
 ```javascript
@@ -859,7 +860,7 @@ var object = {
     map: Map(),
     array: []
 };
-Bindings.defineBinding(object, "map[*]", {
+Bindings.defineBinding(object, "map.mapContent()", {
     "<-": "array"
 });
 object.array.push(1, 2, 3);
@@ -1854,19 +1855,15 @@ expect(path).toBe("a && b");
 -   **tail-expression** =
     -   **property-expression** or
     -   **with-expression** or
-    -   **get-expression** or
-    -   **range-content-expression** or
-    -   **map-content-expression**
+    -   **variable-property-expression**
 -   **property-expression** = `.` **property-name** **tail-expression**
     *(property)*
 -   **with-expression** = `.`
     -   `(` **expression** `)` **tail-expression** or
     -   **array-expression** **tail-expression** or
     -   **object-expression** **tail-expression**
--   **get-expression** = `[` **expression** `]` **tail-expression**
-    *(get)*
--   **range-content-expression** = `.*` *(rangeContent)*
--   **map-content-expression** = `[*]` *(mapContent)*
+-   **variable-property-expression** = `[` **expression** `]`
+    **tail-expression** *(property)*
 -   **array-expression** = `[` ( **expression** or `()` *(value)* )
     delimited by `,` `]` *(tuple with each expression in args array)*
 -   **object-expression** = `{` (**property-name** `:` **expression**)
@@ -1923,10 +1920,8 @@ available.
     value.
 -   Each subsequent term of a path expression uses the target of the
     previous as its source.
--   A property-expression observes the named key of the source object
-    using `Object.addPropertyChangeListener`.
--   A get-expression observes the value for the given key in a
-    collection, using the `get` method and `addMapChangeListener`.
+-   A property-expression or variable-property-expression observes the
+    key of the source object using `Object.addPropertyChangeListener`.
 -   An element identifier (with the `#` prefix) uses the `document`
     property of the `parameters` object and emits
     `document.getElementById(id)`, or dies trying.  Changes to the
@@ -2026,8 +2021,6 @@ available.
 -   An "items" function call observes an incrementally updated array of
     [key, value] pairs from a given mapping.  The items are retained in
     insertion order.
--   `.*` at the end of a path has no effect on an observed value.
--   `[*]` at the end of a path has no effect on an observed value.
 
 Unary operators:
 

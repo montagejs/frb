@@ -286,7 +286,7 @@ describe("bindings", function () {
         var object = {one: 1, two: 2};
         var map = Map();
 
-        Bindings.defineBinding(map, "()['one']", {
+        Bindings.defineBinding(map, "get('one')", {
             "<-": "one",
             source: object
         });
@@ -314,6 +314,30 @@ describe("bindings", function () {
 
         object.object = {a: 20, b: 30};
         expect(object.map.toObject()).toEqual({a: 20, b: 30});
+
+    });
+
+    it("should watch variable property keys", function () {
+
+        var object = Bindings.defineBinding({}, "value", {
+            "<-": "property(property)"
+        });
+        expect(object.value).toBe(undefined);
+
+        object.property = 'a';
+        expect(object.value).toBe(undefined);
+
+        object.a = 10;
+        expect(object.value).toBe(10);
+
+        object.property = 'b';
+        expect(object.value).toBe(undefined);
+
+        object.b = 20;
+        expect(object.value).toBe(20);
+
+        object.property = 'a';
+        expect(object.value).toBe(10);
 
     });
 

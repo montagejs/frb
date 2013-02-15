@@ -1,5 +1,5 @@
 
-var O = require("../observers");
+var Observers = require("../observers");
 
 describe("sum", function () {
 
@@ -8,10 +8,10 @@ describe("sum", function () {
         var sum;
         var object = {array: [1,2,3]};
 
-        var cancel = O.makeSumObserver(
-            O.makePropertyObserver(
-                O.makeLiteralObserver(object),
-                O.makeLiteralObserver('array')
+        var cancel = Observers.makeSumObserver(
+            Observers.makePropertyObserver(
+                Observers.makeLiteralObserver(object),
+                Observers.makeLiteralObserver('array')
             )
         )(function (_sum) {
             sum = _sum;

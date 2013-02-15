@@ -13,7 +13,7 @@ describe("assign", function () {
 
     it("should be able to assign to a key of a map", function () {
         var object = {map: Map()};
-        assign(object, "map[$key]", 10, {key: 'key'});
+        assign(object, "map.get($key)", 10, {key: 'key'});
         expect(object.map.get('key')).toBe(10);
     });
 
@@ -47,28 +47,28 @@ describe("assign", function () {
 
     it("should be able to assign into the content of a ranged collection", function () {
         var object = {};
-        assign(object, "array.*", [1, 2, 3]);
+        assign(object, "array.rangeContent()", [1, 2, 3]);
         expect(object).toEqual({});
         object.array = [];
-        assign(object, "array.*", [1, 2, 3]);
+        assign(object, "array.rangeContent()", [1, 2, 3]);
         expect(object.array).toEqual([1, 2, 3]);
     });
 
     it("should be able to assign into the content of a mapped array", function () {
         var object = {};
-        assign(object, "array[*]", [1, 2, 3]);
+        assign(object, "array.mapContent()", [1, 2, 3]);
         expect(object).toEqual({});
         object.array = [];
-        assign(object, "array[*]", [1, 2, 3]);
+        assign(object, "array.mapContent()", [1, 2, 3]);
         expect(object.array).toEqual([1, 2, 3]);
     });
 
     it("should be able to assign into the content of a map", function () {
         var object = {};
-        assign(object, "map[*]", Map({a: 10}));
+        assign(object, "map.mapContent()", Map({a: 10}));
         expect(object).toEqual({});
         object.map = Map();
-        assign(object, "map[*]", Map({a: 10, b: 20}));
+        assign(object, "map.mapContent()", Map({a: 10, b: 20}));
         expect(object.map.toObject()).toEqual({a: 10, b: 20});
     });
 

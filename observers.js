@@ -143,6 +143,27 @@ function makeGetObserver(observeCollection, observeKey) {
     }
 }
 
+exports.makePathObserver = makePathObserver;
+function makePathObserver(observeObject, observePath) {
+    var parse = require("./parse");
+    var compileObserver = require("./compile-observer");
+    return function (emit, source, parameters, beforeChange) {
+        return observePath(autoCancelPrevious(function replacePath(path) {
+            if (!path) return emit();
+            var syntax, observePath;
+            try {
+                syntax = parse(path);
+                observePath = compileObserver(syntax);
+            } catch (exception) {
+                return emit();
+            }
+            return observeObject(autoCancelPrevious(function replaceObject(object) {
+                return observePath(emit, object, parameters, beforeChange);
+            }), source, parameters, beforeChange);
+        }), source, parameters, beforeChange);
+    };
+}
+
 exports.makeWithObserver = makeWithObserver;
 function makeWithObserver(observeContext, observeExpression) {
     return function observeWith(emit, source, parameters, beforeChange) {
@@ -522,6 +543,23 @@ function makeOperatorObserverMaker(operator) {
                 } else {
                     return emit()
                 }
+            }), source, parameters, beforeChange);
+        };
+    };
+}
+
+exports.makeMethodObserverMaker = makeMethodObserverMaker;
+function makeMethodObserverMaker(name) {
+    return function makeMethodObserver(/*...observers*/) {
+        var observeOperands = makeObserversObserver(Array.prototype.slice.call(arguments));
+        var observeOperandChanges = makeRangeContentObserver(observeOperands);
+        return function observeMethod(emit, source, parameters, beforeChange) {
+            return observeOperands(autoCancelPrevious(function (operands) {
+                var object = operands.shift();
+                if (!object[name]) {
+                    throw new Error("Object has no method " + JSON.stringify(name) + ": " + object);
+                }
+                return emit(object[name].apply(object, operands));
             }), source, parameters, beforeChange);
         };
     };
@@ -946,25 +984,6 @@ exports.observeItemValue = observeItemValue;
 function observeItemValue(emit, source) {
     if (!source) return emit();
     return emit(source[1]) || Function.noop;
-}
-
-exports.makeEvaluateObserver = makeEvaluateObserver;
-function makeEvaluateObserver(observePath) {
-    var parse = require("./parse");
-    var compileObserver = require("./compile-observer");
-    return function (emit, source, parameters, beforeChange) {
-        return observePath(autoCancelPrevious(function replacePath(path) {
-            if (!path) return emit();
-            var syntax, observePathEvaluator;
-            try {
-                syntax = parse(path);
-                observePathEvaluator = compileObserver(syntax);
-            } catch (exception) {
-                return emit();
-            }
-            return observePathEvaluator(emit, source, parameters, beforeChange);
-        }), source, parameters, beforeChange);
-    };
 }
 
 exports.makeToMapObserver = makeToMapObserver;
