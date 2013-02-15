@@ -801,22 +801,27 @@ module.exports = [
 
     {
         path: "(",
-        invalid: "Expected \")\""
+        invalid: "Expected \")\" in \"(\" at index 1"
     },
 
     {
         path: ")",
-        invalid: "Unexpected \")\""
+        invalid: "Unexpected \")\" in \")\" at index 0"
     },
 
     {
         path: "[",
-        invalid: "Expected \"]\""
+        invalid: "Expected \"]\" in \"[\" at index 1"
     },
 
     {
         path: "]",
-        invalid: "Unexpected \"]\""
+        invalid: "Unexpected \"]\" in \"]\" at index 0"
+    },
+
+    {
+        path: "#",
+        invalid: "Expected element identifier in \"#\" at index 1"
     }
 
 

@@ -170,7 +170,7 @@ parse.semantics = {
             } else if (word !== "") {
                 return callback(word)(character, loc);
             } else {
-                return callback()(character, loc);
+                return callback(null, loc)(character, loc);
             }
         };
     },
@@ -218,14 +218,14 @@ parse.semantics = {
 
     parseStringTail: function parseStringTail(callback, string) {
         var self = this;
-        return function (character) {
+        return function (character, loc) {
             if (character === "'") {
                 return callback({
                     type: "literal",
                     value: string
                 });
             } else if (character === "\\") {
-                return function (character) {
+                return function (character, loc) {
                     return self.parseStringTail(callback, string + character);
                 };
             } else {
@@ -260,7 +260,12 @@ parse.semantics = {
                     type: "parameters"
                 });
             } else if (character === "#") {
-                return self.parseWord(function (id) {
+                return self.parseWord(function (id, loc) {
+                    if (!id) {
+                        var error = new Error("Expected element identifier");
+                        error.loc = loc;
+                        throw error;
+                    }
                     return self.parseTail(callback, {
                         type: "element",
                         id: id
@@ -292,7 +297,7 @@ parse.semantics = {
             } else if (character === "{") {
                 return self.chain(callback,self.parseRecord, previous)(character, loc);
             } else {
-                return self.parseValue(callback, previous)(character);
+                return self.parseValue(callback, previous)(character, loc);
             }
         };
     },
@@ -318,7 +323,7 @@ parse.semantics = {
         var self = this;
         return self.parseWord(function (identifier) {
             if (identifier) {
-                return function (character) {
+                return function (character, loc) {
                     if (character === "{") {
                         return self.parseBlock(function (expression) {
                             if (
@@ -360,14 +365,14 @@ parse.semantics = {
                                     });
                                 }
                             }
-                        })(character);
+                        })(character, loc);
                     } else if (character === "(") {
                         return self.parseArguments(function (tuple) {
                             return self.parseTail(callback, {
                                 type: identifier,
                                 args: [previous].concat(tuple.args)
                             });
-                        }, previous)(character);
+                        }, previous)(character, loc);
                     } else {
                         return self.parseTail(callback, {
                             type: "property",
@@ -378,7 +383,7 @@ parse.semantics = {
                                     value: identifier
                                 }
                             ]
-                        })(character);
+                        })(character, loc);
                     }
                 };
             } else {
@@ -488,16 +493,16 @@ parse.semantics = {
             } else {
                 return self.parseExpression(function (expression) {
                     args.push(expression);
-                    return function (character) {
+                    return function (character, loc) {
                         if (character === ",") {
                             return self.skipWhiteSpace(function () {
                                 return self.parseTupleInternal(callback, args);
                             });
                         } else {
-                            return callback(args)(character);
+                            return callback(args)(character, loc);
                         }
                     };
-                })(character);
+                })(character, loc);
             }
         };
     },
@@ -535,13 +540,13 @@ parse.semantics = {
             } else {
                 return self.parseExpression(function (expression) {
                     args.push(expression);
-                    return function (character) {
+                    return function (character, loc) {
                         if (character === ",") {
                             return self.skipWhiteSpace(function () {
                                 return self.parseArgumentsInternal(callback, args);
                             });
                         } else {
-                            return callback(args)(character);
+                            return callback(args)(character, loc);
                         }
                     };
                 })(character, loc);
@@ -582,13 +587,13 @@ parse.semantics = {
                 return self.skipWhiteSpace(function () {
                     return self.parseExpression(function (value) {
                         args[key] = value;
-                        return function (character) {
+                        return function (character, loc) {
                             if (character === ",") {
                                 return self.skipWhiteSpace(function () {
                                     return self.parseRecordInternal(callback, args);
                                 });
                             } else {
-                                return callback(args)(character);
+                                return callback(args)(character, loc);
                             }
                         };
                     });
@@ -600,7 +605,7 @@ parse.semantics = {
     parseNegation: function (callback) {
         var self = this;
         var parsePrevious = self.parsePrimary.bind(self);
-        return function (character) {
+        return function (character, loc) {
             if (character === "!") {
                 return parsePrevious(function (expression) {
                     return callback({type: "not", args: [
@@ -620,7 +625,7 @@ parse.semantics = {
                     ]});
                 });
             } else {
-                return parsePrevious(callback)(character);
+                return parsePrevious(callback)(character, loc);
             }
         };
     },
