@@ -68,7 +68,11 @@ stringify.semantics = {
             }
         }
         // parenthesize if we're going backward in precedence
-        if (!parent || precedence.get(parent.type).has(syntax.type)) {
+        if (
+            !parent ||
+            (parent.type === syntax.type && parent.type !== "if") ||
+            precedence.get(parent.type).has(syntax.type)
+        ) {
             return string;
         } else {
             return "(" + string + ")";

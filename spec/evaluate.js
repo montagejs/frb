@@ -361,6 +361,48 @@ module.exports = [
     },
 
     {
+        path: "x ?? 10",
+        input: {x: 20},
+        output: 20
+    },
+
+    {
+        path: "x ?? 10",
+        input: {x: null},
+        output: 10
+    },
+
+    {
+        path: "x ?? 10",
+        input: {x: undefined},
+        output: 10
+    },
+
+    {
+        path: "x ?? 10",
+        input: null,
+        output: 10
+    },
+
+    {
+        path: "x ?? 10",
+        input: undefined,
+        output: 10
+    },
+
+    {
+        path: "x ?? y",
+        input: {y: 20},
+        output: 20
+    },
+
+    {
+        path: "x ?? y ?? 10",
+        input: {y: 20},
+        output: 20
+    },
+
+    {
         path: "&range(())",
         input: 3,
         output: [0, 1, 2]

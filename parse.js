@@ -38,6 +38,7 @@ var operatorTokens = {
     "==": "equals",
     "<=>": "compare",
     "!=": "notEquals",
+    "??": "default",
     "&&": "and",
     "||": "or",
     "?": "then",
@@ -89,13 +90,14 @@ parse.semantics = {
         self.makePrecedenceLevel(Function.identity, [
             "scope"
         ]);
+        self.makeLeftToRightParser(["default"]);
         self.makeLeftToRightParser(["pow", "root", "log"]);
         self.makeLeftToRightParser(["mul", "div", "mod", "rem"]);
         self.makeLeftToRightParser(["add", "sub"]);
         self.makeComparisonParser(); // equals, notEquals, gt, lt, ge, le, compare
         self.makeLeftToRightParser(["and"]);
         self.makeLeftToRightParser(["or"]);
-        self.makeConditionalParser(); // if
+        self.makeConditionalParser(); // if (?:)
         self.parseExpression = self.makePrecedenceLevel();
         self.parseMemoized = Parser.makeParser(self.parseExpression);
     },
@@ -321,7 +323,7 @@ parse.semantics = {
 
     parseValue: function parseValue(callback, previous) {
         var self = this;
-        return self.parseWord(function (identifier) {
+        return self.parseWord(function (identifier, loc) {
             if (identifier) {
                 return function (character, loc) {
                     if (character === "{") {

@@ -165,6 +165,16 @@ var argCompilers = {
         }
     },
 
+    "default": function (evaluateLeft, evaluateRight) {
+        return function (value, parameters) {
+            var result = evaluateLeft(value, parameters);
+            if (result == null) { // implies "iff null or undefined"
+                result = evaluateRight(value, parameters);
+            }
+            return result;
+        }
+    },
+
     path: function (evaluateObject, evaluatePath) {
         return function (value, parameters) {
             var evaluate = require("./evaluate");

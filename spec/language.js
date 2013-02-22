@@ -65,6 +65,29 @@ module.exports = [
     },
 
     {
+        path: "1 + 2 + 3",
+        syntax: {type: "add", args: [
+            {type: "add", args: [
+                {type: "literal", value: 1},
+                {type: "literal", value: 2}
+            ]},
+            {type: "literal", value: 3}
+        ]}
+    },
+
+    {
+        path: "1 + (2 + 3)",
+        syntax: {type: "add", args: [
+            {type: "literal", value: 1},
+            {type: "add", args: [
+                {type: "literal", value: 2},
+                {type: "literal", value: 3}
+            ]}
+        ]},
+        nonCanon: true
+    },
+
+    {
         path: "!a",
         syntax: {type: "not", args: [
             {type: "property", args: [
@@ -765,6 +788,61 @@ module.exports = [
     },
 
     {
+        path: "x ?? 10",
+        syntax: {type: "default", args: [
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "x"}
+            ]},
+            {type: "literal", value: 10}
+        ]}
+    },
+
+    {
+        path: "!x ?? 10",
+        syntax: {type: "default", args: [
+            {type: "not", args: [
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "x"}
+                ]},
+            ]},
+            {type: "literal", value: 10}
+        ]}
+    },
+
+    {
+        path: "x ?? 10 + 10",
+        syntax: {type: "add", args: [
+            {type: "default", args: [
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "x"}
+                ]},
+                {type: "literal", value: 10}
+            ]},
+            {type: "literal", value: 10}
+        ]}
+    },
+
+    {
+        path: "x ?? y ?? 10",
+        syntax: {type: "default", args: [
+            {type: "default", args: [
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "x"}
+                ]},
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "y"}
+                ]}
+            ]},
+            {type: "literal", value: 10}
+        ]}
+    },
+
+    {
         path: '&range(10, 20, 1)',
         syntax: {type: "range", args: [
             {type: "literal", value: 10},
@@ -822,7 +900,12 @@ module.exports = [
     {
         path: "#",
         invalid: "Expected element identifier in \"#\" at index 1"
-    }
+    }//,
+
+    //{
+    //    path: "a.*",
+    //    invalid: "Expected property name in \"a.*\" at index 2"
+    //}
 
 
 ];

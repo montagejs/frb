@@ -28,14 +28,14 @@ function observeParameters(emit, source, parameters) {
 
 exports.makeElementObserver = makeElementObserver;
 function makeElementObserver(id) {
-    return function (emit, source, parameters) {
+    return function observeElement(emit, source, parameters) {
         return emit(parameters.document.getElementById(id)) || Function.noop;
     };
 }
 
 exports.makeComponentObserver = makeComponentObserver;
 function makeComponentObserver(label, syntax) {
-    return function (emit, source, parameters) {
+    return function observeComponent(emit, source, parameters) {
         if (!parameters.serialization) {
             throw new Error("Can't observe components without serialization parameter");
         }
@@ -187,6 +187,19 @@ function makeConditionalObserver(observeCondition, observeConsequent, observeAlt
                 return observeConsequent(emit, source, parameters, beforeChange);
             } else {
                 return observeAlternate(emit, source, parameters, beforeChange);
+            }
+        }), source, parameters, beforeChange);
+    };
+}
+
+exports.makeDefaultObserver = makeDefaultObserver;
+function makeDefaultObserver(observeValue, observeAlternate) {
+    return function observeDefault(emit, source, parameters, beforeChange) {
+        return observeValue(autoCancelPrevious(function replaceValue(value) {
+            if (value == null) {
+                return observeAlternate(emit, source, parameters, beforeChange);
+            } else {
+                return emit(value);
             }
         }), source, parameters, beforeChange);
     };
