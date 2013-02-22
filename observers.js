@@ -149,7 +149,7 @@ function makePathObserver(observeObject, observePath) {
     var compileObserver = require("./compile-observer");
     return function (emit, source, parameters, beforeChange) {
         return observePath(autoCancelPrevious(function replacePath(path) {
-            if (!path) return emit();
+            if (path == null) return emit();
             var syntax, observePath;
             try {
                 syntax = parse(path);

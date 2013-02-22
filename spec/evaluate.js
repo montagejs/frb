@@ -496,6 +496,12 @@ module.exports = [
     },
 
     {
+        path: "path('')",
+        input: 1,
+        output: 1
+    },
+
+    {
         path: "path(path)",
         input: {x: 2, y: 3, path: "x + y"},
         output: 5
