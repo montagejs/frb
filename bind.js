@@ -1,6 +1,7 @@
 
 var parse = require("./parse");
 var solve = require("./algebra");
+var stringify = require("./stringify");
 var compileObserver = require("./compile-observer");
 var compileBinder = require("./compile-binder");
 var Observers = require("./observers");
@@ -46,10 +47,7 @@ function bind(target, targetPath, descriptor) {
         parameters,
         convert,
         descriptor,
-        trace ? {
-            sourcePath: sourcePath,
-            targetPath: targetPath
-        } : undefined
+        trace
     );
 
     // -> target to source
@@ -64,10 +62,7 @@ function bind(target, targetPath, descriptor) {
             parameters,
             revert,
             descriptor,
-            trace ? {
-                sourcePath: targetPath,
-                targetPath: sourcePath
-            } : undefined
+            trace
         );
     }
 
@@ -111,7 +106,10 @@ function bindOneWay(
         target,
         parameters,
         descriptor,
-        trace
+        trace ? {
+            sourcePath: stringify(sourceSyntax),
+            targetPath: stringify(targetSyntax)
+        } : null
     );
 
 }
