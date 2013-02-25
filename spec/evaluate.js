@@ -403,6 +403,24 @@ module.exports = [
     },
 
     {
+        path: "x.defined()",
+        input: null,
+        output: false
+    },
+
+    {
+        path: "x.defined()",
+        input: {x: 10},
+        output: true
+    },
+
+    {
+        path: "x.defined()",
+        input: {x: undefined},
+        output: false
+    },
+
+    {
         path: "&range(())",
         input: 3,
         output: [0, 1, 2]

@@ -16,6 +16,7 @@ var semantics = compile.semantics = {
         "with": Observers.makeWithObserver,
         "if": Observers.makeConditionalObserver,
         "default": Observers.makeDefaultObserver,
+        defined: Observers.makeDefinedObserver,
         rangeContent: Function.identity,
         mapContent: Function.identity,
         keys: Observers.makeKeysObserver,

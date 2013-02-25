@@ -15,7 +15,8 @@ get,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 with,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 has,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 if,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
-default,Y,Y,?,Y,Y,?,?,?,?,?,?,?
+default,Y,Y,Y,Y,Y,X,X,N,N,N,N,N
+defined,Y,Y,Y,Y,Y,X,X,N,N,N,N,N
 ,,,,,,,,,,,,
 mapBlock,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 filterBlock,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y

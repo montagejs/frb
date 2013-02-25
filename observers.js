@@ -192,6 +192,15 @@ function makeConditionalObserver(observeCondition, observeConsequent, observeAlt
     };
 }
 
+exports.makeDefinedObserver = makeDefinedObserver;
+function makeDefinedObserver(observeValue, observeAlternate) {
+    return function observeDefault(emit, source, parameters, beforeChange) {
+        return observeValue(autoCancelPrevious(function replaceValue(value) {
+            return emit(value != null);
+        }), source, parameters, beforeChange);
+    };
+}
+
 exports.makeDefaultObserver = makeDefaultObserver;
 function makeDefaultObserver(observeValue, observeAlternate) {
     return function observeDefault(emit, source, parameters, beforeChange) {
@@ -569,6 +578,8 @@ function makeMethodObserverMaker(name) {
         return function observeMethod(emit, source, parameters, beforeChange) {
             return observeOperands(autoCancelPrevious(function (operands) {
                 var object = operands.shift();
+                if (!object)
+                    return emit();
                 if (!object[name]) {
                     throw new Error("Object has no method " + JSON.stringify(name) + ": " + object);
                 }

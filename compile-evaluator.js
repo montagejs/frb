@@ -168,11 +168,18 @@ var argCompilers = {
     "default": function (evaluateLeft, evaluateRight) {
         return function (value, parameters) {
             var result = evaluateLeft(value, parameters);
-            if (result == null) { // implies "iff null or undefined"
+            if (result == null) { // implies "iff === null or undefined"
                 result = evaluateRight(value, parameters);
             }
             return result;
         }
+    },
+
+    defined: function (evaluate) {
+        return function (source, parameters) {
+            var value = evaluate(source, parameters);
+            return value != null; // implies exactly !== null or undefined
+        };
     },
 
     path: function (evaluateObject, evaluatePath) {
