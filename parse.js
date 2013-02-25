@@ -104,8 +104,10 @@ parse.semantics = {
 
     memo: new Map(),
 
-    parse: function (text) {
-        if (this.memo.has(text)) {
+    parse: function (text, bypassMemo) {
+        if (bypassMemo) {
+            return this.parseMemoized(text);
+        } else if (this.memo.has(text)) {
             return this.memo.get(text);
         } else {
             var syntax = this.parseMemoized(text);
