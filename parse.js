@@ -85,7 +85,7 @@ parse.semantics = {
             "with"
         ]);
         self.makePrecedenceLevel(function () {
-            return self.parseNegation.bind(self);
+            return self.parseUnary.bind(self);
         }, ["not", "neg", "number"]);
         self.makePrecedenceLevel(Function.identity, [
             "scope"
@@ -606,24 +606,24 @@ parse.semantics = {
         });
     },
 
-    parseNegation: function (callback) {
+    parseUnary: function (callback) {
         var self = this;
         var parsePrevious = self.parsePrimary.bind(self);
         return function (character, loc) {
             if (character === "!") {
-                return parsePrevious(function (expression) {
+                return self.parseUnary(function (expression) {
                     return callback({type: "not", args: [
                         expression
                     ]});
                 });
             } else if (character === "+") {
-                return parsePrevious(function (expression) {
+                return self.parseUnary(function (expression) {
                     return callback({type: "number", args: [
                         expression
                     ]});
                 });
             } else if (character === "-") {
-                return parsePrevious(function (expression) {
+                return self.parseUnary(function (expression) {
                     return callback({type: "neg", args: [
                         expression
                     ]});

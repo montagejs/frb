@@ -98,6 +98,18 @@ module.exports = [
     },
 
     {
+        path: "!!a",
+        syntax: {type: "not", args: [
+            {type: "not", args: [
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "a"}
+                ]}
+            ]}
+        ]}
+    },
+
+    {
         path: "!(a && b)",
         syntax: {type: "not", args: [
             {type: "and", args: [
