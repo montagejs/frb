@@ -1,4 +1,6 @@
 
+<img src="frb.png" float="right">
+
 # Functional Reactive Bindings
 
 In their simplest form, bindings provide the illusion that two objects
