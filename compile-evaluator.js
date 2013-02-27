@@ -165,6 +165,18 @@ var argCompilers = {
         }
     },
 
+    and: function (evaluateLeft, evaluateRight) {
+        return function (source, parameters) {
+            return evaluateLeft(source, parameters) && evaluateRight(source, parameters);
+        };
+    },
+
+    or: function (evaluateLeft, evaluateRight) {
+        return function (source, parameters) {
+            return evaluateLeft(source, parameters) || evaluateRight(source, parameters);
+        };
+    },
+
     "default": function (evaluateLeft, evaluateRight) {
         return function (value, parameters) {
             var result = evaluateLeft(value, parameters);

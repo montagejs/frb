@@ -15,6 +15,8 @@ var semantics = compile.semantics = {
         path: Observers.makePathObserver,
         "with": Observers.makeWithObserver,
         "if": Observers.makeConditionalObserver,
+        and: Observers.makeAndObserver,
+        or: Observers.makeOrObserver,
         "default": Observers.makeDefaultObserver,
         defined: Observers.makeDefinedObserver,
         rangeContent: Function.identity,
@@ -50,17 +52,17 @@ var semantics = compile.semantics = {
 
     compile: function (syntax) {
         var compilers = this.compilers;
-        if (syntax.type === 'literal') {
+        if (syntax.type === "literal") {
             return Observers.makeLiteralObserver(syntax.value);
-        } else if (syntax.type === 'value') {
+        } else if (syntax.type === "value") {
             return Observers.observeValue;
-        } else if (syntax.type === 'parameters') {
+        } else if (syntax.type === "parameters") {
             return Observers.observeParameters;
-        } else if (syntax.type === 'element') {
+        } else if (syntax.type === "element") {
             return Observers.makeElementObserver(syntax.id);
-        } else if (syntax.type === 'component') {
+        } else if (syntax.type === "component") {
             return Observers.makeComponentObserver(syntax.label, syntax);
-        } else if (syntax.type === 'record') {
+        } else if (syntax.type === "record") {
             var observers = {};
             var args = syntax.args;
             for (var name in args) {
