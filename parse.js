@@ -299,9 +299,9 @@ parse.semantics = {
             } else if (character === "[") {
                 return self.chain(callback, self.parseTuple, previous)(character, loc);
             } else if (character === "{") {
-                return self.chain(callback,self.parseRecord, previous)(character, loc);
+                return self.chain(callback, self.parseRecord, previous)(character, loc);
             } else {
-                return self.parseValue(callback, previous)(character, loc);
+                return self.parseValue(callback, previous, root)(character, loc);
             }
         };
     },
@@ -323,10 +323,27 @@ parse.semantics = {
         });
     },
 
-    parseValue: function parseValue(callback, previous) {
+    parseValue: function parseValue(callback, previous, root) {
         var self = this;
         return self.parseWord(function (identifier, loc) {
-            if (identifier) {
+            if (identifier == undefined) {
+                return self.parseTail(callback, previous);
+            } else if (root && identifier === "true") {
+                return self.parseTail(callback, {
+                    type: "literal",
+                    value: true
+                });
+            } else if (root && identifier === "false") {
+                return self.parseTail(callback, {
+                    type: "literal",
+                    value: false
+                });
+            } else if (root && identifier === "null") {
+                return self.parseTail(callback, {
+                    type: "literal",
+                    value: null
+                });
+            } else {
                 return function (character, loc) {
                     if (character === "{") {
                         return self.parseBlock(function (expression) {
@@ -390,8 +407,6 @@ parse.semantics = {
                         })(character, loc);
                     }
                 };
-            } else {
-                return self.parseTail(callback, previous);
             }
         });
     },

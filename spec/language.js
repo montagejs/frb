@@ -7,6 +7,37 @@ module.exports = [
     },
 
     {
+        path: "1",
+        syntax: {type: "literal", value: 1}
+    },
+
+    {
+        path: "1.2",
+        syntax: {type: "literal", value: 1.2}
+    },
+
+    {
+        path: "1.",
+        syntax: {type: "literal", value: 1.0},
+        nonCanon: true
+    },
+
+    {
+        path: "true",
+        syntax: {type: "literal", value: true}
+    },
+
+    {
+        path: "false",
+        syntax: {type: "literal", value: false}
+    },
+
+    {
+        path: "null",
+        syntax: {type: "literal", value: null}
+    },
+
+    {
         path: "a",
         syntax: {type: "property", args: [
             {type: "value"},
