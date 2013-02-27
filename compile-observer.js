@@ -15,6 +15,7 @@ var semantics = compile.semantics = {
         path: Observers.makePathObserver,
         "with": Observers.makeWithObserver,
         "if": Observers.makeConditionalObserver,
+        not: Observers.makeNotObserver,
         and: Observers.makeAndObserver,
         or: Observers.makeOrObserver,
         "default": Observers.makeDefaultObserver,

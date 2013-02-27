@@ -192,14 +192,21 @@ function makeConditionalObserver(observeCondition, observeConsequent, observeAlt
     };
 }
 
+exports.makeNotObserver = makeNotObserver;
+function makeNotObserver(observeValue) {
+    return function observeNot(emit, source, parameters, beforeChange) {
+        return observeValue(autoCancelPrevious(function replaceValue(value) {
+            return emit(!value);
+        }), source, parameters, beforeChange);
+    };
+}
+
 exports.makeAndObserver = makeAndObserver;
 function makeAndObserver(observeLeft, observeRight) {
     return function observeAnd(emit, source, parameters, beforeChange) {
-        return observeLeft(autoCancelPrevious(function (left) {
-            if (left == null) {
-                return emit();
-            } else if (!left) {
-                return emit(false);
+        return observeLeft(autoCancelPrevious(function replaceLeft(left) {
+            if (!left) {
+                return emit(left);
             } else {
                 return observeRight(emit, source, parameters, beforeChange);
             }
@@ -210,11 +217,9 @@ function makeAndObserver(observeLeft, observeRight) {
 exports.makeOrObserver = makeOrObserver;
 function makeOrObserver(observeLeft, observeRight) {
     return function observeOr(emit, source, parameters, beforeChange) {
-        return observeLeft(autoCancelPrevious(function (left) {
-            if (left == null) {
-                return emit();
-            } else if (left) {
-                return emit(true);
+        return observeLeft(autoCancelPrevious(function replaceLeft(left) {
+            if (left) {
+                return emit(left);
             } else {
                 return observeRight(emit, source, parameters, beforeChange);
             }

@@ -439,6 +439,18 @@ module.exports = [
     },
 
     {
+        path: "!x",
+        input: null,
+        output: true
+    },
+
+    {
+        path: "!!x",
+        input: null,
+        output: false
+    },
+
+    {
         path: "&range(())",
         input: 3,
         output: [0, 1, 2]

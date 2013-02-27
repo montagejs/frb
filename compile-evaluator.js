@@ -165,6 +165,12 @@ var argCompilers = {
         }
     },
 
+    not: function (evaluateValue) {
+        return function (source, parameters) {
+            return !evaluateValue(source, parameters);
+        };
+    },
+
     and: function (evaluateLeft, evaluateRight) {
         return function (source, parameters) {
             return evaluateLeft(source, parameters) && evaluateRight(source, parameters);
