@@ -1,5 +1,5 @@
 
-<p style="float: right"><img src="frb.png"></p>
+<img src="frb.png" align="right" alt="FRB Logo">
 
 # Functional Reactive Bindings
 
