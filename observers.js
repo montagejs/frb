@@ -75,6 +75,8 @@ function makeComputerObserver(observeArgs, compute, thisp) {
 
 exports.observeProperty = _observeProperty;
 function _observeProperty(object, key, emit, source, parameters, beforeChange) {
+    if (object == null)
+        return emit();
     var cancel = Function.noop;
     function propertyChange(value, key, object) {
         cancel();
@@ -376,8 +378,8 @@ function makeReplacingMapBlockObserver(observeCollection, observeRelation) {
 }
 
 var makeFilterBlockObserver = exports.makeFilterBlockObserver = makeNonReplacing(makeReplacingFilterBlockObserver);
-function makeReplacingFilterBlockObserver(observeArray, observePredicate) {
-    var observePredicates = makeReplacingMapBlockObserver(observeArray, observePredicate);
+function makeReplacingFilterBlockObserver(observeCollection, observePredicate) {
+    var observePredicates = makeReplacingMapBlockObserver(observeCollection, observePredicate);
     return function observeFilter(emit, source, parameters, beforeChange) {
         return observePredicates(autoCancelPrevious(function (predicates, input) {
             if (!input) return emit();
@@ -394,14 +396,12 @@ function makeReplacingFilterBlockObserver(observeArray, observePredicate) {
 
             function rangeChange(plusPredicates, minusPredicates, index) {
                 var plusValues = input.slice(index, index + plusPredicates.length);
-                var oldLength = minusPredicates.map(Boolean).sum();
-                var newLength = plusPredicates.map(Boolean).sum();
-                var length = newLength - oldLength;
+                var minusLength = minusPredicates.map(Boolean).sum();
                 var plusOutput = plusValues.filter(function (value, offset) {
                     return plusPredicates[offset];
                 });
                 var start = cumulativeLengths[index];
-                output.swap(start, Math.max(0, oldLength - newLength), plusOutput);
+                output.swap(start, minusLength, plusOutput);
                 update(start);
             }
 
