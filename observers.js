@@ -611,14 +611,14 @@ function makeMethodObserverMaker(name) {
         var observeOperands = makeObserversObserver(Array.prototype.slice.call(arguments));
         var observeOperandChanges = makeRangeContentObserver(observeOperands);
         return function observeMethod(emit, source, parameters, beforeChange) {
-            return observeOperands(autoCancelPrevious(function (operands) {
-                var object = operands.shift();
-                if (!object)
+            return observeOperandChanges(autoCancelPrevious(function (operands) {
+                if (!operands.every(defined))
                     return emit();
+                var object = operands[0];
                 if (!object[name]) {
                     throw new Error("Object has no method " + JSON.stringify(name) + ": " + object);
                 }
-                return emit(object[name].apply(object, operands));
+                return emit(object[name].apply(object, operands.slice(1)));
             }), source, parameters, beforeChange);
         };
     };

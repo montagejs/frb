@@ -341,5 +341,25 @@ describe("bindings", function () {
 
     });
 
+    it("should watch arbitrary pure polymorphic functions", function () {
+        var object = Bindings.defineBindings({
+            distance: function (x, y) {
+                return Math.pow(x * x + y * y, .5);
+            }
+        }, {
+            "z": {
+                "<-": "distance(x, y)"
+            }
+        });
+        expect(object.z).toBe(undefined);
+        object.x = 3;
+        object.y = 4;
+        expect(object.z).toBe(5);
+        object.y = 3;
+        expect(object.z).not.toBe(5);
+        object.x = 4;
+        expect(object.z).toBe(5);
+    });
+
 });
 
