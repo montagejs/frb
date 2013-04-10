@@ -17,12 +17,6 @@ module.exports = [
     },
 
     {
-        path: "1.",
-        syntax: {type: "literal", value: 1.0},
-        nonCanon: true
-    },
-
-    {
         path: "true",
         syntax: {type: "literal", value: true}
     },
@@ -232,6 +226,7 @@ module.exports = [
     {
         path: "[,]",
         syntax: {type: "tuple", args: [
+            {type: "value"},
             {type: "value"}
         ]},
         nonCanon: true
@@ -240,6 +235,7 @@ module.exports = [
     {
         path: "[,,]",
         syntax: {type: "tuple", args: [
+            {type: "value"},
             {type: "value"},
             {type: "value"}
         ]},

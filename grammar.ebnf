@@ -13,10 +13,6 @@ Pipeline ::=
             "." Transform |
             "[" Expression "]"
         )*
-        (
-            ".*" |
-            "[*]" |
-        )
     )?
 
 Transform ::=
@@ -51,7 +47,7 @@ Transform ::=
         )
         (
             "(" Expression ")" |
-            "{" Expression ")"
+            "{" Expression "}"
         )
     ) |
     "has(" Expression ")" |
@@ -92,7 +88,7 @@ Expression ::= ConditionalExpression
 Literal ::= NumberLiteral | StringLiteral
 NumberLiteral ::= [0-9][1-9]* ( '.' [0-9]+ )?
 StringLiteral ::= "'" ( NonQuoteChar | "\" QuoteChar )* "'"
-PropertyName ::= [a-zA-Z0-9]+
-ElementId ::= [a-zA-Z0-9]+
-ComponentLabel ::= [a-zA-Z0-9]+
+PropertyName ::= [a-zA-Z0-9_]+
+ElementId ::= [a-zA-Z0-9_]+
+ComponentLabel ::= [a-zA-Z0-9_]+
 

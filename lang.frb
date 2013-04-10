@@ -1,0 +1,26 @@
+
+@owner {
+}
+
+@columns "montage/ui/repetition.reel" {
+    element: #columns,
+    contentController: @columnController
+}
+
+@columnController "montage/core/range-controller" {
+    content <- @owner.columnsData.map{
+        @ "./iteration" {
+            name: .;
+            text: .;
+        }
+    };
+}
+
+@name "montage/ui/text.reel" {
+    value <- @columns.currentIteration.content.name
+}
+
+@deleteButton "matte/ui/button.reel" {
+    value: "Delete"
+}
+

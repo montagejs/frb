@@ -1,0 +1,28 @@
+
+is "./foo" Foo;
+
+columns: {
+    element: #columns;
+    contentController: @columnController;
+};
+
+columnController: {
+    content <- @owner.columnsData.enumerate().map {
+        {
+            is "./iteration" Iteration;
+            index <- .0;
+            text <- .1;
+            controller: ^;
+        }
+    };
+};
+
+name: {
+    value <- @columns.currentIteration.content.name;
+};
+
+deleteButton: {
+    is "matte/ui/button.reel" Button;
+    value: "Delete";
+};
+
