@@ -361,5 +361,49 @@ describe("bindings", function () {
         expect(object.z).toBe(5);
     });
 
+    it("should watch arbitrary observer functions", function () {
+
+        var tick;
+
+        var object = Bindings.defineBindings({
+            observeFoo: function (emit, source, parameters, beforeChange) {
+                tick = emit;
+            }
+        }, {
+            bar: {"<-": "foo()"}
+        });
+
+        expect(object.bar).toBe(undefined);
+        tick(10);
+        expect(object.bar).toBe(10);
+
+    });
+
+    it("should watch arbitrary make observer functions", function () {
+
+        var object = Bindings.defineBindings({
+            makeSpecialAddObserver: function (observeA, observeB) {
+                return function observeSpecialAdd(emit, source, parameters) {
+                    return observeA(function (a) {
+                        if (a == null) return emit(null);
+                        return observeB(function (b) {
+                            if (b == null) return emit(null);
+                            return emit(a + b);
+                        }, source, parameters);
+                    }, source, parameters);
+                };
+            }
+        }, {
+            c: {"<-": "specialAdd(a, b)"}
+        });
+
+        expect(object.c).toBe(null);
+        object.a = 2;
+        expect(object.c).toBe(null);
+        object.b = 3;
+        expect(object.c).toBe(5);
+
+    });
+
 });
 

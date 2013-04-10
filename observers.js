@@ -607,18 +607,36 @@ function makeOperatorObserverMaker(operator) {
 
 exports.makeMethodObserverMaker = makeMethodObserverMaker;
 function makeMethodObserverMaker(name) {
+    var capitalName = name.slice(0, 1).toUpperCase() + name.slice(1);
+    var makeObserverName = 'make' + capitalName + 'Observer';
+    var observeName = 'observe' + capitalName;
     return function makeMethodObserver(/*...observers*/) {
-        var observeOperands = makeObserversObserver(Array.prototype.slice.call(arguments));
+        var observeObject = arguments[0];
+        var operandObservers = Array.prototype.slice.call(arguments, 1);
+        var autoCancelingOperandObservers = operandObservers.map(function (observe) {
+            return function autoCancelingOperandObserver(emit, source, parameters, beforeChange) {
+                return observe(autoCancelPrevious(emit), source, parameters, beforeChange);
+            };
+        });
+        var observeOperands = makeObserversObserver(operandObservers);
         var observeOperandChanges = makeRangeContentObserver(observeOperands);
         return function observeMethod(emit, source, parameters, beforeChange) {
-            return observeOperandChanges(autoCancelPrevious(function (operands) {
-                if (!operands.every(defined))
+            return observeObject(autoCancelPrevious(function (object) {
+                if (!object)
                     return emit();
-                var object = operands[0];
-                if (!object[name]) {
-                    throw new Error("Object has no method " + JSON.stringify(name) + ": " + object);
-                }
-                return emit(object[name].apply(object, operands.slice(1)));
+                if (object[makeObserverName])
+                    return object[makeObserverName].apply(object, autoCancelingOperandObservers)(emit, source, parameters, beforeChange);
+                if (object[observeName])
+                    return object[observeName](emit, object, parameters, beforeChange);
+                return observeOperandChanges(autoCancelPrevious(function (operands) {
+                    if (!operands.every(defined))
+                        return emit();
+                    if (object[name]) {
+                        return emit(object[name].apply(object, operands));
+                    } else {
+                        throw new Error("Object has no method " + JSON.stringify(name) + ": " + object);
+                    }
+                }), source, parameters, beforeChange);
             }), source, parameters, beforeChange);
         };
     };
