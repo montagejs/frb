@@ -405,5 +405,57 @@ describe("bindings", function () {
 
     });
 
+    it("should maintain the binding invariant...", function() {
+        function Foo(value, controller) {
+            this.value = value;
+            this.selected = false;
+            this.controller = controller;
+            Bindings.defineBinding(this, "selected", {
+                "<->": "controller.array.0 == value"
+            });
+        }
+
+        var controller = {
+                array: [null]
+            },
+            foo1 = new Foo("foo1", controller),
+            foo2 = new Foo("foo2", controller);
+
+        // only configuration where it fails: foo1 = true, foo2 = false
+        foo1.selected = true;
+
+        controller.array = [foo2.value];
+        expect(controller.array.length).toBe(1);
+        // controller.array.0 is now "foo1"
+        expect(controller.array[0]).toBe(foo2.value);
+        // foo1.selected is false
+        expect(foo1.selected).toBe(false);
+        // foo2.selected is false
+        expect(foo2.selected).toBe(true);
+    });
+
+    it("should maintain the binding invariant... (non-array version)", function() {
+        function Foo(value, controller) {
+            this.value = value;
+            this.selected = false;
+            this.controller = controller;
+            Bindings.defineBinding(this, "selected", {
+                "<->": "controller.value == value"
+            });
+        }
+
+        var controller = {
+                value: null
+            },
+            foo1 = new Foo("foo1", controller),
+            foo2 = new Foo("foo2", controller);
+
+        foo1.selected = true;
+
+        controller.value = foo2.value;
+        expect(controller.value).toBe(foo2.value);
+        expect(foo1.selected).toBe(false);
+        expect(foo2.selected).toBe(true);
+    });
 });
 
