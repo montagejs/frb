@@ -1,1 +1,8 @@
 .tmp
+.gitignore
+.travis.yml
+checklist.csv
+grammar.ebnf
+grammar.xhtml
+/samples
+/spec
