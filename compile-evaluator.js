@@ -2,6 +2,7 @@
 var Object = require("collections/shim-object");
 var Map = require("collections/map");
 var Operators = require("./operators");
+var Scope = require("./scope");
 
 module.exports = compile;
 function compile(syntax) {
@@ -17,34 +18,34 @@ var compilers = {
     },
 
     value: function (syntax) {
-        return function (value) {
-            return value;
+        return function (scope) {
+            return scope.value;
         };
     },
 
     parameters: function (syntax) {
-        return function (value, parameters) {
-            return parameters;
+        return function (scope) {
+            return scope.parameters;
         };
     },
 
     element: function (syntax) {
-        return function (value, parameters) {
-            return parameters.document.getElementById(syntax.id);
+        return function (scope) {
+            return scope.document.getElementById(syntax.id);
         };
     },
 
     component: function (syntax) {
-        return function (value, parameters) {
-            return parameters.serialization.getObjectByLabel(syntax.label);
+        return function (scope) {
+            return scope.components.getObjectByLabel(syntax.label);
         };
     },
 
     tuple: function (syntax) {
         var argEvaluators = syntax.args.map(this.compile, this);
-        return function (value, parameters) {
+        return function (scope) {
             return argEvaluators.map(function (evaluateArg) {
-                return evaluateArg(value, parameters);
+                return evaluateArg(scope);
             });
         };
     },
@@ -55,10 +56,10 @@ var compilers = {
         for (var name in args) {
             argEvaluators[name] = this.compile(args[name]);
         }
-        return function (value, parameters) {
+        return function (scope) {
             var object = {};
             for (var name in argEvaluators) {
-                object[name] = argEvaluators[name](value, parameters);
+                object[name] = argEvaluators[name](scope);
             }
             return object;
         };
@@ -69,144 +70,153 @@ var compilers = {
 var argCompilers = {
 
     mapBlock: function (evaluateCollection, evaluateRelation) {
-        return function (value, parameters) {
-            return evaluateCollection(value, parameters)
+        return function (scope) {
+            return evaluateCollection(scope)
             .map(function (value) {
-                return evaluateRelation(value, parameters);
+                return evaluateRelation(Scope.nest(scope, value));
             });
         };
     },
 
     filterBlock: function (evaluateCollection, evaluatePredicate) {
-        return function (value, parameters) {
-            return evaluateCollection(value, parameters)
+        return function (scope) {
+            return evaluateCollection(scope)
             .filter(function (value) {
-                return evaluatePredicate(value, parameters);
+                return evaluatePredicate(Scope.nest(scope, value));
             });
         };
     },
 
     someBlock: function (evaluateCollection, evaluatePredicate) {
-        return function (value, parameters) {
-            return evaluateCollection(value, parameters)
+        return function (scope) {
+            return evaluateCollection(scope)
             .some(function (value) {
-                return evaluatePredicate(value, parameters);
+                return evaluatePredicate(Scope.nest(scope, value));
             });
         };
     },
 
     everyBlock: function (evaluateCollection, evaluatePredicate) {
-        return function (value, parameters) {
-            return evaluateCollection(value, parameters)
+        return function (scope) {
+            return evaluateCollection(scope)
             .every(function (value) {
-                return evaluatePredicate(value, parameters);
+                return evaluatePredicate(Scope.nest(scope, value));
             });
         };
     },
 
     sortedBlock: function (evaluateCollection, evaluateRelation) {
-        return function (value, parameters) {
-            return evaluateCollection(value, parameters)
+        return function (scope) {
+            return evaluateCollection(scope)
             .sorted(Function.by(function (value) {
-                return evaluateRelation(value, parameters);
+                return evaluateRelation(Scope.nest(scope, value));
             }));
         };
     },
 
     groupBlock: function (evaluateCollection, evaluateRelation) {
-        return function (value, parameters) {
-            return evaluateCollection(value, parameters)
+        return function (scope) {
+            return evaluateCollection(scope)
             .group(function (value) {
-                return evaluateRelation(value, parameters);
+                return evaluateRelation(Scope.nest(scope, value));
             });
         };
     },
 
     groupMapBlock: function (evaluateCollection, evaluateRelation) {
-        return function (value, parameters) {
-            return new Map(evaluateCollection(value, parameters)
+        return function (scope) {
+            return new Map(evaluateCollection(scope)
             .group(function (value) {
-                return evaluateRelation(value, parameters);
+                return evaluateRelation(Scope.nest(scope, value));
             }));
         };
     },
 
     minBlock: function (evaluateCollection, evaluateRelation) {
-        return function (value, parameters) {
-            return evaluateCollection(value, parameters)
+        return function (scope) {
+            return evaluateCollection(scope)
             .min(Function.by(function (value) {
-                return evaluateRelation(value, parameters);
+                return evaluateRelation(Scope.nest(scope, value));
             }))
         };
     },
 
     maxBlock: function (evaluateCollection, evaluateRelation) {
-        return function (value, parameters) {
-            return evaluateCollection(value, parameters)
+        return function (scope) {
+            return evaluateCollection(scope)
             .max(Function.by(function (value) {
-                return evaluateRelation(value, parameters);
+                return evaluateRelation(Scope.nest(scope, value));
             }))
         };
     },
 
+    parent: function (evaluateExpression) {
+        return function (scope) {
+            return evaluateExpression(scope.parent);
+        };
+    },
+
     "with": function (evaluateContext, evaluateExpression) {
-        return function (value, parameters) {
-            return evaluateExpression(evaluateContext(value, parameters), parameters);
+        return function (scope) {
+            return evaluateExpression(Scope.nest(scope, evaluateContext(scope)));
         };
     },
 
     "if": function (evaluateCondition, evaluateConsequent, evaluateAlternate) {
-        return function (value, parameters) {
-            if (evaluateCondition(value, parameters)) {
-                return evaluateConsequent(value, parameters);
+        return function (scope) {
+            if (evaluateCondition(scope)) {
+                return evaluateConsequent(scope);
             } else {
-                return evaluateAlternate(value, parameters);
+                return evaluateAlternate(scope);
             }
         }
     },
 
     not: function (evaluateValue) {
-        return function (source, parameters) {
-            return !evaluateValue(source, parameters);
+        return function (scope) {
+            return !evaluateValue(scope);
         };
     },
 
     and: function (evaluateLeft, evaluateRight) {
-        return function (source, parameters) {
-            return evaluateLeft(source, parameters) && evaluateRight(source, parameters);
+        return function (scope) {
+            return evaluateLeft(scope) && evaluateRight(scope);
         };
     },
 
     or: function (evaluateLeft, evaluateRight) {
-        return function (source, parameters) {
-            return evaluateLeft(source, parameters) || evaluateRight(source, parameters);
+        return function (scope) {
+            return evaluateLeft(scope) || evaluateRight(scope);
         };
     },
 
     "default": function (evaluateLeft, evaluateRight) {
-        return function (value, parameters) {
-            var result = evaluateLeft(value, parameters);
+        return function (scope) {
+            var result = evaluateLeft(scope);
             if (result == null) { // implies "iff === null or undefined"
-                result = evaluateRight(value, parameters);
+                result = evaluateRight(scope);
             }
             return result;
         }
     },
 
     defined: function (evaluate) {
-        return function (source, parameters) {
-            var value = evaluate(source, parameters);
+        return function (scope) {
+            var value = evaluate(scope);
             return value != null; // implies exactly !== null or undefined
         };
     },
 
+    // TODO rename to evaluate
     path: function (evaluateObject, evaluatePath) {
-        return function (value, parameters) {
-            var evaluate = require("./evaluate");
-            var object = evaluateObject(value, parameters);
-            var path = evaluatePath(value, parameters);
+        return function (scope) {
+            var value = evaluateObject(scope);
+            var path = evaluatePath(scope);
+            var parse = require("./parse");
             try {
-                return evaluate(path, object, parameters);
+                var syntax = parse(path);
+                var evaluate = compile(syntax);
+                return evaluate(Scope.nest(scope, value));
             } catch (exception) {
             }
         }
@@ -262,11 +272,11 @@ var semantics = compile.semantics = {
             }
             var operator = operators[syntax.type];
             var argEvaluators = syntax.args.map(this.compile, this);
-            return function (value, parameters) {
+            return function (scope) {
                 var args = argEvaluators.map(function (evaluateArg) {
-                    return evaluateArg(value, parameters);
+                    return evaluateArg(scope);
                 });
-                if (!args.every(defined))
+                if (!args.every(Operators.defined))
                     return;
                 return operator.apply(null, args);
             };
@@ -276,6 +286,3 @@ var semantics = compile.semantics = {
 
 };
 
-function defined(value) {
-    return value != null;
-}

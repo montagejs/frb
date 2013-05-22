@@ -5,6 +5,7 @@ var stringify = require("./stringify");
 var compileObserver = require("./compile-observer");
 var compileBinder = require("./compile-binder");
 var Observers = require("./observers");
+var Scope = require("./scope");
 
 module.exports = bind;
 function bind(target, targetPath, descriptor) {
@@ -18,7 +19,12 @@ function bind(target, targetPath, descriptor) {
     descriptor.sourcePath = sourcePath;
     var value = descriptor.value;
     var parameters = descriptor.parameters = descriptor.parameters || source;
+    var document = descriptor.document;
+    var components = descriptor.components;
     var trace = descriptor.trace;
+
+    var sourceScope = descriptor.sourceScope = new Scope(source, null, parameters, document, components);
+    var targetScope = descriptor.targetScope = new Scope(target, null, parameters, document, components);
 
     // promote convert and revert from a converter object up to the descriptor
     if (descriptor.converter) {
@@ -40,11 +46,10 @@ function bind(target, targetPath, descriptor) {
     // <- source to target
     trace && console.log("DEFINE BINDING", targetPath, "<-", sourcePath, target);
     var cancelSourceToTarget = bindOneWay(
-        target,
+        targetScope,
         targetSyntax,
-        source,
+        sourceScope,
         sourceSyntax,
-        parameters,
         convert,
         descriptor,
         trace
@@ -55,11 +60,10 @@ function bind(target, targetPath, descriptor) {
     if (twoWay) {
         trace && console.log("DEFINE BINDING", targetPath, "->", sourcePath, source);
         cancelTargetToSource = bindOneWay(
-            source,
+            sourceScope,
             sourceSyntax,
-            target,
+            targetScope,
             targetSyntax,
-            parameters,
             revert,
             descriptor,
             trace
@@ -74,11 +78,10 @@ function bind(target, targetPath, descriptor) {
 }
 
 function bindOneWay(
-    target,
+    targetScope,
     targetSyntax,
-    source,
+    sourceScope,
     sourceSyntax,
-    parameters,
     convert,
     descriptor,
     trace
@@ -95,16 +98,15 @@ function bindOneWay(
         observeSource = Observers.makeConverterObserver(
             observeSource,
             convert,
-            source
+            sourceScope
         );
     }
 
     var bindTarget = compileBinder(targetSyntax);
     return bindTarget(
         observeSource,
-        source,
-        target,
-        parameters,
+        sourceScope,
+        targetScope,
         descriptor,
         trace ? {
             sourcePath: stringify(sourceSyntax),

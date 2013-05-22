@@ -32,10 +32,10 @@ compile.semantics = {
     compilers: {
 
         property: function (evaluateObject, evaluateKey) {
-            return function (value, source, parameters) {
-                var object = evaluateObject(source, parameters);
+            return function (value, scope) {
+                var object = evaluateObject(scope);
                 if (!object) return;
-                var key = evaluateKey(source, parameters);
+                var key = evaluateKey(scope);
                 if (key == null) return;
                 if (Array.isArray(object)) {
                     object.set(key, value);
@@ -46,21 +46,21 @@ compile.semantics = {
         },
 
         get: function (evaluateCollection, evaluateKey) {
-            return function (value, source, parameters) {
-                var collection = evaluateCollection(source, parameters);
+            return function (value, scope) {
+                var collection = evaluateCollection(scope);
                 if (!collection) return;
-                var key = evaluateKey(source, parameters);
+                var key = evaluateKey(scope);
                 if (key == null) return;
                 collection.set(key, value);
             };
         },
 
         has: function (evaluateCollection, evaluateValue) {
-            return function (has, source, parameters) {
-                var collection = evaluateCollection(source, parameters);
+            return function (has, scope) {
+                var collection = evaluateCollection(scope);
                 if (!collection) return;
-                var value = evaluateValue(source, parameters);
-                if (value == null) return;
+                var value = evaluateValue(scope);
+                if (has == null) return;
                 if (has) {
                     if (!(collection.has || collection.contains).call(collection, value)) {
                         collection.add(value);
@@ -74,28 +74,28 @@ compile.semantics = {
         },
 
         equals: function (assignLeft, evaluateRight) {
-            return function (equals, source, parameters) {
-                if (equals) {
-                    return assignLeft(evaluateRight(source, parameters), source, parameters);
+            return function (value, scope) {
+                if (value) {
+                    return assignLeft(evaluateRight(scope), scope);
                 }
             };
         },
 
         "if": function (evaluateCondition, assignConsequent, assignAlternate) {
-            return function (value, source, parameters) {
-                var condition = evaluateCondition(source, parameters);
+            return function (value, scope) {
+                var condition = evaluateCondition(scope);
                 if (condition == null) return;
                 if (condition) {
-                    return assignConsequent(value, source, parameters);
+                    return assignConsequent(value, scope);
                 } else {
-                    return assignAlternate(value, source, parameters);
+                    return assignAlternate(value, scope);
                 }
             };
         },
 
         rangeContent: function (evaluateTarget) {
-            return function (value, source, parameters) {
-                var target = evaluateTarget(source, parameters);
+            return function (value, scope) {
+                var target = evaluateTarget(scope);
                 if (!target) return;
                 if (!value) {
                     target.clear();
@@ -106,19 +106,19 @@ compile.semantics = {
         },
 
         mapContent: function (evaluateTarget) {
-            return function (value, source, parameters) {
-                var target = evaluateTarget(source, parameters);
+            return function (value, scope) {
+                var target = evaluateTarget(scope);
                 if (!target) return;
                 target.clear();
-                if (source) {
+                if (scope.value) {
                     target.addEach(value);
                 }
             };
         },
 
         reversed: function (evaluateTarget) {
-            return function (value, source, parameters) {
-                var target = evaluateTarget(source, parameters);
+            return function (value, scope) {
+                var target = evaluateTarget(scope);
                 if (!target) return;
                 target.swap(0, target.length, value.reversed());
             };

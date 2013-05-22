@@ -3,6 +3,7 @@ var parse = require("./parse");
 var compileObserver = require("./compile-observer");
 var compileBinder = require("./compile-binder");
 var Observers = require("./observers");
+var Scope = require("./scope");
 
 module.exports = compute;
 function compute(target, targetPath, descriptor) {
@@ -12,7 +13,11 @@ function compute(target, targetPath, descriptor) {
     var args = descriptor.args;
     var compute = descriptor.compute;
     var parameters = descriptor.parameters = descriptor.parameters || source;
+    var document = descriptor.document;
+    var components = descriptor.components;
     var trace = descriptor.trace;
+    var sourceScope = descriptor.sourceScope = new Scope(source, null, parameters, document, components);
+    var targetScope = descriptor.targetScope = new Scope(target, null, parameters, document, components);
 
     var argObservers = args.map(parse).map(function (argSyntax) {
         if (argSyntax.type === "rangeContent") {
@@ -33,7 +38,7 @@ function compute(target, targetPath, descriptor) {
     var targetSyntax = parse(targetPath);
     var bindTarget = compileBinder(targetSyntax);
 
-    return bindTarget(observeSource, source, target, parameters, descriptor, trace ? {
+    return bindTarget(observeSource, sourceScope, targetScope, descriptor, trace ? {
         sourcePath: args.join(", "),
         targetPath: targetPath
     }: undefined);
