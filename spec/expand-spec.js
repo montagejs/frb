@@ -68,7 +68,7 @@ describe("expand", function () {
     // generic cases
     cases.forEach(function (test) {
         it("should expand " + JSON.stringify(test.input) + " with " + JSON.stringify(test.with), function () {
-            var output = stringify(expand(parse(test.input), parse(test.with)));
+            var output = stringify(expand(parse(test.input), new Scope(parse(test.with))));
             expect(output).toEqual(test.output);
         });
     });
@@ -78,12 +78,6 @@ describe("expand", function () {
 
         var syntax = parse("@a");
         var a = {};
-        var serializer = {
-            getObjectLabel: function (_a) {
-                expect(_a).toBe(a);
-                return "b";
-            },
-        };
         var observe = compileObserver(syntax);
         var scope = new Scope();
         scope.components = {
@@ -98,9 +92,14 @@ describe("expand", function () {
 
         expect(syntax.component).toBe(a);
 
-        var syntax = expand(syntax, null, {
-            serialization: serializer
-        });
+        var scope = new Scope();
+        scope.components = {
+            getObjectLabel: function (_a) {
+                expect(_a).toBe(a);
+                return "b";
+            },
+        };
+        var syntax = expand(syntax, scope);
         expect(stringify(syntax)).toBe("@b");
 
     });

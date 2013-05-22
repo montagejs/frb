@@ -44,6 +44,16 @@ changed from `assign(value, target, parameters)` to `assign(value,
 scope)` such that `assign(value, new Scope(target, null, parameters)` is
 equivalent to the former rendition.
 
+### expand
+
+The signature of the `expand` function has changed to `expand(syntax,
+scope)`, where `scope` is an object with optional `value`, `parameters`
+and `components` properties.  The value and parameters must be syntax
+nodes to replace value and parameters nodes in place.  The `components`
+property must be an object with `getObjectLabel(component)` to get the
+label for a component, in case the label differs from the one on the
+syntax tree.
+
 ### observeGet
 
 `Observers.observeGet` now delegates to `observeGet` method instead of

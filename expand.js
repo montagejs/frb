@@ -4,9 +4,9 @@ var Map = require("collections/map");
 var Operators = require("./operators");
 
 module.exports = expand;
-function expand(syntax, value, parameters) {
+function expand(syntax, scope) {
     var bound = expand.semantics.expand.bind(expand.semantics);
-    return bound(syntax, value, parameters, bound);
+    return bound(syntax, scope, bound);
 }
 
 expand.semantics = {
@@ -54,28 +54,29 @@ expand.semantics = {
         "keys",
         "values",
         "items",
-        "evaluate"
+        "evaluate",
+        "parent"
     ]).addEach(Object.keys(Operators)),
 
     expanders: Map({
-        value: function (syntax, value) {
-            return value || {"type": "value"};
+        value: function (syntax, scope) {
+            return scope.value || {"type": "value"};
         },
-        parameters: function (syntax, value, parameters) {
-            return parameters || {"type": "parameters"};
+        parameters: function (syntax, scope) {
+            return scope.parameters || {"type": "parameters"};
         },
-        record: function (syntax, value, parameters, expand) {
+        record: function (syntax, scope, expand) {
             var expanded = {type: "record", args: []};
             for (var name in syntax.args) {
-                expanded.args[name] = expand(syntax.args[name], value, parameters, expand);
+                expanded.args[name] = expand(syntax.args[name], scope, expand);
             }
             return expanded;
         },
-        component: function (syntax, value, parameters, expand) {
-            if (parameters && parameters.serialization && syntax.component) {
+        component: function (syntax, scope, expand) {
+            if (scope.components && syntax.component) {
                 return {
                     type: "component",
-                    label: parameters.serialization.getObjectLabel(syntax.component)
+                    label: scope.components.getObjectLabel(syntax.component)
                 };
             } else {
                 return syntax;
@@ -83,18 +84,18 @@ expand.semantics = {
         }
     }),
 
-    expand: function (syntax, value, parameters, expand) {
+    expand: function (syntax, scope, expand) {
         if (this.expanders.has(syntax.type)) {
-            return this.expanders.get(syntax.type)(syntax, value, parameters, expand);
+            return this.expanders.get(syntax.type)(syntax, scope, expand);
         } else if (this.traverseLeft.has(syntax.type)) {
             return {type: syntax.type, args: [
-                expand(syntax.args[0], value, parameters, expand)
+                expand(syntax.args[0], scope, expand)
             ].concat(syntax.args.slice(1))};
         } else if (this.reflexive.has(syntax.type)) {
             return syntax;
         } else {
             return {type: syntax.type, args: syntax.args.map(function (arg) {
-                return expand(arg, value, parameters, expand);
+                return expand(arg, scope, expand);
             })};
         }
     }
