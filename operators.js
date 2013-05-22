@@ -96,6 +96,10 @@ exports.or = function (a, b) {
     return a || b;
 };
 
+exports.defined = function (value) {
+    return value != null;
+};
+
 // "startsWith", "endsWith", and "contains"  are overridden in
 // complile-observer so they can precompile the regular expression and reuse it
 // in each reaction.

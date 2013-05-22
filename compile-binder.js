@@ -2,6 +2,7 @@
 var compileObserver = require("./compile-observer");
 var Observers = require("./observers");
 var Binders = require("./binders");
+var solve = require("./algebra");
 
 module.exports = compile;
 function compile(syntax) {
@@ -30,6 +31,12 @@ compile.semantics = {
             var bindConsequent = this.compile(syntax.args[1]);
             var bindAlternate = this.compile(syntax.args[2]);
             return Binders.makeConditionalBinder(observeCondition, bindConsequent, bindAlternate);
+        } else if (syntax.type === "everyBlock") {
+            var observeCollection = compileObserver(syntax.args[0]);
+            var args = solve(syntax.args[1], {type: "literal", value: true});
+            var bindCondition = this.compile(args[0]);
+            var observeValue = compileObserver(args[1]);
+            return Binders.makeEveryBlockBinder(observeCollection, bindCondition, observeValue);
         } else if (compilers.hasOwnProperty(syntax.type)) {
             var argObservers = syntax.args.map(compileObserver, compileObserver.semantics);
             return compilers[syntax.type].apply(null, argObservers);

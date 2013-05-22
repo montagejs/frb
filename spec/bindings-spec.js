@@ -2,6 +2,8 @@
 var Bindings = require("..");
 var Map = require("collections/map");
 
+Error.stackTraceLimit = 100;
+
 describe("bindings", function () {
 
     describe("computed properties", function () {
@@ -160,11 +162,12 @@ describe("bindings", function () {
             foo: {checked: true}
         };
         var bindings = Bindings.defineBindings({}, {
-            "bar": {"<->": "@foo.checked"}
-        }, {
-            serialization: {
-                getObjectByLabel: function (label) {
-                    return components[label];
+            "bar": {
+                "<->": "@foo.checked",
+                components: {
+                    getObjectByLabel: function (label) {
+                        return components[label];
+                    }
                 }
             }
         });
@@ -403,6 +406,114 @@ describe("bindings", function () {
         object.b = 3;
         expect(object.c).toBe(5);
 
+    });
+
+    it("should recognize the parent scope operator", function () {
+        var object = Bindings.defineBindings({
+            array: [1, 2, 3, 4],
+            factor: 2
+        }, {
+            factors: {
+                "<-": "array.map{* ^factor}"
+            }
+        });
+        expect(object.factors).toEqual([2, 4, 6, 8]);
+        object.factor = 1;
+        expect(object.factors).toEqual([1, 2, 3, 4]);
+    });
+
+    it("should do one-way all and none checked buttons with every block", function () {
+        var a = {}, b = {}, c = {};
+        var model = Bindings.defineBindings({
+            items: [a, b, c]
+        }, {
+            allChecked: {"<-": "items.every{checked}"},
+            noneChecked: {"<-": "items.every{!checked}"}
+        });
+
+        expect(model.allChecked).toBe(false);
+        expect(model.noneChecked).toBe(true);
+
+        a.checked = true;
+        expect(model.allChecked).toBe(false);
+        expect(model.noneChecked).toBe(false);
+
+        b.checked = true;
+        c.checked = true;
+        expect(model.allChecked).toBe(true);
+        expect(model.noneChecked).toBe(false);
+
+    });
+
+    it("should do one-way all and none checked buttons with some block", function () {
+        var a = {}, b = {}, c = {};
+        var model = Bindings.defineBindings({
+            items: [a, b, c]
+        }, {
+            allChecked: {"<-": "!items.some{!checked}"},
+            noneChecked: {"<-": "!items.some{checked}"}
+        });
+
+        expect(model.allChecked).toBe(false);
+        expect(model.noneChecked).toBe(true);
+
+        a.checked = true;
+        expect(model.allChecked).toBe(false);
+        expect(model.noneChecked).toBe(false);
+
+        b.checked = true;
+        c.checked = true;
+        expect(model.allChecked).toBe(true);
+        expect(model.noneChecked).toBe(false);
+
+    });
+
+    it("should do two-way all and none checked buttons with every block", function () {
+        var a = {}, b = {}, c = {};
+        var model = Bindings.defineBindings({
+            items: [a, b, c]
+        }, {
+            allChecked: {"<->": "items.every{checked}"},
+            noneChecked: {"<->": "items.every{!checked}"}
+        });
+
+        model.allChecked = true;
+        expect(a.checked).toBe(true);
+        expect(b.checked).toBe(true);
+        expect(c.checked).toBe(true);
+        expect(model.noneChecked).toBe(false);
+
+        b.checked = false;
+        expect(model.allChecked).toBe(false);
+
+        model.noneChecked = true;
+        expect(a.checked).toBe(false);
+        expect(b.checked).toBe(false);
+        expect(c.checked).toBe(false);
+    });
+
+    it("should do two-way all and none checked buttons with some block", function () {
+        var a = {}, b = {}, c = {};
+        var model = Bindings.defineBindings({
+            items: [a, b, c]
+        }, {
+            allChecked: {"<->": "!items.some{!checked}"},
+            noneChecked: {"<->": "!items.some{checked}"}
+        });
+
+        model.allChecked = true;
+        expect(a.checked).toBe(true);
+        expect(b.checked).toBe(true);
+        expect(c.checked).toBe(true);
+        expect(model.noneChecked).toBe(false);
+
+        b.checked = false;
+        expect(model.allChecked).toBe(false);
+
+        model.noneChecked = true;
+        expect(a.checked).toBe(false);
+        expect(b.checked).toBe(false);
+        expect(c.checked).toBe(false);
     });
 
 });

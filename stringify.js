@@ -211,6 +211,10 @@ stringify.semantics = {
             return '+' + stringify(syntax.args[0], syntax)
         },
 
+        parent: function (syntax, stringify) {
+            return '^' + stringify(syntax.args[0], syntax)
+        },
+
         if: function (syntax, stringify) {
             return (
                 stringify(syntax.args[0], syntax) + " ? " +

@@ -229,7 +229,7 @@ object.numbers.shift();
 expect(object.evens).toEqual([4, 6, 8]);
 ```
 
-### Some
+### Some and Every
 
 A `some` block incrementally tracks whether some of the values in a
 collection meet a criterion.
@@ -249,9 +249,7 @@ var object = Bindings.defineBindings({
 expect(object.anyChecked).toBe(true);
 ```
 
-### Every
-
-A `some` block incrementally tracks whether all of the values in a
+An `every` block incrementally tracks whether all of the values in a
 collection meet a criterion.
 
 ```javascript
@@ -267,6 +265,45 @@ var object = Bindings.defineBindings({
     }
 });
 expect(object.allChecked).toBe(false);
+```
+
+You can use a two-way binding on `some` and `every` blocks.
+
+```javascript
+var object = Bindings.defineBindings({
+    options: [
+        {checked: true},
+        {checked: false},
+        {checked: false}
+    ]
+}, {
+    allChecked: {
+        "<->": "options.every{checked}"
+    },
+    noneChecked: {
+        "<->": "!options.some{checked}"
+    }
+});
+
+object.noneChecked = true;
+expect(object.options.every(function (option) {
+    return !option.checked
+}));
+
+object.allChecked = true;
+expect(object.noneChecked).toBe(false);
+```
+
+The caveat of an `equals` binding applies.  If the condition for every
+element of the collection is set to true, the condition will be bound
+incrementally to true on each element.  When the condition is set to
+false, the binding will simply be canceled.
+
+```javascript
+object.allChecked = false;
+expect(object.options.every(function (option) {
+    return option.checked; // still checked
+}));
 ```
 
 ### Sorted
@@ -1768,17 +1805,19 @@ object.array.push(10); // emits [10]
 ### Evaluate
 
 The `compile-evaluator` module returns a function that accepts a syntax
-tree and returns an evaluator function.  The evaluator accepts a source
-value and parameters and returns the corresponding value without all the
-cost or benefit of setting up incremental observers.
+tree and returns an evaluator function.  The evaluator accepts a scope
+(which may include a value, parent scope, parameters, a document, and
+components) and returns the corresponding value without all the cost or
+benefit of setting up incremental observers.
 
 ```javascript
-var parse = require("./parse");
-var compile = require("./compile-evaluator");
+var parse = require("frb/parse");
+var compile = require("frb/compile-evaluator");
+var Scope = require("frb/scope");
 
 var syntax = parse("a.b");
 var evaluate = compile(syntax);
-var c = evaluate({a: {b: 10}})
+var c = evaluate(new Scope({a: {b: 10}}))
 expect(c).toBe(10);
 ```
 
@@ -1787,7 +1826,7 @@ tree, a source value, and parameters and returns the corresponding
 value.
 
 ```javascript
-var evaluate = require("./evaluate");
+var evaluate = require("frb/evaluate");
 var c = evaluate("a.b", {a: {b: 10}})
 expect(c).toBe(10);
 ```
@@ -1799,7 +1838,7 @@ The `stringify` module returns a function that accepts a syntax tree and
 returns the corresponding path in normal form.
 
 ```javascript
-var stringify = require("./stringify");
+var stringify = require("frb/stringify");
 
 var syntax = {type: "and", args: [
     {type: "property", args: [
@@ -2286,6 +2325,8 @@ All of these functions are or return an observer function of the form
     starting at an observable index.
 -   `makeSumObserver(observeArray)`
 -   `makeAverageObserver(observeArray)`
+-   `makeParentObserver(observeExpression)`
+-   *etc*
 
 These are utilities for making observer functions.
 

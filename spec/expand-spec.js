@@ -3,6 +3,7 @@ var expand = require("../expand");
 var parse = require("../parse");
 var stringify = require("../stringify");
 var compileObserver = require("../compile-observer");
+var Scope = require("../scope");
 
 var cases = [
 
@@ -83,16 +84,17 @@ describe("expand", function () {
                 return "b";
             },
         };
-        var deserializer = {
+        var observe = compileObserver(syntax);
+        var scope = new Scope();
+        scope.components = {
             getObjectByLabel: function (label) {
                 expect(label).toBe("a");
                 return a;
             }
         };
-        var observe = compileObserver(syntax);
         var cancel = observe(function (_a) {
             expect(_a).toBe(a);
-        }, null, {serialization: deserializer});
+        }, scope);
 
         expect(syntax.component).toBe(a);
 

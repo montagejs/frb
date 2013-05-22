@@ -1,9 +1,10 @@
 
 var parse = require("./parse");
 var compile = require("./compile-assigner");
+var Scope = require("./scope");
 
 module.exports = assign;
-function assign(source, path, value, parameters) {
+function assign(target, path, value, parameters, document, components) {
     var syntax;
     if (typeof path === "string") {
         syntax = parse(path);
@@ -11,6 +12,6 @@ function assign(source, path, value, parameters) {
         syntax = path;
     }
     var assign = compile(syntax);
-    return assign(value, source, parameters);
+    return assign(value, new Scope(target, null, parameters, document, components));
 }
 

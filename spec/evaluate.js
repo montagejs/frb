@@ -65,11 +65,9 @@ module.exports = [
 
     {
         path: "#id",
-        parameters: {
-            document: {
-                getElementById: function (id) {
-                    return id;
-                }
+        document: {
+            getElementById: function (id) {
+                return id;
             }
         },
         output: "id"
@@ -77,11 +75,9 @@ module.exports = [
 
     {
         path: "#id.value",
-        parameters: {
-            document: {
-                getElementById: function (id) {
-                    return {value: id};
-                }
+        document: {
+            getElementById: function (id) {
+                return {value: id};
             }
         },
         output: "id"
@@ -89,11 +85,9 @@ module.exports = [
 
     {
         path: "@label",
-        parameters: {
-            serialization: {
-                getObjectByLabel: function (label) {
-                    return label;
-                }
+        components: {
+            getObjectByLabel: function (label) {
+                return label;
             }
         },
         output: "label"
@@ -101,11 +95,9 @@ module.exports = [
 
     {
         path: "@label.value",
-        parameters: {
-            serialization: {
-                getObjectByLabel: function (label) {
-                    return {value: label};
-                }
+        components: {
+            getObjectByLabel: function (label) {
+                return {value: label};
             }
         },
         output: "label"

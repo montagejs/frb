@@ -78,5 +78,17 @@ describe("assign", function () {
         expect(object.array).toEqual([3, 2, 1]);
     });
 
+    it("should assign to every value in a collection", function () {
+        var options = [{}, {}, {}];
+        assign(options, "every{checked}", true);
+        expect(options.every(function (option) {
+            return option.checked;
+        })).toBe(true);
+        assign(options, "every{checked}", false);
+        expect(options.every(function (option) {
+            return option.checked; // still
+        })).toBe(true);
+    });
+
 });
 

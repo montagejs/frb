@@ -149,6 +149,39 @@ describe("Tutorial", function () {
         expect(object.allChecked).toBe(false);
     });
 
+    it("Some / Every (Two-way)", function () {
+        var object = Bindings.defineBindings({
+            options: [
+                {checked: true},
+                {checked: false},
+                {checked: false}
+            ]
+        }, {
+            allChecked: {
+                "<->": "options.every{checked}"
+            },
+            noneChecked: {
+                "<->": "!options.some{checked}"
+            }
+        });
+
+        object.noneChecked = true;
+        expect(object.options.every(function (option) {
+            return !option.checked
+        }));
+
+        object.allChecked = true;
+        expect(object.noneChecked).toBe(false);
+
+        // continued...
+        object.allChecked = false;
+        expect(object.options.every(function (option) {
+            return option.checked; // still checked
+        }));
+
+    });
+
+
     it("Sorted", function () {
         var object = {numbers: [5, 2, 7, 3, 8, 1, 6, 4]};
         bind(object, "sorted", {"<-": "numbers.sorted{}"});
@@ -181,7 +214,6 @@ describe("Tutorial", function () {
             []
         ]);
     });
-
 
     it("Min and Max", function () {
         var object = Bindings.defineBindings({}, {
@@ -886,7 +918,6 @@ describe("Tutorial", function () {
 
 });
 
-
 describe("declarations", function () {
     it("should work", function () {
 
@@ -1064,11 +1095,12 @@ describe("Bindings", function () {
     it("Evaluate (compile)", function () {
         var parse = require("../parse");
         var compile = require("../compile-evaluator");
+        var Scope = require("../scope");
 
         // example begins here...
         var syntax = parse("a.b");
         var evaluate = compile(syntax);
-        var c = evaluate({a: {b: 10}})
+        var c = evaluate(new Scope({a: {b: 10}}))
         expect(c).toBe(10);
     });
 

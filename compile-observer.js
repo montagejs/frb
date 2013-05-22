@@ -15,6 +15,7 @@ var semantics = compile.semantics = {
         path: Observers.makePathObserver,
         "with": Observers.makeWithObserver,
         "if": Observers.makeConditionalObserver,
+        parent: Observers.makeParentObserver,
         not: Observers.makeNotObserver,
         and: Observers.makeAndObserver,
         or: Observers.makeOrObserver,
@@ -44,7 +45,7 @@ var semantics = compile.semantics = {
         average: Observers.makeAverageObserver,
         has: Observers.makeHasObserver,
         // TODO zip
-        tuple: Observers.makeTupleObserver,
+        tuple: Observers.makeArrayObserver,
         range: Observers.makeRangeObserver,
         startsWith: Observers.makeStartsWithObserver,
         endsWith: Observers.makeEndsWithObserver,
@@ -69,7 +70,7 @@ var semantics = compile.semantics = {
             for (var name in args) {
                 observers[name] = this.compile(args[name]);
             }
-            return Observers.makeRecordObserver(observers);
+            return Observers.makeObjectObserver(observers);
         } else {
             if (!compilers.hasOwnProperty(syntax.type)) {
                 compilers[syntax.type] = Observers.makeMethodObserverMaker(syntax.type);

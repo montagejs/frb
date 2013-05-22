@@ -9,30 +9,56 @@ function solve(target, source) {
 solve.semantics = {
 
     solve: function (target, source) {
-        if (this.simplifiers.hasOwnProperty(target.type)) {
-            target = this.simplifiers[target.type](target);
-        }
-        while (this.solvers.hasOwnProperty(target.type)) {
+        while (true) {
+            // simplify the target
+            while (this.simplifiers.hasOwnProperty(target.type)) {
+                var simplification = this.simplifiers[target.type](target);
+                if (simplification) {
+                    target = simplification;
+                } else {
+                    break;
+                }
+            }
+            // solve for bindable target (rotate terms to source)
+            if (!this.solvers.hasOwnProperty(target.type)) {
+                break;
+            }
             source = this.solvers[target.type](target, source);
             target = target.args[0];
-            if (this.simplifiers.hasOwnProperty(target.type)) {
-                target = this.simplifiers[target.type](target);
-            }
         }
         return [target, source];
     },
 
     simplifiers: {
+        not: function (syntax) {
+            var left = syntax.args[0];
+            if (left.type === "not") {
+                return left.args[0];
+            }
+        },
         add: function (syntax) {
             var left = syntax.args[0];
             if (left.type === "literal" && left.value === "") {
+                // "" + x
+                // string(x)
+                // because this can be bound bidirectionally with number(y)
                 return {
                     type: "string",
                     args: [syntax.args[1]]
                 };
-            } else {
-                return syntax;
             }
+        },
+        // DeMorgan's law applied to `some` so we only have to implement
+        // `every`.
+        someBlock: function (syntax) {
+            return {type: "not", args: [
+                {type: "everyBlock", args: [
+                    syntax.args[0],
+                    {type: "not", args: [
+                        syntax.args[1]
+                    ]}
+                ]}
+            ]};
         }
     },
 
