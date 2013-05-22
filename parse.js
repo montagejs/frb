@@ -86,7 +86,7 @@ parse.semantics = {
         ]);
         self.makePrecedenceLevel(function () {
             return self.parseUnary.bind(self);
-        }, ["not", "neg", "number"]);
+        }, ["not", "neg", "number", "parent"]);
         self.makePrecedenceLevel(Function.identity, [
             "scope"
         ]);
@@ -342,6 +342,10 @@ parse.semantics = {
                 return self.parseTail(callback, {
                     type: "literal",
                     value: null
+                });
+            } else if (root && identifier === "this") {
+                return self.parseTail(callback, {
+                    type: "value"
                 });
             } else {
                 return function (character, loc) {
@@ -640,6 +644,12 @@ parse.semantics = {
             } else if (character === "-") {
                 return self.parseUnary(function (expression) {
                     return callback({type: "neg", args: [
+                        expression
+                    ]});
+                });
+            } else if (character === "^") {
+                return self.parseUnary(function (expression) {
+                    return callback({type: "parent", args: [
                         expression
                     ]});
                 });

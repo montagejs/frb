@@ -1,5 +1,7 @@
+
 var parse = require("../parse");
 var compile = require("../compile-observer");
+var Scope = require("../scope");
 var cases = require("./evaluate");
 
 describe("observe", function () {
@@ -13,7 +15,13 @@ describe("observe", function () {
                 var output;
                 var cancel = observe(function (initial) {
                     output = initial;
-                }, test.input, test.parameters);
+                }, new Scope(
+                    test.input,
+                    null,
+                    test.parameters,
+                    test.document,
+                    test.components
+                ));
                 cancel();
                 if (Array.isArray(output)) {
                     output = output.slice(); // to ditch observable prototype

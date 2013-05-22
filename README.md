@@ -1768,17 +1768,19 @@ object.array.push(10); // emits [10]
 ### Evaluate
 
 The `compile-evaluator` module returns a function that accepts a syntax
-tree and returns an evaluator function.  The evaluator accepts a source
-value and parameters and returns the corresponding value without all the
-cost or benefit of setting up incremental observers.
+tree and returns an evaluator function.  The evaluator accepts a scope
+(which may include a value, parent scope, parameters, a document, and
+components) and returns the corresponding value without all the cost or
+benefit of setting up incremental observers.
 
 ```javascript
-var parse = require("./parse");
-var compile = require("./compile-evaluator");
+var parse = require("frb/parse");
+var compile = require("frb/compile-evaluator");
+var Scope = require("frb/scope");
 
 var syntax = parse("a.b");
 var evaluate = compile(syntax);
-var c = evaluate({a: {b: 10}})
+var c = evaluate(new Scope({a: {b: 10}}))
 expect(c).toBe(10);
 ```
 
@@ -1787,7 +1789,7 @@ tree, a source value, and parameters and returns the corresponding
 value.
 
 ```javascript
-var evaluate = require("./evaluate");
+var evaluate = require("frb/evaluate");
 var c = evaluate("a.b", {a: {b: 10}})
 expect(c).toBe(10);
 ```
@@ -1799,7 +1801,7 @@ The `stringify` module returns a function that accepts a syntax tree and
 returns the corresponding path in normal form.
 
 ```javascript
-var stringify = require("./stringify");
+var stringify = require("frb/stringify");
 
 var syntax = {type: "and", args: [
     {type: "property", args: [
@@ -2286,6 +2288,8 @@ All of these functions are or return an observer function of the form
     starting at an observable index.
 -   `makeSumObserver(observeArray)`
 -   `makeAverageObserver(observeArray)`
+-   `makeParentObserver(observeExpression)`
+-   *etc*
 
 These are utilities for making observer functions.
 

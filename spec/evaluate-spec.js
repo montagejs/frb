@@ -1,6 +1,7 @@
 
 var parse = require("../parse");
 var evaluate = require("../evaluate");
+var Scope = require("../scope");
 var cases = require("./evaluate");
 
 describe("evaluate", function () {
@@ -9,7 +10,13 @@ describe("evaluate", function () {
             "should evaluate " + JSON.stringify(test.path) +
             " of " + JSON.stringify(test.input),
             function () {
-                var output = evaluate(test.path, test.input, test.parameters);
+                var output = evaluate(
+                    test.path,
+                    test.input,
+                    test.parameters,
+                    test.document,
+                    test.components
+                );
                 expect(output).toEqual(test.output);
             }
         );

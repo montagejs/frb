@@ -182,7 +182,6 @@ describe("Tutorial", function () {
         ]);
     });
 
-
     it("Min and Max", function () {
         var object = Bindings.defineBindings({}, {
             min: {"<-": "values.min{}"},
@@ -886,7 +885,6 @@ describe("Tutorial", function () {
 
 });
 
-
 describe("declarations", function () {
     it("should work", function () {
 
@@ -1064,11 +1062,12 @@ describe("Bindings", function () {
     it("Evaluate (compile)", function () {
         var parse = require("../parse");
         var compile = require("../compile-evaluator");
+        var Scope = require("../scope");
 
         // example begins here...
         var syntax = parse("a.b");
         var evaluate = compile(syntax);
-        var c = evaluate({a: {b: 10}})
+        var c = evaluate(new Scope({a: {b: 10}}))
         expect(c).toBe(10);
     });
 

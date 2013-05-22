@@ -11,24 +11,27 @@ exports.count = 0;
 exports.bindings = bindingsForObject;
 
 exports.defineBindings = defineBindings;
-function defineBindings(object, descriptors, parameters) {
+function defineBindings(object, descriptors, commonDescriptor) {
     if (descriptors) {
         for (var name in descriptors) {
-            defineBinding(object, name, descriptors[name], parameters);
+            defineBinding(object, name, descriptors[name], commonDescriptor);
         }
     }
     return object;
 }
 
 exports.defineBinding = defineBinding;
-function defineBinding(object, name, descriptor, parameters) {
+function defineBinding(object, name, descriptor, commonDescriptor) {
+    commonDescriptor = commonDescriptor || Object.empty;
     var bindingsForName = getBindings(object);
     if (owns.call(bindingsForName, name)) {
         throw new Error("Can't bind to already bound target, " + JSON.stringify(name));
     }
     if ("<-" in descriptor || "<->" in descriptor || "compute" in descriptor) {
         descriptor.target = object;
-        descriptor.parameters = descriptor.parameters || parameters;
+        descriptor.parameters = descriptor.parameters || commonDescriptor.parameters;
+        descriptor.document = descriptor.document || commonDescriptor.document;
+        descriptor.components = descriptor.components || commonDescriptor.components;
         if ("compute" in descriptor) {
             descriptor.cancel = compute(object, name, descriptor);
         } else {

@@ -7,6 +7,12 @@ module.exports = [
     },
 
     {
+        path: "this",
+        syntax: {type: "value"},
+        nonCanon: true
+    },
+
+    {
         path: "1",
         syntax: {type: "literal", value: 1}
     },
@@ -220,6 +226,16 @@ module.exports = [
                 {type: "literal", value: "a"},
             ]},
             {type: "literal", value: "a"}
+        ]}
+    },
+
+    {
+        path: "^a",
+        syntax: {type: "parent", args: [
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "a"}
+            ]}
         ]}
     },
 

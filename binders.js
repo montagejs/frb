@@ -3,25 +3,9 @@ var Observers = require("./observers");
 var autoCancelPrevious = Observers.autoCancelPrevious;
 var once = Observers.once;
 
-exports.makePropertyBinder = makePropertyBinder;
-function makePropertyBinder(observeObject, observeKey) {
-    return function bindProperty(observeValue, source, target, parameters, descriptor, trace) {
-        return observeKey(autoCancelPrevious(function replaceKey(key) {
-            if (key == null) return;
-            return observeObject(autoCancelPrevious(function replaceObject(object) {
-                if (object == null) return;
-                if (object.bindProperty) {
-                    return object.bindProperty(key, observeValue, source, parameters, descriptor, trace);
-                } else {
-                    return _bindProperty(object, key, observeValue, source, parameters, descriptor, trace);
-                }
-            }), target, parameters);
-        }), target, parameters);
-    };
-}
-
-exports.bindProperty = _bindProperty;
-function _bindProperty(object, key, observeValue, source, parameters, descriptor, trace) {
+exports.bindProperty = bindProperty;
+var _bindProperty = bindProperty; // to bypass scope shadowing problems below
+function bindProperty(object, key, observeValue, source, descriptor, trace) {
     return observeValue(autoCancelPrevious(function (value) {
         if (descriptor.isActive) {
             return;
@@ -38,24 +22,29 @@ function _bindProperty(object, key, observeValue, source, parameters, descriptor
         } finally {
             descriptor.isActive = false;
         }
-    }), source, parameters);
+    }), source);
 }
 
-exports.makeGetBinder = makeGetBinder;
-function makeGetBinder(observeCollection, observeKey) {
-    return function bindGet(observeValue, source, target, parameters, descriptor, trace) {
-        return observeCollection(autoCancelPrevious(function replaceCollection(collection) {
-            if (!collection) return;
-            return observeKey(autoCancelPrevious(function replaceKey(key) {
-                if (key == null) return;
-                return bindKey(collection, key, observeValue, source, parameters, descriptor, trace);
-            }), target, parameters);
-        }), target, parameters);
+exports.makePropertyBinder = makePropertyBinder;
+function makePropertyBinder(observeObject, observeKey) {
+    return function bindProperty(observeValue, source, target, descriptor, trace) {
+        return observeKey(autoCancelPrevious(function replaceKey(key) {
+            if (key == null) return;
+            return observeObject(autoCancelPrevious(function replaceObject(object) {
+                if (object == null) return;
+                if (object.bindProperty) {
+                    return object.bindProperty(key, observeValue, source, descriptor, trace);
+                } else {
+                    return _bindProperty(object, key, observeValue, source, descriptor, trace);
+                }
+            }), target);
+        }), target);
     };
 }
 
-exports.bindKey = bindKey;
-function bindKey(collection, key, observeValue, source, parameters, descriptor, trace) {
+exports.bindGet = bindGet;
+var _bindGet = bindGet; // to bypass scope shadowing below
+function bindGet(collection, key, observeValue, source, descriptor, trace) {
     return observeValue(autoCancelPrevious(function replaceValue(value) {
         if (descriptor.isActive) {
             return;
@@ -67,12 +56,25 @@ function bindKey(collection, key, observeValue, source, parameters, descriptor, 
         } finally {
             descriptor.isActive = false;
         }
-    }), source, parameters);
+    }), source);
+}
+
+exports.makeGetBinder = makeGetBinder;
+function makeGetBinder(observeCollection, observeKey) {
+    return function bindGet(observeValue, source, target, descriptor, trace) {
+        return observeCollection(autoCancelPrevious(function replaceCollection(collection) {
+            if (!collection) return;
+            return observeKey(autoCancelPrevious(function replaceKey(key) {
+                if (key == null) return;
+                return _bindGet(collection, key, observeValue, source, descriptor, trace);
+            }), target);
+        }), target);
+    };
 }
 
 exports.makeHasBinder = makeHasBinder;
 function makeHasBinder(observeSet, observeValue) {
-    return function (observeHas, source, target, parameters, descriptor, trace) {
+    return function (observeHas, source, target, descriptor, trace) {
         return observeSet(autoCancelPrevious(function (set) {
             if (!set) return;
             return observeValue(autoCancelPrevious(function (value) {
@@ -90,58 +92,62 @@ function makeHasBinder(observeSet, observeValue) {
                             (set.remove || set['delete']).call(set, value);
                         }
                     }
-                }), source, parameters);
-            }), target, parameters);
-        }), target, parameters);
+                }), source);
+            }), target);
+        }), target);
     };
 }
 
 // a == b <-> c
 exports.makeEqualityBinder = makeEqualityBinder;
 function makeEqualityBinder(bindLeft, observeRight) {
-    return function (observeEquals, source, target, parameters, descriptor, trace) {
+    return function (observeEquals, source, target, descriptor, trace) {
         // c
         return observeEquals(autoCancelPrevious(function (equals) {
             if (equals) {
                 trace && console.log("BIND", trace.targetPath, "TO", trace.sourcePath, new Error("here").stack);
                 // a <-> b
-                var cancel = bindLeft(observeRight, source, source, parameters, descriptor, trace);
-                return function () {
+                var cancel = bindLeft(observeRight, source, source, descriptor, trace);
+                return function cancelEqualityBinding() {
                     trace && console.log("UNBIND", trace.targetPath, "FROM", trace.sourcePath, new Error("here").stack);
                 };
             }
-        }), target, parameters);
+        }), target);
     };
 }
 
 // (a ? b : c) <- d
 exports.makeConditionalBinder = makeConditionalBinder;
 function makeConditionalBinder(observeCondition, bindConsequent, bindAlternate) {
-    return function (observeSource, source, target, parameters, descriptor, trace) {
+    return function (observeSource, source, target, descriptor, trace) {
         // a
         return observeCondition(autoCancelPrevious(function replaceCondition(condition) {
             if (condition == null) return;
             if (condition) {
                 // b <- d
-                return bindConsequent(observeSource, source, target, parameters, descriptor, trace);
+                return bindConsequent(observeSource, source, target, descriptor, trace);
             } else {
                 // c <- d
-                return bindAlternate(observeSource, source, target, parameters, descriptor, trace);
+                return bindAlternate(observeSource, source, target, descriptor, trace);
             }
-        }), source, parameters);
+        }), source);
     };
 }
 
 // a.* <- b.*
 exports.makeRangeContentBinder = makeRangeContentBinder;
 function makeRangeContentBinder(observeTarget) {
-    return function (observeSource, source, target, parameters, descriptor, trace) {
+    return function (observeSource, source, target, descriptor, trace) {
         return observeTarget(autoCancelPrevious(function (target) {
             if (!target) return;
+
             return observeSource(autoCancelPrevious(function (source) {
-                if (!source || !source.addRangeChangeListener) {
+                if (!source) {
                     target.clear();
                     return;
+                }
+                if (!source.addRangeChangeListener) {
+                    throw new Error("Can't bind rangeContent() from object that does not support range content change listeners: " + source);
                 }
 
                 function rangeChange(plus, minus, index) {
@@ -163,14 +169,14 @@ function makeRangeContentBinder(observeTarget) {
                 return once(function () {
                     source.removeRangeChangeListener(rangeChange);
                 });
-            }), source, parameters);
-        }), target, parameters);
+            }), source);
+        }), target);
     };
 }
 
 exports.makeMapContentBinder = makeMapContentBinder;
 function makeMapContentBinder(observeTarget) {
-    return function (observeSource, source, target, parameters, descriptor, trace) {
+    return function (observeSource, source, target, descriptor, trace) {
         return observeTarget(autoCancelPrevious(function (target) {
             if (!target) return;
             return observeSource(autoCancelPrevious(function (source) {
@@ -207,15 +213,15 @@ function makeMapContentBinder(observeTarget) {
                 target.clear();
                 source.forEach(mapChange);
                 return source.addMapChangeListener(mapChange);
-            }), source, parameters);
-        }), target, parameters);
+            }), source);
+        }), target);
     };
 }
 
 // a.reversed() <-> b
 exports.makeReversedBinder = makeReversedBinder;
 function makeReversedBinder(observeTarget) {
-    return function (observeSource, source, target, parameters, descriptor, trace) {
+    return function (observeSource, source, target, descriptor, trace) {
         return observeTarget(autoCancelPrevious(function (target) {
             if (!target) return;
             return observeSource(autoCancelPrevious(function (source) {
@@ -235,8 +241,8 @@ function makeReversedBinder(observeTarget) {
                 return once(function () {
                     source.removeRangeChangeListener(rangeChange);
                 });
-            }), source, parameters);
-        }), target, parameters);
+            }), source);
+        }), target);
     };
 }
 
