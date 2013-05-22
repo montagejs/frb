@@ -1178,7 +1178,7 @@ function makeUniq(emit) {
     };
 }
 
-exports.cancelEach;
+exports.cancelEach = cancelEach;
 function cancelEach(cancelers) {
     cancelers.forEach(function (cancel) {
         if (cancel) {

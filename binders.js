@@ -1,7 +1,10 @@
 
+var Scope = require("./scope");
 var Observers = require("./observers");
 var autoCancelPrevious = Observers.autoCancelPrevious;
 var once = Observers.once;
+var observeRangeChange = Observers.observeRangeChange;
+var cancelEach = Observers.cancelEach;
 
 exports.bindProperty = bindProperty;
 var _bindProperty = bindProperty; // to bypass scope shadowing problems below
@@ -74,7 +77,7 @@ function makeGetBinder(observeCollection, observeKey) {
 
 exports.makeHasBinder = makeHasBinder;
 function makeHasBinder(observeSet, observeValue) {
-    return function (observeHas, source, target, descriptor, trace) {
+    return function bindHas(observeHas, source, target, descriptor, trace) {
         return observeSet(autoCancelPrevious(function (set) {
             if (!set) return;
             return observeValue(autoCancelPrevious(function (value) {
@@ -101,7 +104,7 @@ function makeHasBinder(observeSet, observeValue) {
 // a == b <-> c
 exports.makeEqualityBinder = makeEqualityBinder;
 function makeEqualityBinder(bindLeft, observeRight) {
-    return function (observeEquals, source, target, descriptor, trace) {
+    return function bindEquals(observeEquals, source, target, descriptor, trace) {
         // c
         return observeEquals(autoCancelPrevious(function (equals) {
             if (equals) {
@@ -116,10 +119,35 @@ function makeEqualityBinder(bindLeft, observeRight) {
     };
 }
 
+// collection.every{condition} <- everyCondition
+exports.makeEveryBlockBinder = makeEveryBlockBinder;
+function makeEveryBlockBinder(observeCollection, bindCondition, observeValue) {
+    return function bindEveryBlock(observeEveryCondition, source, target, descriptor, trace) {
+        return observeEveryCondition(autoCancelPrevious(function replaceCondition(condition) {
+            if (!condition) return;
+            return observeCollection(autoCancelPrevious(function replaceCollection(collection) {
+                if (!collection) return;
+                var cancelers = [];
+                function rangeChange(plus, minus, index) {
+                    cancelers.swap(index, minus.length, plus.map(function (value, offset) {
+                        var scope = Scope.nest(target, value);
+                        return bindCondition(observeValue, scope, scope, descriptor, trace);
+                    }));
+                }
+                var cancelRangeChange = observeRangeChange(collection, rangeChange, target);
+                return function cancelEveryBinding() {
+                    cancelEach(cancelers);
+                    cancelRangeChange();
+                };
+            }), target);
+        }), source);
+    };
+};
+
 // (a ? b : c) <- d
 exports.makeConditionalBinder = makeConditionalBinder;
 function makeConditionalBinder(observeCondition, bindConsequent, bindAlternate) {
-    return function (observeSource, source, target, descriptor, trace) {
+    return function bindCondition(observeSource, source, target, descriptor, trace) {
         // a
         return observeCondition(autoCancelPrevious(function replaceCondition(condition) {
             if (condition == null) return;
@@ -137,7 +165,7 @@ function makeConditionalBinder(observeCondition, bindConsequent, bindAlternate) 
 // a.* <- b.*
 exports.makeRangeContentBinder = makeRangeContentBinder;
 function makeRangeContentBinder(observeTarget) {
-    return function (observeSource, source, target, descriptor, trace) {
+    return function bindRangeContent(observeSource, source, target, descriptor, trace) {
         return observeTarget(autoCancelPrevious(function (target) {
             if (!target) return;
 
@@ -176,7 +204,7 @@ function makeRangeContentBinder(observeTarget) {
 
 exports.makeMapContentBinder = makeMapContentBinder;
 function makeMapContentBinder(observeTarget) {
-    return function (observeSource, source, target, descriptor, trace) {
+    return function bindMapContent(observeSource, source, target, descriptor, trace) {
         return observeTarget(autoCancelPrevious(function (target) {
             if (!target) return;
             return observeSource(autoCancelPrevious(function (source) {
@@ -221,7 +249,7 @@ function makeMapContentBinder(observeTarget) {
 // a.reversed() <-> b
 exports.makeReversedBinder = makeReversedBinder;
 function makeReversedBinder(observeTarget) {
-    return function (observeSource, source, target, descriptor, trace) {
+    return function bindReversed(observeSource, source, target, descriptor, trace) {
         return observeTarget(autoCancelPrevious(function (target) {
             if (!target) return;
             return observeSource(autoCancelPrevious(function (source) {
