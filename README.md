@@ -229,7 +229,7 @@ object.numbers.shift();
 expect(object.evens).toEqual([4, 6, 8]);
 ```
 
-### Some
+### Some and Every
 
 A `some` block incrementally tracks whether some of the values in a
 collection meet a criterion.
@@ -249,9 +249,7 @@ var object = Bindings.defineBindings({
 expect(object.anyChecked).toBe(true);
 ```
 
-### Every
-
-A `some` block incrementally tracks whether all of the values in a
+An `every` block incrementally tracks whether all of the values in a
 collection meet a criterion.
 
 ```javascript
@@ -267,6 +265,45 @@ var object = Bindings.defineBindings({
     }
 });
 expect(object.allChecked).toBe(false);
+```
+
+You can use a two-way binding on `some` and `every` blocks.
+
+```javascript
+var object = Bindings.defineBindings({
+    options: [
+        {checked: true},
+        {checked: false},
+        {checked: false}
+    ]
+}, {
+    allChecked: {
+        "<->": "options.every{checked}"
+    },
+    noneChecked: {
+        "<->": "!options.some{checked}"
+    }
+});
+
+object.noneChecked = true;
+expect(object.options.every(function (option) {
+    return !option.checked
+}));
+
+object.allChecked = true;
+expect(object.noneChecked).toBe(false);
+```
+
+The caveat of an `equals` binding applies.  If the condition for every
+element of the collection is set to true, the condition will be bound
+incrementally to true on each element.  When the condition is set to
+false, the binding will simply be canceled.
+
+```javascript
+object.allChecked = false;
+expect(object.options.every(function (option) {
+    return option.checked; // still checked
+}));
 ```
 
 ### Sorted

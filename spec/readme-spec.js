@@ -149,6 +149,39 @@ describe("Tutorial", function () {
         expect(object.allChecked).toBe(false);
     });
 
+    it("Some / Every (Two-way)", function () {
+        var object = Bindings.defineBindings({
+            options: [
+                {checked: true},
+                {checked: false},
+                {checked: false}
+            ]
+        }, {
+            allChecked: {
+                "<->": "options.every{checked}"
+            },
+            noneChecked: {
+                "<->": "!options.some{checked}"
+            }
+        });
+
+        object.noneChecked = true;
+        expect(object.options.every(function (option) {
+            return !option.checked
+        }));
+
+        object.allChecked = true;
+        expect(object.noneChecked).toBe(false);
+
+        // continued...
+        object.allChecked = false;
+        expect(object.options.every(function (option) {
+            return option.checked; // still checked
+        }));
+
+    });
+
+
     it("Sorted", function () {
         var object = {numbers: [5, 2, 7, 3, 8, 1, 6, 4]};
         bind(object, "sorted", {"<-": "numbers.sorted{}"});

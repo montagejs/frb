@@ -1,5 +1,7 @@
 
 var compileEvaluator = require("./compile-evaluator");
+var solve = require("./algebra");
+var Scope = require("./scope");
 
 module.exports = compile;
 function compile(syntax) {
@@ -19,6 +21,12 @@ compile.semantics = {
             var assignConsequent = this.compile(syntax.args[1]);
             var assignAlternate = this.compile(syntax.args[2]);
             return compilers["if"](evaluateCondition, assignConsequent, assignAlternate);
+        } else if (syntax.type === "everyBlock") {
+            var evaluateCollection = this.compileEvaluator(syntax.args[0]);
+            var args = solve(syntax.args[1], {type: "literal", value: true});
+            var assignCondition = this.compile(args[0]);
+            var evaluateValue = this.compileEvaluator(args[1]);
+            return compilers["everyBlock"](evaluateCollection, assignCondition, evaluateValue);
         } else if (compilers.hasOwnProperty(syntax.type)) {
             var argEvaluators = syntax.args.map(this.compileEvaluator, this.compileEvaluator.semantics);
             return compilers[syntax.type].apply(null, argEvaluators);
@@ -121,6 +129,18 @@ compile.semantics = {
                 var target = evaluateTarget(scope);
                 if (!target) return;
                 target.swap(0, target.length, value.reversed());
+            };
+        },
+
+        everyBlock: function (evaluateCollection, assignCondition, evaluateEffect) {
+            return function (value, scope) {
+                if (value) {
+                    var collection = evaluateCollection(scope);
+                    var effect = evaluateEffect(scope);
+                    collection.forEach(function (content) {
+                        assignCondition(effect, Scope.nest(scope, content));
+                    });
+                }
             };
         }
 
