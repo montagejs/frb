@@ -1,13 +1,9 @@
 "use strict";
 
-var Dict = require("collections/dict");
 var parse = require("./parse");
-
-var precedence = parse.semantics.precedence;
-var tokenToType = Dict(parse.semantics.operatorTokens);
-var typeToToken = Dict(tokenToType.map(function (type, token) {
-    return [type, token];
-}));
+var precedence = require("./language").precedence;
+var typeToToken = require("./language").operatorTypes;
+var tokenToType = require("./language").operatorTokens;
 
 module.exports = stringify;
 function stringify(syntax) {
@@ -221,6 +217,46 @@ stringify.semantics = {
                 stringify(syntax.args[1]) + " : " +
                 stringify(syntax.args[2])
             );
+        },
+
+        event: function (syntax, stringify) {
+            return syntax.when + " " + syntax.event + " -> " + stringify(syntax.listener);
+        },
+
+        bind: function (syntax, stringify) {
+            return stringify(syntax.args[0]) + " <- " + stringify(syntax.args[1]);
+        },
+
+        bind2: function (syntax, stringify) {
+            return stringify(syntax.args[0]) + " <-> " + stringify(syntax.args[1]);
+        },
+
+        assign: function (syntax, stringify) {
+            return stringify(syntax.args[0]) + ": " + stringify(syntax.args[1]);
+        },
+
+        block: function (syntax, stringify) {
+            var header = "@" + syntax.label;
+            if (syntax.connection) {
+                if (syntax.connection === "prototype") {
+                    header += " < ";
+                } else if (syntax.connection === "object") {
+                    header += " : ";
+                }
+                header += stringify({type: 'literal', value: syntax.module});
+                if (syntax.exports && syntax.exports.type !== "value") {
+                    header += " " + stringify(syntax.exports);
+                }
+            }
+            return header + " {\n" + syntax.statements.map(function (statement) {
+                return "    " + stringify(statement) + ";\n";
+            }).join("") + "}\n";
+        },
+
+        sheet: function (syntax, stringify) {
+            return "\n" + syntax.blocks.map(function (block) {
+                return stringify(block);
+            }).join("\n") + "\n";
         }
 
     }

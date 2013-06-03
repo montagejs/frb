@@ -789,8 +789,8 @@ var component = {
     appleElement: {checked: true}
 };
 Bindings.defineBindings(component, {
-    "orangeElement.checked": {"<->": "fruit = 'orange'"},
-    "appleElement.checked": {"<->": "fruit = 'apple'"},
+    "orangeElement.checked": {"<->": "fruit == 'orange'"},
+    "appleElement.checked": {"<->": "fruit == 'apple'"},
 });
 
 component.orangeElement.checked = true;

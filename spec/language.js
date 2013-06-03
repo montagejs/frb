@@ -23,12 +23,6 @@ module.exports = [
     },
 
     {
-        path: "1.",
-        syntax: {type: "literal", value: 1.0},
-        nonCanon: true
-    },
-
-    {
         path: "true",
         syntax: {type: "literal", value: true}
     },
@@ -248,6 +242,7 @@ module.exports = [
     {
         path: "[,]",
         syntax: {type: "tuple", args: [
+            {type: "value"},
             {type: "value"}
         ]},
         nonCanon: true
@@ -256,6 +251,7 @@ module.exports = [
     {
         path: "[,,]",
         syntax: {type: "tuple", args: [
+            {type: "value"},
             {type: "value"},
             {type: "value"}
         ]},
@@ -429,6 +425,14 @@ module.exports = [
         path: "{a: 10}",
         syntax: {type: "record", args: {
             a: {type: "literal", value: 10}
+        }}
+    },
+
+    {
+        path: "{a: 10, b: 20}",
+        syntax: {type: "record", args: {
+            a: {type: "literal", value: 10},
+            b: {type: "literal", value: 20}
         }}
     },
 
@@ -934,37 +938,122 @@ module.exports = [
         ]}
     },
 
+    {
+        path: "\n@foo < 'module' Module {\n}\n\n",
+        syntax: {type: "sheet", blocks: [
+            {type: "block",
+                label: "foo",
+                module: "module",
+                exports: {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "Module"},
+                ]},
+                connection: "prototype",
+                statements: []
+            }
+        ]},
+        options: {
+            startRule: "sheet"
+        }
+    },
+
+
+    {
+        path: "\n@foo : 'module' {\n}\n\n",
+        syntax: {type: "sheet", blocks: [
+            {type: "block",
+                label: "foo",
+                module: "module",
+                connection: "object",
+                statements: []
+            }
+        ]},
+        options: {
+            startRule: "sheet"
+        }
+    },
+
+    {
+        path: "\n@foo {\n    a <-> b;\n}\n\n",
+        syntax: {type: "sheet", blocks: [
+            {type: "block", label: "foo", statements: [
+                {type: "bind2", args: [
+                    {type: "property", args: [
+                        {type: "value"},
+                        {type: "literal", value: "a"}
+                    ]},
+                    {type: "property", args: [
+                        {type: "value"},
+                        {type: "literal", value: "b"}
+                    ]}
+                ]}
+            ]}
+        ]},
+        options: {
+            startRule: "sheet"
+        }
+    },
+
+    {
+        path: "\n@foo {\n    a: 10;\n}\n\n",
+        syntax: {type: "sheet", blocks: [
+            {type: "block", label: "foo", statements: [
+                {type: "assign", args: [
+                    {type: "property", args: [
+                        {type: "value"},
+                        {type: "literal", value: "a"}
+                    ]},
+                    {type: "literal", value: 10}
+                ]}
+            ]}
+        ]},
+        options: {
+            startRule: "sheet"
+        }
+    },
+
+    {
+        path: "\n@foo {\n    on action -> @foo;\n}\n\n",
+        syntax: {type: "sheet", blocks: [
+            {type: "block", label: "foo", statements: [
+                {
+                    type: "event",
+                    event: "action",
+                    when: "on",
+                    listener: {type: "component", label: "foo"}
+                }
+            ]}
+        ]},
+        options: {
+            startRule: "sheet"
+        }
+    },
+
     // Invalid syntax
 
     {
         path: "(",
-        invalid: "Expected \")\" in \"(\" at index 1"
+        invalid: "Expected end of input but \"(\" found."
     },
 
     {
         path: ")",
-        invalid: "Unexpected \")\" in \")\" at index 0"
+        invalid: "Expected end of input but \")\" found."
     },
 
     {
         path: "[",
-        invalid: "Expected \"]\" in \"[\" at index 1"
+        invalid: "Expected end of input but \"[\" found."
     },
 
     {
         path: "]",
-        invalid: "Unexpected \"]\" in \"]\" at index 0"
+        invalid: "Expected end of input but \"]\" found."
     },
 
     {
         path: "#",
-        invalid: "Expected element identifier in \"#\" at index 1"
-    }//,
-
-    //{
-    //    path: "a.*",
-    //    invalid: "Expected property name in \"a.*\" at index 2"
-    //}
-
+        invalid: "Expected end of input but \"#\" found."
+    }
 
 ];

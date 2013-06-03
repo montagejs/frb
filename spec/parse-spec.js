@@ -8,11 +8,11 @@ describe("parse", function () {
             it("should not parse " + JSON.stringify(test.path), function () {
                 expect(function () {
                     parse(test.path);
-                }).toThrow(test.invalid);
+                }).toThrow(); // TODO iron out the error messages
             });
         } else {
             it("should parse " + JSON.stringify(test.path), function () {
-                expect(parse(test.path)).toEqual(test.syntax);
+                expect(parse(test.path, test.options)).toEqual(test.syntax);
             });
         }
     })

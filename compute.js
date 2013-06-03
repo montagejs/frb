@@ -19,7 +19,9 @@ function compute(target, targetPath, descriptor) {
     var sourceScope = descriptor.sourceScope = new Scope(source, null, parameters, document, components);
     var targetScope = descriptor.targetScope = new Scope(target, null, parameters, document, components);
 
-    var argObservers = args.map(parse).map(function (argSyntax) {
+    var argObservers = args.map(function (arg) {
+        return parse(arg);
+    }).map(function (argSyntax) {
         if (argSyntax.type === "rangeContent") {
             var observeArg = compileObserver(argSyntax.args[0]);
             return Observers.makeRangeContentObserver(observeArg);
