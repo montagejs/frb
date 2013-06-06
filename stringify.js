@@ -6,17 +6,17 @@ var typeToToken = require("./language").operatorTypes;
 var tokenToType = require("./language").operatorTokens;
 
 module.exports = stringify;
-function stringify(syntax) {
-    return stringify.semantics.stringify(syntax);
+function stringify(syntax, scope) {
+    return stringify.semantics.stringify(syntax, scope);
 }
 
 function makeBlockStringifier(type) {
-    return function (syntax, stringify) {
-        var chain = type + '{' + stringify(syntax.args[1]) + '}';
+    return function (syntax, scope, stringify) {
+        var chain = type + '{' + stringify(syntax.args[1], scope) + '}';
         if (syntax.args[0].type === "value") {
             return chain;
         } else {
-            return stringify(syntax.args[0]) + '.' + chain;
+            return stringify(syntax.args[0], scope) + '.' + chain;
         }
     };
 }
@@ -25,19 +25,19 @@ stringify.semantics = {
 
     makeBlockStringifier: makeBlockStringifier,
 
-    stringify: function (syntax, parent) {
+    stringify: function (syntax, scope, parent) {
         var stringify = this.stringify.bind(this);
         var stringifiers = this.stringifiers;
         var string;
         if (stringifiers[syntax.type]) {
             // operators
-            string = stringifiers[syntax.type](syntax, stringify);
+            string = stringifiers[syntax.type](syntax, scope, stringify);
         } else if (syntax.inline) {
             // inline invocations
             string = (
                 "&" + syntax.type + "(" +
                 syntax.args.map(function (child) {
-                    return stringify(child);
+                    return stringify(child, scope);
                 }).join(", ") + ")"
             );
         } else {
@@ -45,14 +45,14 @@ stringify.semantics = {
             var chain;
             if (syntax.args.length === 1 && syntax.args[0].type === "mapBlock") {
                 // map block function calls
-                chain = syntax.type + "{" + stringify(syntax.args[0].args[1]) + "}";
+                chain = syntax.type + "{" + stringify(syntax.args[0].args[1], scope) + "}";
                 syntax = syntax.args[0];
             } else {
                 // normal function calls
                 chain = (
                     syntax.type + "(" +
                     syntax.args.slice(1).map(function (child) {
-                        return stringify(child);
+                        return stringify(child, scope);
                     }).join(", ") + ")"
                 );
             }
@@ -60,7 +60,7 @@ stringify.semantics = {
             if (syntax.args[0].type === "value") {
                 string = chain;
             } else {
-                string = stringify(syntax.args[0]) + "." + chain;
+                string = stringify(syntax.args[0], scope) + "." + chain;
             }
         }
         // parenthesize if we're going backward in precedence
@@ -77,11 +77,11 @@ stringify.semantics = {
 
     stringifiers: {
 
-        value: function (syntax, stringify) {
+        value: function (syntax, scope, stringify) {
             return '';
         },
 
-        literal: function (syntax, stringify) {
+        literal: function (syntax, scope, stringify) {
             if (typeof syntax.value === 'string') {
                 return "'" + syntax.value.replace("'", "\\'") + "'";
             } else {
@@ -89,23 +89,23 @@ stringify.semantics = {
             }
         },
 
-        parameters: function (syntax, stringify) {
+        parameters: function (syntax, scope, stringify) {
             return '$';
         },
 
-        record: function (syntax, stringify) {
+        record: function (syntax, scope, stringify) {
             return "{" + Object.map(syntax.args, function (value, key) {
                 var string;
                 if (value.type === "value") {
                     string = "()";
                 } else {
-                    string = stringify(value);
+                    string = stringify(value, scope);
                 }
                 return key + ": " + string;
             }).join(", ") + "}";
         },
 
-        tuple: function (syntax, stringify) {
+        tuple: function (syntax, scope, stringify) {
             return "[" + Object.map(syntax.args, function (value) {
                 if (value.type === "value") {
                     return "()";
@@ -115,8 +115,21 @@ stringify.semantics = {
             }).join(", ") + "]";
         },
 
-        component: function (syntax) {
-            return '@' + syntax.label;
+        component: function (syntax, scope) {
+            var label;
+            if (scope && scope.components && syntax.component) {
+                if (scope.components.getObjectLabel) {
+                    label = scope.components.getObjectLabel(syntax.component);
+                } else if (scope.components.getLabelForObject) {
+                    // I am hoping that we will change Montage to use this API
+                    // for consistency with document.getElementById,
+                    // components.getObjectByLabel, & al
+                    label = scope.components.getLabelForObject(syntax.component);
+                }
+            } else {
+                label = syntax.label;
+            }
+            return '@' + label;
         },
 
         element: function (syntax) {
@@ -133,14 +146,14 @@ stringify.semantics = {
         minBlock: makeBlockStringifier("min"),
         maxBlock: makeBlockStringifier("max"),
 
-        property: function (syntax, stringify) {
+        property: function (syntax, scope, stringify) {
             if (syntax.args[0].type === "value") {
                 if (typeof syntax.args[1].value === "string") {
                     return syntax.args[1].value;
                 } else if (syntax.args[1].type === "literal") {
                     return "." + syntax.args[1].value;
                 } else {
-                    return "()[" + stringify(syntax.args[1]) + "]";
+                    return "()[" + stringify(syntax.args[1], scope) + "]";
                 }
             } else if (syntax.args[0].type === "parameters") {
                 return "$" + syntax.args[1].value;
@@ -148,94 +161,80 @@ stringify.semantics = {
                 syntax.args[1].type === "literal" &&
                 /^[\w\d_]+$/.test(syntax.args[1].value)
             ) {
-                return stringify(syntax.args[0], {
+                return stringify(syntax.args[0], scope, {
                     type: "scope"
                 }) + '.' + syntax.args[1].value;
             } else {
                 return stringify(syntax.args[0], {
                     type: "scope"
-                }) + '[' + stringify(syntax.args[1]) + ']';
+                }, scope) + '[' + stringify(syntax.args[1], scope) + ']';
             }
         },
 
-        "with": function (syntax, stringify) {
-            var right = stringify(syntax.args[1], syntax);
-            return stringify(syntax.args[0]) + "." + right;
+        "with": function (syntax, scope, stringify) {
+            var right = stringify(syntax.args[1], scope, syntax);
+            return stringify(syntax.args[0], scope) + "." + right;
         },
 
-        get: function (syntax, stringify) {
+        get: function (syntax, scope, stringify) {
             var left;
             if (syntax.args[0].type === "value") {
                 left = "()";
             } else {
-                left = stringify(syntax.args[0])
+                left = stringify(syntax.args[0], scope)
             }
-            return left + "[" + stringify(syntax.args[1]) + "]";
+            return left + "[" + stringify(syntax.args[1], scope) + "]";
         },
 
-        rangeContent: function (syntax, stringify) {
-            return stringify(syntax.args[0]) + ".*";
-        },
-
-        mapContent: function (syntax, stringify) {
-            var left;
-            if (syntax.args[0].type === "value") {
-                left = "()";
-            } else {
-                left = stringify(syntax.args[0])
-            }
-            return left + "[*]";
-        },
-
-        not: function (syntax, stringify) {
+        not: function (syntax, scope, stringify) {
             if (syntax.args[0].type === "equals") {
                 return (
-                    stringify(syntax.args[0].args[0], {type: "equals"}) +
+                    stringify(syntax.args[0].args[0], scope, {type: "equals"}) +
                     " != " +
-                    stringify(syntax.args[0].args[1], {type: "equals"})
+                    stringify(syntax.args[0].args[1], scope, {type: "equals"})
                 );
             } else {
-                return '!' + stringify(syntax.args[0], syntax)
+                return '!' + stringify(syntax.args[0], scope, syntax)
             }
         },
 
-        neg: function (syntax, stringify) {
-            return '-' + stringify(syntax.args[0], syntax)
+        neg: function (syntax, scope, stringify) {
+            return '-' + stringify(syntax.args[0], scope, syntax)
         },
 
-        number: function (syntax, stringify) {
-            return '+' + stringify(syntax.args[0], syntax)
+        number: function (syntax, scope, stringify) {
+            return '+' + stringify(syntax.args[0], scope, syntax)
         },
 
-        parent: function (syntax, stringify) {
-            return '^' + stringify(syntax.args[0], syntax)
+        parent: function (syntax, scope, stringify) {
+            return '^' + stringify(syntax.args[0], scope, syntax)
         },
 
-        if: function (syntax, stringify) {
+        if: function (syntax, scope, stringify) {
             return (
-                stringify(syntax.args[0], syntax) + " ? " +
-                stringify(syntax.args[1]) + " : " +
-                stringify(syntax.args[2])
+                stringify(syntax.args[0], scope, syntax) + " ? " +
+                stringify(syntax.args[1], scope) + " : " +
+                stringify(syntax.args[2], scope)
             );
         },
 
-        event: function (syntax, stringify) {
-            return syntax.when + " " + syntax.event + " -> " + stringify(syntax.listener);
+        event: function (syntax, scope, stringify) {
+            return syntax.when + " " + syntax.event + " -> " + stringify(syntax.listener, scope);
         },
 
-        bind: function (syntax, stringify) {
-            return stringify(syntax.args[0]) + " <- " + stringify(syntax.args[1]);
+        bind: function (syntax, scope, stringify) {
+            return stringify(syntax.args[0], scope) + " <- " + stringify(syntax.args[1], scope);
         },
 
-        bind2: function (syntax, stringify) {
-            return stringify(syntax.args[0]) + " <-> " + stringify(syntax.args[1]);
+        bind2: function (syntax, scope, stringify) {
+            return stringify(syntax.args[0], scope) + " <-> " + stringify(syntax.args[1], scope);
         },
 
-        assign: function (syntax, stringify) {
-            return stringify(syntax.args[0]) + ": " + stringify(syntax.args[1]);
+        assign: function (syntax, scope, stringify) {
+            return stringify(syntax.args[0], scope) + ": " + stringify(syntax.args[1], scope);
         },
 
-        block: function (syntax, stringify) {
+        block: function (syntax, scope, stringify) {
             var header = "@" + syntax.label;
             if (syntax.connection) {
                 if (syntax.connection === "prototype") {
@@ -245,17 +244,17 @@ stringify.semantics = {
                 }
                 header += stringify({type: 'literal', value: syntax.module});
                 if (syntax.exports && syntax.exports.type !== "value") {
-                    header += " " + stringify(syntax.exports);
+                    header += " " + stringify(syntax.exports, scope);
                 }
             }
             return header + " {\n" + syntax.statements.map(function (statement) {
-                return "    " + stringify(statement) + ";\n";
+                return "    " + stringify(statement, scope) + ";\n";
             }).join("") + "}\n";
         },
 
-        sheet: function (syntax, stringify) {
+        sheet: function (syntax, scope, stringify) {
             return "\n" + syntax.blocks.map(function (block) {
-                return stringify(block);
+                return stringify(block, scope);
             }).join("\n") + "\n";
         }
 
@@ -265,9 +264,9 @@ stringify.semantics = {
 
 // book a stringifier for all the defined symbolic operators
 typeToToken.forEach(function (token, type) {
-    stringify.semantics.stringifiers[type] = function (syntax, stringify) {
+    stringify.semantics.stringifiers[type] = function (syntax, scope, stringify) {
         return syntax.args.map(function (child) {
-            return stringify(child, syntax);
+            return stringify(child, scope, syntax);
         }).join(" " + token + " ").trim();
     }
 });
