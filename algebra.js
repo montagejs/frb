@@ -12,11 +12,11 @@ solve.semantics = {
         while (true) {
             // simplify content to content bindings: the content observer
             // interferes with the content binder.
-            while (
-                source.type === "rangeContent" && target.type === "rangeContent" ||
-                source.type === "mapContent" && target.type === "mapContent"
-            ) {
-                target = target.args[0];
+            while (source.type === "rangeContent" || source.type === "mapContent") {
+                if (target.type !== source.type) {
+                    target = {type: source.type, args: [target]};
+                }
+                source = source.args[0];
             }
             // simplify the target
             while (this.simplifiers.hasOwnProperty(target.type)) {

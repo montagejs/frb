@@ -1,7 +1,7 @@
 
 var Bindings = require("../bindings");
 
-describe("two way bindings with range content on both sides", function () {
+xdescribe("two way bindings with range content on both sides", function () {
 
     it("right to left should propagate on assignment", function () {
 
