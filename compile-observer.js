@@ -21,7 +21,7 @@ var semantics = compile.semantics = {
         or: Observers.makeOrObserver,
         "default": Observers.makeDefaultObserver,
         defined: Observers.makeDefinedObserver,
-        rangeContent: Function.identity,
+        rangeContent: Observers.makeAsArrayObserver,
         mapContent: Function.identity,
         keys: Observers.makeKeysObserver,
         values: Observers.makeValuesObserver,
@@ -49,7 +49,8 @@ var semantics = compile.semantics = {
         range: Observers.makeRangeObserver,
         startsWith: Observers.makeStartsWithObserver,
         endsWith: Observers.makeEndsWithObserver,
-        contains: Observers.makeContainsObserver
+        contains: Observers.makeContainsObserver,
+        asArray: Observers.makeAsArrayObserver,
     },
 
     compile: function (syntax) {

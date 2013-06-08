@@ -37,6 +37,15 @@ compile.semantics = {
             var bindCondition = this.compile(args[0]);
             var observeValue = compileObserver(args[1]);
             return Binders.makeEveryBlockBinder(observeCollection, bindCondition, observeValue);
+        } else if (syntax.type === "rangeContent") {
+            var observeTarget = compileObserver(syntax.args[0]);
+            var bindTarget;
+            try {
+                bindTarget = this.compile(syntax.args[0]);
+            } catch (exception) {
+                bindTarget = Function.noop;
+            }
+            return Binders.makeRangeContentBinder(observeTarget, bindTarget);
         } else if (compilers.hasOwnProperty(syntax.type)) {
             var argObservers = syntax.args.map(compileObserver, compileObserver.semantics);
             return compilers[syntax.type].apply(null, argObservers);

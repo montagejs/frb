@@ -10,14 +10,6 @@ solve.semantics = {
 
     solve: function (target, source) {
         while (true) {
-            // simplify content to content bindings: the content observer
-            // interferes with the content binder.
-            while (source.type === "rangeContent" || source.type === "mapContent") {
-                if (target.type !== source.type) {
-                    target = {type: source.type, args: [target]};
-                }
-                source = source.args[0];
-            }
             // simplify the target
             while (this.simplifiers.hasOwnProperty(target.type)) {
                 var simplification = this.simplifiers[target.type](target);
@@ -38,12 +30,14 @@ solve.semantics = {
     },
 
     simplifiers: {
+        // !!x -> x
         not: function (syntax) {
             var left = syntax.args[0];
             if (left.type === "not") {
                 return left.args[0];
             }
         },
+        // "" + x -> x.string()
         add: function (syntax) {
             var left = syntax.args[0];
             if (left.type === "literal" && left.value === "") {
@@ -58,6 +52,7 @@ solve.semantics = {
         },
         // DeMorgan's law applied to `some` so we only have to implement
         // `every`.
+        // some{x} -> !every{!x}
         someBlock: function (syntax) {
             return {type: "not", args: [
                 {type: "everyBlock", args: [

@@ -1128,6 +1128,8 @@ function makeWithObserver(observeInput, observeExpression) {
     };
 }
 
+exports.makeAsArrayObserver = makeNonReplacing(Function.identity);
+
 // Utility Methods
 // ---------------
 
@@ -1138,7 +1140,7 @@ function makeWithObserver(observeInput, observeExpression) {
 function makeNonReplacing(wrapped) {
     return function () {
         var observe = wrapped.apply(this, arguments);
-        return function (emit, scope) {
+        return function observeNonReplacedArray(emit, scope) {
             var output = [];
             var cancelObserver = observe(autoCancelPrevious(function (input) {
                 if (!input) {
@@ -1194,10 +1196,10 @@ function cancelEach(cancelers) {
 exports.autoCancelPrevious = autoCancelPrevious;
 function autoCancelPrevious(emit) {
     var cancelPrevious = Function.noop;
-    return function cancelPreviousAndReplace(value) {
+    return function replaceObserver(value) {
         cancelPrevious();
         cancelPrevious = emit.apply(this, arguments) || Function.noop;
-        return function cancelLast() {
+        return function cancelObserver() {
             cancelPrevious();
         };
     };

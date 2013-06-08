@@ -1,7 +1,76 @@
 
 var Bindings = require("../bindings");
 
-xdescribe("two way bindings with range content on both sides", function () {
+describe("range content bindings", function () {
+
+    it("should work in the basic case", function () {
+        var object = Bindings.defineBindings({
+            source: ['a', 'b', 'c']
+        }, {
+            target: {"<-": "source.rangeContent()"}
+        });
+        expect(object.target).toEqual(['a', 'b', 'c']);
+    });
+
+    it("should propagate an array even with falsy source", function () {
+        var object = Bindings.defineBindings({
+        }, {
+            foo: {"<-": "bar.asArray()"}
+        });
+        expect(object.foo).toEqual([]);
+    });
+
+});
+
+describe("two way bindings with range content on both sides", function () {
+
+    it("should propagate array to left from falsy source", function () {
+        var object = Bindings.defineBindings({
+        }, {
+            "foo.rangeContent()": {"<-": "bar.rangeContent()"}
+        });
+        expect(object.foo).toEqual([]);
+        expect(object.foo).not.toBe(object.bar);
+    });
+
+    it("should propagate array to right from falsy source", function () {
+        var object = Bindings.defineBindings({
+        }, {
+            "foo.rangeContent()": {"<->": "bar.rangeContent()"}
+        });
+        expect(object.bar.slice()).toEqual([]);
+        expect(object.bar).not.toBe(object.foo);
+    });
+
+    it("should propagate content change from left to right", function () {
+        var object = Bindings.defineBindings({
+        }, {
+            "foo.rangeContent()": {"<->": "bar.rangeContent()"}
+        });
+        object.foo.push(1);
+        expect(object.bar.slice()).toEqual([1]);
+    });
+
+    it("should propagate content change from left to right", function () {
+        var object = Bindings.defineBindings({
+            foo: [],
+            bar: []
+        }, {
+            "foo.rangeContent()": {"<->": "bar.rangeContent()"}
+        });
+        object.foo.push(1);
+        expect(object.bar.slice()).toEqual([1]);
+    });
+
+    it("should propagate content change from right to left", function () {
+        var object = Bindings.defineBindings({
+            bar: []
+        }, {
+            "foo.rangeContent()": {"<-": "bar.rangeContent()"}
+        });
+        object.bar.push(1);
+        expect(object.foo.slice()).toEqual([1]);
+    });
 
     it("right to left should propagate on assignment", function () {
 
@@ -15,7 +84,8 @@ xdescribe("two way bindings with range content on both sides", function () {
 
     });
 
-    it("left to right should propagate on assignment", function () {
+    // FIXME
+    xit("left to right should propagate on assignment", function () {
 
         var object = Bindings.defineBindings({
         }, {
@@ -27,7 +97,8 @@ xdescribe("two way bindings with range content on both sides", function () {
 
     });
 
-    it("left to right should propagate on assignment overriding initial value", function () {
+    // FIXME
+    xit("left to right should propagate on assignment overriding initial value", function () {
 
         var object = Bindings.defineBindings({
             yin: []
@@ -40,7 +111,8 @@ xdescribe("two way bindings with range content on both sides", function () {
 
     });
 
-    it("left to right should propagate on assignment overriding initial values on both sides", function () {
+    // FIXME
+    xit("left to right should propagate on assignment overriding initial values on both sides", function () {
 
         var object = Bindings.defineBindings({
             yin: [],
@@ -98,5 +170,4 @@ xdescribe("two way bindings with range content on both sides", function () {
     });
 
 });
-
 

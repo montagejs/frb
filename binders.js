@@ -164,12 +164,23 @@ function makeConditionalBinder(observeCondition, bindConsequent, bindAlternate) 
 
 // a.* <- b.*
 exports.makeRangeContentBinder = makeRangeContentBinder;
-function makeRangeContentBinder(observeTarget) {
-    return function bindRangeContent(observeSource, source, target, descriptor, trace) {
-        return observeTarget(autoCancelPrevious(function (target) {
-            if (!target) return;
+function makeRangeContentBinder(observeTarget, bindTarget) {
+    return function bindRangeContent(observeSource, sourceScope, targetScope, descriptor, trace) {
+        return observeTarget(autoCancelPrevious(function replaceRangeContentTarget(target) {
+            if (!target) {
+                return bindTarget(
+                    Observers.makeLiteralObserver([]),
+                    sourceScope,
+                    targetScope,
+                    descriptor,
+                    trace
+                );
+            }
 
-            return observeSource(autoCancelPrevious(function (source) {
+            return observeSource(autoCancelPrevious(function replaceRangeContentSource(source) {
+                if (source === target) {
+                    return;
+                }
                 if (!source) {
                     target.clear();
                     return;
@@ -178,11 +189,11 @@ function makeRangeContentBinder(observeTarget) {
                     throw new Error("Can't bind rangeContent() from object that does not support range content change listeners: " + source);
                 }
 
-                function rangeChange(plus, minus, index) {
+                function rangeContentSourceRangeChange(plus, minus, index) {
                     if (isActive(target))
                         return;
                     if (trace) {
-                        console.log("SWAPPING", minus, "FOR", plus, "AT", index, new Error("here").stack);
+                        console.log("SWAPPING", minus, "FOR", plus, "AT", index, "ON", trace.targetPath, new Error("here").stack);
                     }
                     if (target.swap) {
                         target.swap(index, minus.length, plus);
@@ -192,13 +203,13 @@ function makeRangeContentBinder(observeTarget) {
                     }
                 }
 
-                source.addRangeChangeListener(rangeChange);
-                rangeChange(Array.from(source), Array.from(target), 0);
-                return once(function () {
-                    source.removeRangeChangeListener(rangeChange);
+                source.addRangeChangeListener(rangeContentSourceRangeChange);
+                rangeContentSourceRangeChange(Array.from(source), Array.from(target), 0);
+                return once(function cancelRangeContentBinding() {
+                    source.removeRangeChangeListener(rangeContentSourceRangeChange);
                 });
-            }), source);
-        }), target);
+            }), sourceScope);
+        }), targetScope);
     };
 }
 
