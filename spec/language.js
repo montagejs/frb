@@ -939,6 +939,31 @@ module.exports = [
     },
 
     {
+        path: "()",
+        syntax: {type: "value"},
+        nonCanon: true
+    },
+
+    {
+        path: "path(())",
+        syntax: {type: "path", args: [
+            {type: "value"},
+            {type: "value"}
+        ]}
+    },
+
+    {
+        path: "path((), ())",
+        syntax: {type: "path", args: [
+            {type: "value"},
+            {type: "value"},
+            {type: "value"}
+        ]}
+    },
+
+    // Extended component sheet syntax
+
+    {
         path: "\n@foo < 'module' Module {\n}\n\n",
         syntax: {type: "sheet", blocks: [
             {type: "block",
@@ -956,7 +981,6 @@ module.exports = [
             startRule: "sheet"
         }
     },
-
 
     {
         path: "\n@foo : 'module' {\n}\n\n",
@@ -987,6 +1011,29 @@ module.exports = [
                         {type: "literal", value: "b"}
                     ]}
                 ]}
+            ]}
+        ]},
+        options: {
+            startRule: "sheet"
+        }
+    },
+
+    {
+        path: "\n@foo {\n    a <-> b, converter: @converter;\n}\n\n",
+        syntax: {type: "sheet", blocks: [
+            {type: "block", label: "foo", statements: [
+                {type: "bind2", args: [
+                    {type: "property", args: [
+                        {type: "value"},
+                        {type: "literal", value: "a"}
+                    ]},
+                    {type: "property", args: [
+                        {type: "value"},
+                        {type: "literal", value: "b"}
+                    ]}
+                ], descriptor: {
+                    converter: {type: "component", label: "converter"}
+                }}
             ]}
         ]},
         options: {

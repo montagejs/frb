@@ -51,61 +51,6 @@
 
 }
 
-sheet
-    = _ blocks:block* _ {
-        return {type: "sheet", blocks: blocks};
-    }
-
-block
-    = "@" name:word _ annotation:annotation? "{" _ statements:statements "}" _ {
-        return {
-            type: "block",
-            connection: annotation.connection,
-            module: annotation.module,
-            exports: annotation.exports,
-            label: name,
-            statements: statements
-        };
-    }
-
-annotation
-    = connection:("<" / ":") _ module:string? _ exports:( !"{" expression )? _ {
-        return {
-            connection: {"<": "prototype", ":": "object"}[connection],
-            module: module && module.value,
-            exports: exports !== "" ? exports[1] : undefined
-        }
-    }
-    / _ {
-        return {};
-    }
-
-statements
-    = head:statement _ tail:(";" _ statement _)* ";"? _ {
-        var result = [head];
-        for (var i = 0; i < tail.length; i++) {
-            result.push(tail[i][2]);
-        }
-        return result;
-    }
-    / statement:statement _ ";"? _ {
-        return [statement];
-    }
-    / _ {
-        return [];
-    }
-
-statement
-    = when:("on" / "before") " " _ type:word _ "->" _ listener:expression _ {
-        return {type: "event", when: when, event: type, listener: listener};
-    }
-    / target:expression _ arrow:(":" / "<->" / "<-") _ source:expression _ {
-        return {type: STATEMENTS[arrow], args: [
-            target,
-            source
-        ]}
-    }
-
 expression "expression" = if
 
 expressions
@@ -459,6 +404,9 @@ pairs
 pair
     = name:word ":" _ value:expression { return [name, value]; }
 
+
+// literals closely modeled after the JSON PEGJS example
+
 number "number"
     = parts:$(numberPattern) {
         return {type: "literal", value: +parts}
@@ -494,5 +442,91 @@ digit
 digit19
     = [1-9]
 
-_ = [ \n] *
+// white space and comments defined as in the JavaScript PEGJS example
+
+_
+    = ( whiteSpace / lineTerminator )*
+
+whiteSpace "whitespace"
+    = [\t\v\f \u00A0\uFEFF]
+    / [\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000]
+
+lineTerminator "line terminator"
+    = [\n\r\u2028\u2029]
+
+comment
+    = "/*" comment:$(!"*/" . )* "*/" {
+        return comment;
+    }
+
+// MCS extensions
+
+sheet
+    = _ blocks:block* _ {
+        return {type: "sheet", blocks: blocks};
+    }
+
+block
+    = "@" name:word _ annotation:annotation? "{" _ statements:statements "}" _ {
+        return {
+            type: "block",
+            connection: annotation.connection,
+            module: annotation.module,
+            exports: annotation.exports,
+            label: name,
+            statements: statements
+        };
+    }
+
+annotation
+    = connection:("<" / ":") _ module:string? _ exports:( !"{" expression )? _ {
+        return {
+            connection: {"<": "prototype", ":": "object"}[connection],
+            module: module && module.value,
+            exports: exports !== "" ? exports[1] : undefined
+        }
+    }
+    / _ {
+        return {};
+    }
+
+statements
+    = head:statement _ tail:(";" _ statement _)* ";"? _ {
+        var result = [head];
+        for (var i = 0; i < tail.length; i++) {
+            result.push(tail[i][2]);
+        }
+        return result;
+    }
+    / statement:statement _ ";"? _ {
+        return [statement];
+    }
+    / _ {
+        return [];
+    }
+
+statement
+    = when:("on" / "before") " " _ type:word _ "->" _ listener:expression _ {
+        return {type: "event", when: when, event: type, listener: listener};
+    }
+    / target:expression _ arrow:(":" / "<->" / "<-") _ source:expression _
+      descriptor:("," _ name:word _ ":" _ expression:expression _)*
+    {
+        var result = {type: STATEMENTS[arrow], args: [
+            target,
+            source
+        ]};
+        if (descriptor.length) {
+            var describe = {};
+            for (var i = 0; i < descriptor.length; i++) {
+                describe[descriptor[i][2]] = descriptor[i][6];
+            }
+            result.descriptor = describe;
+        }
+        return result;
+    }
+    / name:word _ expression:expression _ {
+        return {type: "unit", name: name, value: expression};
+    }
+
 

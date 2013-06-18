@@ -29,6 +29,11 @@ stringify.semantics = {
         var stringify = this.stringify.bind(this);
         var stringifiers = this.stringifiers;
         var string;
+        function stringifyChild(child) {
+            var arg = stringify(child, scope);
+            if (!arg) return "()";
+            return arg;
+        }
         if (stringifiers[syntax.type]) {
             // operators
             string = stringifiers[syntax.type](syntax, scope, stringify);
@@ -36,9 +41,7 @@ stringify.semantics = {
             // inline invocations
             string = (
                 "&" + syntax.type + "(" +
-                syntax.args.map(function (child) {
-                    return stringify(child, scope);
-                }).join(", ") + ")"
+                syntax.args.map(stringifyChild).join(", ") + ")"
             );
         } else {
             // method invocations
@@ -51,9 +54,7 @@ stringify.semantics = {
                 // normal function calls
                 chain = (
                     syntax.type + "(" +
-                    syntax.args.slice(1).map(function (child) {
-                        return stringify(child, scope);
-                    }).join(", ") + ")"
+                    syntax.args.slice(1).map(stringifyChild).join(", ") + ")"
                 );
             }
             // left-side if it exists
@@ -67,6 +68,7 @@ stringify.semantics = {
         if (
             !parent ||
             (parent.type === syntax.type && parent.type !== "if") ||
+            // TODO check on weirdness of "if"
             precedence.get(parent.type).has(syntax.type)
         ) {
             return string;
@@ -222,12 +224,27 @@ stringify.semantics = {
             return syntax.when + " " + syntax.event + " -> " + stringify(syntax.listener, scope);
         },
 
+        binding: function (arrow, syntax, scope, stringify) {
+
+            var header = stringify(syntax.args[0], scope) + " " + arrow + " " + stringify(syntax.args[1], scope);
+            var trailer = "";
+
+            var descriptor = syntax.descriptor;
+            if (descriptor) {
+                for (var name in descriptor) {
+                    trailer += ", " + name + ": " + stringify(descriptor[name], scope);
+                }
+            }
+
+            return header + trailer;
+        },
+
         bind: function (syntax, scope, stringify) {
-            return stringify(syntax.args[0], scope) + " <- " + stringify(syntax.args[1], scope);
+            return this.binding("<-", syntax, scope, stringify);
         },
 
         bind2: function (syntax, scope, stringify) {
-            return stringify(syntax.args[0], scope) + " <-> " + stringify(syntax.args[1], scope);
+            return this.binding("<->", syntax, scope, stringify);
         },
 
         assign: function (syntax, scope, stringify) {
