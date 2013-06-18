@@ -35,6 +35,14 @@ function bind(target, targetPath, descriptor) {
         if (converter.revert) {
             descriptor.revert = converter.revert.bind(converter);
         }
+    } else if (descriptor.reverter) {
+        var reverter = descriptor.reverter;
+        if (reverter.convert) {
+            descriptor.revert = reverter.convert.bind(reverter);
+        }
+        if (reverter.revert) {
+            descriptor.convert = reverter.revert.bind(reverter);
+        }
     }
 
     var convert = descriptor.convert;

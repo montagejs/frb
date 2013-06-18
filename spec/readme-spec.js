@@ -866,26 +866,49 @@ describe("Tutorial", function () {
     });
 
     it("Converters (converter)", function () {
+        function Multiplier(factor) {
+            this.factor = factor;
+        }
+        Multiplier.prototype.convert = function (value) {
+            return value * this.factor;
+        };
+        Multiplier.prototype.revert = function (value) {
+            return value / this.factor;
+        };
+
+        var doubler = new Multiplier(2);
+
         var object = Bindings.defineBindings({
             a: 10
         }, {
             b: {
                 "<->": "a",
-                converter: {
-                    factor: 2,
-                    convert: function (a) {
-                        return a * this.factor;
-                    },
-                    revert: function (b) {
-                        return b / this.factor;
-                    }
-                }
+                converter: doubler
             }
         });
         expect(object.b).toEqual(20);
 
         object.b = 10;
         expect(object.a).toEqual(5);
+    });
+
+    it("Converters (reverter)", function () {
+        var uriConverter = {
+            convert: encodeURI,
+            revert: decodeURI
+        };
+        var model = Bindings.defineBindings({}, {
+            "title": {
+                "<->": "location",
+                reverter: uriConverter
+            }
+        });
+
+        model.title = "Hello, World!";
+        expect(model.location).toEqual("Hello,%20World!");
+
+        model.location = "Hello,%20Dave.";
+        expect(model.title).toEqual("Hello, Dave.");
     });
 
     it("Computed Properties", function () {

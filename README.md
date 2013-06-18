@@ -1455,26 +1455,54 @@ Converter objects are useful for reusable or modular converter types and
 converters that track additional state.
 
 ```javascript
+function Multiplier(factor) {
+    this.factor = factor;
+}
+Multiplier.prototype.convert = function (value) {
+    return value * this.factor;
+};
+Multiplier.prototype.revert = function (value) {
+    return value / this.factor;
+};
+
+var doubler = new Multiplier(2);
+
 var object = Bindings.defineBindings({
     a: 10
 }, {
     b: {
         "<->": "a",
-        converter: {
-            factor: 2,
-            convert: function (a) {
-                return a * this.factor;
-            },
-            revert: function (b) {
-                return b / this.factor;
-            }
-        }
+        converter: doubler
     }
 });
 expect(object.b).toEqual(20);
 
 object.b = 10;
 expect(object.a).toEqual(5);
+```
+
+Reusable converters have an implied direction, from some source type to
+a particular target type.  Sometimes the types on your binding are the
+other way around.  For that case, you can use the converter as a
+reverter.  This merely swaps the `convert` and `revert` methods.
+
+```javascript
+var uriConverter = {
+    convert: encodeURI,
+    revert: decodeURI
+};
+var model = Bindings.defineBindings({}, {
+    "title": {
+        "<->": "location",
+        reverter: uriConverter
+    }
+});
+
+model.title = "Hello, World!";
+expect(model.location).toEqual("Hello,%20World!");
+
+model.location = "Hello,%20Dave.";
+expect(model.title).toEqual("Hello, Dave.");
 ```
 
 ### Computed Properties
