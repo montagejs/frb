@@ -1,16 +1,9 @@
 
 var Bindings = require("../bindings");
 
-describe("range content bindings", function () {
+Error.stackTraceLimit = Infinity;
 
-    it("should work in the basic case", function () {
-        var object = Bindings.defineBindings({
-            source: ['a', 'b', 'c']
-        }, {
-            target: {"<-": "source.rangeContent()"}
-        });
-        expect(object.target).toEqual(['a', 'b', 'c']);
-    });
+describe("as array bindings", function () {
 
     it("should propagate an array even with falsy source", function () {
         var object = Bindings.defineBindings({
@@ -18,6 +11,28 @@ describe("range content bindings", function () {
             foo: {"<-": "bar.asArray()"}
         });
         expect(object.foo).toEqual([]);
+    });
+
+});
+
+describe("one way range content bindings", function () {
+
+    it("should propagate", function () {
+        var object = Bindings.defineBindings({
+            yang: ['a', 'b', 'c']
+        }, {
+            yin: {"<-": "yang.rangeContent()"}
+        });
+        expect(object.yin).toEqual(['a', 'b', 'c']);
+    });
+
+    it("should propagate array to left from falsy source", function () {
+        var object = Bindings.defineBindings({
+        }, {
+            "foo.rangeContent()": {"<-": "bar.rangeContent()"}
+        });
+        expect(object.foo).toEqual([]);
+        expect(object.foo).not.toBe(object.bar);
     });
 
 });
