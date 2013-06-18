@@ -9,7 +9,7 @@ var cancelEach = Observers.cancelEach;
 exports.bindProperty = bindProperty;
 var _bindProperty = bindProperty; // to bypass scope shadowing problems below
 function bindProperty(object, key, observeValue, source, descriptor, trace) {
-    return observeValue(autoCancelPrevious(function (value) {
+    return observeValue(autoCancelPrevious(function replaceBoundPropertyValue(value) {
         if (descriptor.isActive) {
             return;
         }
@@ -78,10 +78,10 @@ function makeGetBinder(observeCollection, observeKey) {
 exports.makeHasBinder = makeHasBinder;
 function makeHasBinder(observeSet, observeValue) {
     return function bindHas(observeHas, source, target, descriptor, trace) {
-        return observeSet(autoCancelPrevious(function (set) {
+        return observeSet(autoCancelPrevious(function replaceHasBindingSet(set) {
             if (!set) return;
-            return observeValue(autoCancelPrevious(function (value) {
-                return observeHas(autoCancelPrevious(function (has) {
+            return observeValue(autoCancelPrevious(function replaceHasBindingValue(value) {
+                return observeHas(autoCancelPrevious(function changeWhetherSetHas(has) {
                     // wait for the initial value to be updated by the
                     // other-way binding
                     if (has) { // should be in set
@@ -106,7 +106,7 @@ exports.makeEqualityBinder = makeEqualityBinder;
 function makeEqualityBinder(bindLeft, observeRight) {
     return function bindEquals(observeEquals, source, target, descriptor, trace) {
         // c
-        return observeEquals(autoCancelPrevious(function (equals) {
+        return observeEquals(autoCancelPrevious(function changeWhetherEquals(equals) {
             if (equals) {
                 trace && console.log("BIND", trace.targetPath, "TO", trace.sourcePath, new Error("here").stack);
                 // a <-> b
@@ -216,9 +216,9 @@ function makeRangeContentBinder(observeTarget, bindTarget) {
 exports.makeMapContentBinder = makeMapContentBinder;
 function makeMapContentBinder(observeTarget) {
     return function bindMapContent(observeSource, source, target, descriptor, trace) {
-        return observeTarget(autoCancelPrevious(function (target) {
+        return observeTarget(autoCancelPrevious(function replaceMapContentBindingTarget(target) {
             if (!target) return;
-            return observeSource(autoCancelPrevious(function (source) {
+            return observeSource(autoCancelPrevious(function replaceMapContentBindingSource(source) {
                 if (!source) {
                     target.clear();
                     return;
@@ -261,9 +261,9 @@ function makeMapContentBinder(observeTarget) {
 exports.makeReversedBinder = makeReversedBinder;
 function makeReversedBinder(observeTarget) {
     return function bindReversed(observeSource, source, target, descriptor, trace) {
-        return observeTarget(autoCancelPrevious(function (target) {
+        return observeTarget(autoCancelPrevious(function replaceReversedBindingTarget(target) {
             if (!target) return;
-            return observeSource(autoCancelPrevious(function (source) {
+            return observeSource(autoCancelPrevious(function replaceReversedBindingSource(source) {
                 if (!source) {
                     target.clear();
                     return;
@@ -277,7 +277,7 @@ function makeReversedBinder(observeTarget) {
                 }
                 source.addRangeChangeListener(rangeChange);
                 rangeChange(source, target, 0);
-                return once(function () {
+                return once(function cancelReversedBinding() {
                     source.removeRangeChangeListener(rangeChange);
                 });
             }), source);

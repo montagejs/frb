@@ -1140,7 +1140,7 @@ exports.makeAsArrayObserver = makeNonReplacing(Function.identity);
 function makeNonReplacing(wrapped) {
     return function () {
         var observe = wrapped.apply(this, arguments);
-        return function observeNonReplacedArray(emit, scope) {
+        return function observeArrayWithoutReplacing(emit, scope) {
             var output = [];
             var cancelObserver = observe(autoCancelPrevious(function (input) {
                 if (!input) {
