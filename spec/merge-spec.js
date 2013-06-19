@@ -5,12 +5,14 @@ var ot = Merge.ot;
 var diff = Merge.diff;
 var apply = Merge.apply;
 var merge = Merge.merge;
+var graphOt = Merge.graphOt;
 
 var specs = [
     {
         name: "constraint",
         target: "abcde",
         source: "ace",
+        cost: 2,
         ot: [
             ["retain", 1],
             ["delete", 1],
@@ -28,6 +30,7 @@ var specs = [
         name: "relaxation",
         target: "ace",
         source: "abcde",
+        cost: 2,
         ot: [
             ["retain", 1],
             ["insert", 1],
@@ -45,6 +48,7 @@ var specs = [
         name: "duplication",
         target: "abc",
         source: "aabbcc",
+        cost: 3,
         ot: [
             ["insert", 1],
             ["retain", 1],
@@ -64,6 +68,7 @@ var specs = [
         name: "de-duplication",
         target: "aabbcc",
         source: "abc",
+        cost: 3,
         ot: [
             ["delete", 1],
             ["retain", 1],
@@ -83,6 +88,7 @@ var specs = [
         name: "reversal",
         target: "fedcba",
         source: "abcdef",
+        cost: 10,
         ot: [
             ["delete", 5],
             ["retain", 1],
@@ -98,6 +104,7 @@ var specs = [
         name: "complete replacement",
         target: "aaa",
         source: "bbb",
+        cost: 6,
         ot: [
             ["delete", 3],
             ["insert", 3]
@@ -111,6 +118,7 @@ var specs = [
         name: "complete retention",
         target: "aaa",
         source: "aaa",
+        cost: 0,
         ot: [
             ["retain", 3],
         ],
@@ -119,10 +127,20 @@ var specs = [
     }
 ];
 
+describe("graphOt cost", function () {
+    specs.forEach(function (spec) {
+        if (spec.ot) {
+            it("should compute cost of " + spec.name, function () {
+                expect(graphOt(spec.target, spec.source).cost).toEqual(spec.cost);
+            });
+        }
+    });
+});
+
 describe("ot", function () {
     specs.forEach(function (spec) {
         if (spec.ot) {
-            it("should ot " + spec.name, function () {
+            it("should compute shortest OT for " + spec.name, function () {
                 expect(ot(spec.target, spec.source)).toEqual(spec.ot);
             });
         }
