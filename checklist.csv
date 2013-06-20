@@ -38,6 +38,7 @@ keys,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,N
 enumerate,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 reversed,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 flatten,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
+concat,Y,Y,Y,Y,Y,X,X,Y,N,N,X,N
 view,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 order,N,N,Y,N,N,X,X,N,N,N,X,N
 ,,,,,,,,,,,,

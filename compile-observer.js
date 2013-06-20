@@ -40,6 +40,7 @@ var semantics = compile.semantics = {
         enumerate: Observers.makeEnumerationObserver,
         reversed: Observers.makeReversedObserver,
         flatten: Observers.makeFlattenObserver,
+        concat: Observers.makeConcatObserver,
         view: Observers.makeViewObserver,
         sum: Observers.makeSumObserver,
         average: Observers.makeAverageObserver,

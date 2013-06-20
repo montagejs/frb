@@ -559,6 +559,22 @@ arrays.splice(0, arrays.length);
 expect(object.flat).toBe(flat); // === same object
 ```
 
+### Concat
+
+You can observe the concatenation of collection of dynamic arrays.
+
+```javascript
+var object = Bindings.defineBinding({
+    head: 10,
+    tail: [20, 30]
+}, "flat", {
+    "<-": "[head].concat(tail)"
+});
+expect(object.flat).toEqual([10, 20, 30]);
+```
+
+The underlying mechanism is equivalent to `[[head], tail].flatten()`.
+
 ### Reversed
 
 You can bind the reversal of an array.

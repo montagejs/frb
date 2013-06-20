@@ -519,6 +519,7 @@ function makeReplacingReversedObserver(observeArray) {
     };
 }
 
+var makeFlattenObserver =
 exports.makeFlattenObserver = makeNonReplacing(makeReplacingFlattenObserver);
 function makeReplacingFlattenObserver(observeArray) {
     return function (emit, scope) {
@@ -579,6 +580,15 @@ function makeReplacingFlattenObserver(observeArray) {
             });
         }), scope);
     };
+}
+
+exports.makeConcatObserver = makeConcatObserver;
+function makeConcatObserver() {
+    return makeFlattenObserver(
+        makeObserversObserver(
+            Array.prototype.slice.call(arguments)
+        )
+    );
 }
 
 exports.makeSomeBlockObserver = makeSomeBlockObserver;

@@ -274,6 +274,11 @@ module.exports = [
     },
 
     {
+        path: "&concat([1, 2, 3], [4, 5, 6])",
+        output: [1, 2, 3, 4, 5, 6]
+    },
+
+    {
         path: "view($start, $length)",
         input: [1, 2, 3, 4, 5],
         parameters: {start: 2, length: 2},

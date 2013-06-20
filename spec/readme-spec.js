@@ -356,6 +356,16 @@ describe("Tutorial", function () {
         expect(object.flat).toBe(flat); // === same object
     });
 
+    it("Concat", function () {
+        var object = Bindings.defineBinding({
+            head: 10,
+            tail: [20, 30]
+        }, "flat", {
+            "<-": "[head].concat(tail)"
+        });
+        expect(object.flat).toEqual([10, 20, 30]);
+    });
+
     it("Reversed", function () {
         var object = {forward: [1, 2, 3]};
         bind(object, "backward", {
