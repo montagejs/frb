@@ -13,6 +13,7 @@ record,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 property,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 get,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 with,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
+parent,N,N,N,N,N,X,X,N,N,N,X,N
 has,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 if,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 default,Y,Y,Y,Y,Y,X,X,N,N,N,N,N
@@ -26,8 +27,8 @@ groupBlock,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 groupMapBlock,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 mapContent,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 rangeContent,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
-someBlock,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
-everyBlock,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
+someBlock,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,N,Y
+everyBlock,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,N,Y
 one,Y,Y,Y,Y,N,X,X,N,N,N,X,N
 only,Y,Y,Y,Y,N,N,N,N,N,N,N,N
 ,,,,,,,,,,,,
@@ -80,10 +81,10 @@ split,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 range(end),Y,Y,?,Y,Y,X,X,Y,Y,Y,X,Y
 "range(start, end)",Y,Y,?,N,N,X,X,N,Y,N,X,N
 ,,,,,,,,,,,,
-toArray(ranged),N,N,N,N,N,X,X,N,N,N,X,N
-toObject(map),N,N,N,N,N,X,X,N,N,N,X,N
-toSet(ranged),N,N,N,N,N,X,X,N,N,N,X,N
-toMap(object),Y,Y,Y,Y,Y,X,X,N,N,N,X,N
-toMap(items),N,N,N,N,N,X,X,N,N,N,X,N
+asArray(ranged),N,N,N,N,N,X,X,N,N,N,X,N
+asObject(map),N,N,N,N,N,X,X,N,N,N,X,N
+asSet(ranged),N,N,N,N,N,X,X,N,N,N,X,N
+asMap(object),Y,Y,Y,Y,Y,X,X,N,N,N,X,N
+asMap(items),N,N,N,N,N,X,X,N,N,N,X,N
 ,,,,,,,,,,,,
 evaluate,Y,Y,Y,Y,Y,X,X,N,N,N,N,N
