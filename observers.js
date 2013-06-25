@@ -1145,6 +1145,8 @@ exports.makeAsArrayObserver = makeNonReplacing(Function.identity);
 // Utility Methods
 // ---------------
 
+var merge = require("./merge").merge;
+
 // A utility for generating map and filter observers because they both replace
 // the output array whenever the input array is replaced.  instead, this
 // wrapper receives the replacement array and mirrors it on an output array
@@ -1158,7 +1160,8 @@ function makeNonReplacing(wrapped) {
                 if (!input) {
                     output.clear();
                 } else {
-                    output.swap(0, output.length, input);
+                    // equivalent to: output.swap(0, output.length, input);
+                    merge(output, input);
                     function rangeChange(plus, minus, index) {
                         output.swap(index, minus.length, plus);
                     }
