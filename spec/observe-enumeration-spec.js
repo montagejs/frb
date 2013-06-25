@@ -40,7 +40,7 @@ describe("observe enumeration", function () {
         expect(output).toEqual([true, false, true, false, true]);
     });
 
-    it("values at even indicies", function () {
+    it("values at even indexes", function () {
         var input = ['b', 'c', 'd', 'e'];
         var output = [];
         var cancel = bind(output, "rangeContent()", {

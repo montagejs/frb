@@ -499,12 +499,12 @@ distinguishes the zeroeth property from the literal zero.
 
 ```javascript
 var object = {letters: ['a', 'b', 'c', 'd']};
-bind(object, "lettersAtEvenIndicies", {
+bind(object, "lettersAtEvenIndexes", {
     "<-": "letters.enumerate().filter{!(.0 % 2)}.map{.1}"
 });
-expect(object.lettersAtEvenIndicies).toEqual(['a', 'c']);
+expect(object.lettersAtEvenIndexes).toEqual(['a', 'c']);
 object.letters.shift();
-expect(object.lettersAtEvenIndicies).toEqual(['b', 'd']);
+expect(object.lettersAtEvenIndexes).toEqual(['b', 'd']);
 ```
 
 ### Range
