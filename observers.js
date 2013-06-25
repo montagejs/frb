@@ -427,15 +427,23 @@ function makeReplacingFilterBlockObserver(observeCollection, observePredicate) {
             }
 
             function rangeChange(plusPredicates, minusPredicates, index) {
-                if (minusPredicates.equals(plusPredicates))
-                    return;
                 var plusValues = input.slice(index, index + plusPredicates.length);
                 var minusLength = minusPredicates.map(Boolean).sum();
                 var plusOutput = plusValues.filter(function (value, offset) {
                     return plusPredicates[offset];
                 });
                 var start = cumulativeLengths[index];
-                output.swap(start, minusLength, plusOutput);
+                var minusOutput = output.slice(start, start + minusLength);
+                // avoid propagating a range change if the output would not be
+                // changed
+                if (
+                    minusOutput.length !== plusOutput.length ||
+                    minusOutput.every(function (value, offset) {
+                        return value !== plusOutput[offset];
+                    })
+                ) {
+                    output.swap(start, minusLength, plusOutput);
+                }
                 update(start);
             }
 
