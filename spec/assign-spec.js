@@ -45,6 +45,35 @@ describe("assign", function () {
         expect(object.a).toBe(40);
     });
 
+    it("should be able to assign to a logical expression", function () {
+
+        var object = {};
+        assign(object, "a && b", true);
+        expect(object.a).toBe(true);
+        expect(object.b).toBe(true);
+        assign(object, "a && b", false);
+        expect(object.a).toBe(false);
+        expect(object.b).toBe(true);
+
+        var object = {};
+        assign(object, "a && b", false);
+        expect(object.a).toBe(undefined);
+        expect(object.b).toBe(undefined);
+
+        var object = {};
+        assign(object, "a || b", false);
+        expect(object.a).toBe(false);
+        expect(object.b).toBe(false);
+        assign(object, "a || b", true);
+        expect(object.a).toBe(true);
+        expect(object.b).toBe(false);
+
+        var object = {};
+        assign(object, "a || b", true);
+        expect(object.a).toBe(true);
+        expect(object.b).toBe(undefined);
+    });
+
     it("should be able to assign into the content of a ranged collection", function () {
         var object = {};
         assign(object, "array.rangeContent()", [1, 2, 3]);

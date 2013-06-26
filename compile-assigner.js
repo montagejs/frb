@@ -21,6 +21,12 @@ compile.semantics = {
             var assignConsequent = this.compile(syntax.args[1]);
             var assignAlternate = this.compile(syntax.args[2]);
             return compilers["if"](evaluateCondition, assignConsequent, assignAlternate);
+        } else if (syntax.type === "and" || syntax.type === "or") {
+            var evaluateLeft = this.compileEvaluator(syntax.args[0]);
+            var evaluateRight = this.compileEvaluator(syntax.args[1]);
+            var assignLeft = this.compile(syntax.args[0]);
+            var assignRight = this.compile(syntax.args[1]);
+            return compilers[syntax.type](assignLeft, assignRight, evaluateLeft, evaluateRight);
         } else if (syntax.type === "everyBlock") {
             var evaluateCollection = this.compileEvaluator(syntax.args[0]);
             var args = solve(syntax.args[1], {type: "literal", value: true});
@@ -99,6 +105,30 @@ compile.semantics = {
                     return assignAlternate(value, scope);
                 }
             };
+        },
+
+        and: function (assignLeft, assignRight, evaluateLeft, evaluateRight) {
+            return function (value, scope) {
+                if (value == null) return;
+                if (value) {
+                    assignLeft(true, scope);
+                    assignRight(true, scope);
+                } else {
+                    assignLeft(evaluateLeft(scope) && !evaluateRight(scope), scope);
+                }
+            }
+        },
+
+        or: function (assignLeft, assignRight, evaluateLeft, evaluateRight) {
+            return function (value, scope) {
+                if (value == null) return;
+                if (!value) {
+                    assignLeft(false, scope);
+                    assignRight(false, scope);
+                } else {
+                    assignLeft(evaluateLeft(scope) || !evaluateRight(scope), scope);
+                }
+            }
         },
 
         rangeContent: function (evaluateTarget) {
