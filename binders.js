@@ -8,8 +8,9 @@ var cancelEach = Observers.cancelEach;
 var makeNotObserver = Observers.makeNotObserver;
 var makeOrObserver = Observers.makeOrObserver;
 var makeAndObserver = Observers.makeAndObserver;
-var observeTrue = Observers.makeLiteralObserver(true);
-var observeFalse = Observers.makeLiteralObserver(false);
+var observeValue = Observers.observeValue;
+var trueScope = new Scope(true);
+var falseScope = new Scope(false);
 
 exports.bindProperty = bindProperty;
 var _bindProperty = bindProperty; // to bypass scope shadowing problems below
@@ -150,15 +151,15 @@ function makeEveryBlockBinder(observeCollection, bindCondition, observeValue) {
 };
 
 exports.makeAndBinder = makeAndBinder;
-function makeAndBinder(bindLeft, bindRight, observeLeft, observeRight) {
+function makeAndBinder(bindLeft, bindRight, observeLeft, observeRight, observeLeftBind, observeRightBind) {
     var observeNotRight = makeNotObserver(observeRight);
     var observeLeftAndNotRight = makeAndObserver(observeLeft, observeNotRight);
     return function bindEveryBlock(observeAndCondition, source, target, descriptor, trace) {
         return observeAndCondition(autoCancelPrevious(function replaceAndCondition(condition) {
             if (condition == null) {
             } else if (condition) {
-                var cancelLeft = bindLeft(observeTrue, target, target, descriptor, trace);
-                var cancelRight = bindRight(observeTrue, target, target, descriptor, trace);
+                var cancelLeft = bindLeft(observeLeftBind, trueScope, target, descriptor, trace);
+                var cancelRight = bindRight(observeRightBind, trueScope, target, descriptor, trace);
                 return function cancelAndBinding() {
                     cancelLeft();
                     cancelRight();
@@ -171,16 +172,15 @@ function makeAndBinder(bindLeft, bindRight, observeLeft, observeRight) {
 }
 
 exports.makeOrBinder = makeOrBinder;
-function makeOrBinder(bindLeft, bindRight, observeLeft, observeRight) {
+function makeOrBinder(bindLeft, bindRight, observeLeft, observeRight, observeLeftBind, observeRightBind) {
     var observeNotRight = makeNotObserver(observeRight);
     var observeLeftOrNotRight = makeOrObserver(observeLeft, observeNotRight);
     return function bindEveryBlock(observeOrCondition, source, target, descriptor, trace) {
         return observeOrCondition(autoCancelPrevious(function replaceOrCondition(condition) {
             if (condition == null) {
             } else if (!condition) {
-                var cancelLeft = bindLeft(observeFalse, target, target, descriptor, trace);
-                var cancelRight = bindRight(observeFalse, target, target, descriptor, trace);
-                return function cancelOrBinding() {
+                var cancelLeft = bindLeft(observeLeftBind, falseScope, target, descriptor, trace);
+                var cancelRight = bindRight(observeRightBind, falseScope, target, descriptor, trace); return function cancelOrBinding() {
                     cancelLeft();
                     cancelRight();
                 };

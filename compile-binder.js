@@ -4,6 +4,9 @@ var Observers = require("./observers");
 var Binders = require("./binders");
 var solve = require("./algebra");
 
+var valueSyntax = {type: "value"};
+var trueSyntax = {type: "literal", value: true};
+
 module.exports = compile;
 function compile(syntax) {
     return compile.semantics.compile(syntax);
@@ -34,14 +37,25 @@ compile.semantics = {
             var bindAlternate = this.compile(syntax.args[2]);
             return Binders.makeConditionalBinder(observeCondition, bindConsequent, bindAlternate);
         } else if (syntax.type === "and" || syntax.type === "or") {
-            var bindLeft = this.compile(syntax.args[0]);
-            var bindRight = this.compile(syntax.args[1]);
+            var leftArgs = solve(syntax.args[0], valueSyntax);
+            var rightArgs = solve(syntax.args[1], valueSyntax);
+            var bindLeft = this.compile(leftArgs[0]);
+            var bindRight = this.compile(rightArgs[0]);
+            var observeLeftBind = compileObserver(leftArgs[1]);
+            var observeRightBind = compileObserver(rightArgs[1]);
             var observeLeft = compileObserver(syntax.args[0]);
             var observeRight = compileObserver(syntax.args[1]);
-            return this.compilers[syntax.type](bindLeft, bindRight, observeLeft, observeRight);
+            return this.compilers[syntax.type](
+                bindLeft,
+                bindRight,
+                observeLeft,
+                observeRight,
+                observeLeftBind,
+                observeRightBind
+            );
         } else if (syntax.type === "everyBlock") {
             var observeCollection = compileObserver(syntax.args[0]);
-            var args = solve(syntax.args[1], {type: "literal", value: true});
+            var args = solve(syntax.args[1], trueSyntax);
             var bindCondition = this.compile(args[0]);
             var observeValue = compileObserver(args[1]);
             return Binders.makeEveryBlockBinder(observeCollection, bindCondition, observeValue);

@@ -201,5 +201,19 @@ describe("logic bindings", function () {
             expect(object.c).toBe(true);
         });
 
+        it("two-way with algebra solver", function () {
+            var object = Bindings.defineBindings({}, {
+                "a || !b": {"<->": "c"}
+            });
+            expect(object.a).toBe(undefined);
+            expect(object.b).toBe(undefined);
+            expect(object.c).toBe(true);
+
+            object.c = false;
+            expect(object.a).toBe(false);
+            expect(object.b).toBe(true);
+            expect(object.c).toBe(false);
+        });
+
     });
 });
