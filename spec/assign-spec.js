@@ -72,6 +72,16 @@ describe("assign", function () {
         assign(object, "a || b", true);
         expect(object.a).toBe(true);
         expect(object.b).toBe(undefined);
+
+        var object = {};
+        assign(object, "a || !b", true);
+        expect(object.a).toBe(false);
+        expect(object.b).toBe(undefined);
+
+        var object = {b: true};
+        assign(object, "a || !b", true);
+        expect(object.a).toBe(true);
+        expect(object.b).toBe(true);
     });
 
     it("should be able to assign into the content of a ranged collection", function () {

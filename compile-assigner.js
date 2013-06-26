@@ -2,6 +2,9 @@
 var compileEvaluator = require("./compile-evaluator");
 var solve = require("./algebra");
 var Scope = require("./scope");
+var valueSyntax = {type: "value"};
+var trueScope = {type: "literal", value: true};
+var falseScope = {type: "literal", value: false};
 
 module.exports = compile;
 function compile(syntax) {
@@ -22,11 +25,22 @@ compile.semantics = {
             var assignAlternate = this.compile(syntax.args[2]);
             return compilers["if"](evaluateCondition, assignConsequent, assignAlternate);
         } else if (syntax.type === "and" || syntax.type === "or") {
+            var leftArgs = solve(syntax.args[0], valueSyntax);
+            var rightArgs = solve(syntax.args[1], valueSyntax);
             var evaluateLeft = this.compileEvaluator(syntax.args[0]);
             var evaluateRight = this.compileEvaluator(syntax.args[1]);
-            var assignLeft = this.compile(syntax.args[0]);
-            var assignRight = this.compile(syntax.args[1]);
-            return compilers[syntax.type](assignLeft, assignRight, evaluateLeft, evaluateRight);
+            var evaluateLeftAssign = this.compileEvaluator(leftArgs[1]);
+            var evaluateRightAssign = this.compileEvaluator(rightArgs[1]);
+            var assignLeft = this.compile(leftArgs[0]);
+            var assignRight = this.compile(rightArgs[0]);
+            return compilers[syntax.type](
+                assignLeft,
+                assignRight,
+                evaluateLeft,
+                evaluateRight,
+                evaluateLeftAssign,
+                evaluateRightAssign
+            );
         } else if (syntax.type === "everyBlock") {
             var evaluateCollection = this.compileEvaluator(syntax.args[0]);
             var args = solve(syntax.args[1], {type: "literal", value: true});
@@ -107,24 +121,24 @@ compile.semantics = {
             };
         },
 
-        and: function (assignLeft, assignRight, evaluateLeft, evaluateRight) {
+        and: function (assignLeft, assignRight, evaluateLeft, evaluateRight, evaluateLeftAssign, evaluateRightAssign) {
             return function (value, scope) {
                 if (value == null) return;
                 if (value) {
-                    assignLeft(true, scope);
-                    assignRight(true, scope);
+                    assignLeft(evaluateLeftAssign(trueScope), scope);
+                    assignRight(evaluateRightAssign(trueScope), scope);
                 } else {
                     assignLeft(evaluateLeft(scope) && !evaluateRight(scope), scope);
                 }
             }
         },
 
-        or: function (assignLeft, assignRight, evaluateLeft, evaluateRight) {
+        or: function (assignLeft, assignRight, evaluateLeft, evaluateRight, evaluateLeftAssign, evaluateRightAssign) {
             return function (value, scope) {
                 if (value == null) return;
                 if (!value) {
-                    assignLeft(false, scope);
-                    assignRight(false, scope);
+                    assignLeft(evaluateLeftAssign(falseScope), scope);
+                    assignRight(evaluateRightAssign(falseScope), scope);
                 } else {
                     assignLeft(evaluateLeft(scope) || !evaluateRight(scope), scope);
                 }
