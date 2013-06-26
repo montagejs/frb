@@ -542,7 +542,11 @@ function makeReplacingFlattenObserver(observeArray) {
             function update(i) {
                 for (var j = i; j < input.length; j++) {
                     indexRefs[j].index = j;
-                    cumulativeLengths[j + 1] = cumulativeLengths[j] + input[j].length;
+                    if (input[j]) {
+                        cumulativeLengths[j + 1] = cumulativeLengths[j] + input[j].length;
+                    } else {
+                        cumulativeLengths[j + 1] = cumulativeLengths[j];
+                    }
                 }
             }
 
