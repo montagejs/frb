@@ -37,15 +37,15 @@ solve.semantics = {
                 return left.args[0];
             }
         },
-        // "" + x -> x.string()
+        // "" + x -> x.toString()
         add: function (syntax) {
             var left = syntax.args[0];
             if (left.type === "literal" && left.value === "") {
                 // "" + x
-                // string(x)
-                // because this can be bound bidirectionally with number(y)
+                // toString(x)
+                // because this can be bound bidirectionally with toNumber(y)
                 return {
-                    type: "string",
+                    type: "toString",
                     args: [syntax.args[1]]
                 };
             }
@@ -81,10 +81,10 @@ solve.semantics = {
                 target.args[1]
             ]};
         },
-        number: function (target, source) {
+        toNumber: function (target, source) {
             return this.reflect(target, source);
         },
-        string: function (target, source) {
+        toString: function (target, source) {
             return this.reflect(target, source);
         },
         not: function (target, source) {

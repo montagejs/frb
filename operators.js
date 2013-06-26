@@ -4,23 +4,17 @@ require("collections/shim-regexp"); // escape
 
 // from highest to lowest precedence
 
-exports.number = function (s) {
-    if (typeof s === "number") {
-        return s;
-    } else if (typeof s === "string") {
-        return parseInt(s, 10) || 0;
-    } else {
-        return 0;
-    }
+exports.toNumber = function (s) {
+    return +s;
 };
 
-exports.string = function (n) {
-    if (typeof n === "string") {
-        return n;
-    } else if (typeof n === "number") {
-        return "" + n;
-    } else {
+exports.toString = function (n) {
+    if (n == null) {
         return "";
+    } else if (typeof n === "string") {
+        return n;
+    } else {
+        return "" + n;
     }
 };
 

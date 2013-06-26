@@ -4459,7 +4459,7 @@ module.exports = (function() {
         };
 
         var UNARY = {
-            "+": "number",
+            "+": "toNumber",
             "-": "neg",
             "!": "not",
             "^": "parent"

@@ -25,7 +25,7 @@
     };
 
     var UNARY = {
-        "+": "number",
+        "+": "toNumber",
         "-": "neg",
         "!": "not",
         "^": "parent"

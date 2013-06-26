@@ -204,7 +204,7 @@ stringify.semantics = {
             return '-' + stringify(syntax.args[0], scope, syntax)
         },
 
-        number: function (syntax, scope, stringify) {
+        toNumber: function (syntax, scope, stringify) {
             return '+' + stringify(syntax.args[0], scope, syntax)
         },
 
