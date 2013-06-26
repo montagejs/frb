@@ -31,6 +31,18 @@ compile.semantics = {
             var bindConsequent = this.compile(syntax.args[1]);
             var bindAlternate = this.compile(syntax.args[2]);
             return Binders.makeConditionalBinder(observeCondition, bindConsequent, bindAlternate);
+        } else if (syntax.type === "and") {
+            var bindLeft = this.compile(syntax.args[0]);
+            var bindRight = this.compile(syntax.args[1]);
+            var observeLeft = compileObserver(syntax.args[0]);
+            var observeRight = compileObserver(syntax.args[1]);
+            return Binders.makeAndBinder(bindLeft, bindRight, observeLeft, observeRight);
+        } else if (syntax.type === "or") {
+            var bindLeft = this.compile(syntax.args[0]);
+            var bindRight = this.compile(syntax.args[1]);
+            var observeLeft = compileObserver(syntax.args[0]);
+            var observeRight = compileObserver(syntax.args[1]);
+            return Binders.makeOrBinder(bindLeft, bindRight, observeLeft, observeRight);
         } else if (syntax.type === "everyBlock") {
             var observeCollection = compileObserver(syntax.args[0]);
             var args = solve(syntax.args[1], {type: "literal", value: true});
