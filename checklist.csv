@@ -69,8 +69,8 @@ gt,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 ge,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 compare,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 ,,,,,,,,,,,,
-and,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
-or,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
+and,Y,Y,Y,Y,Y,Y,Y,N,Y,Y,N,Y
+or,Y,Y,Y,Y,Y,Y,Y,N,Y,Y,N,Y
 ,,,,,,,,,,,,
 startsWith,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 endsWith,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
