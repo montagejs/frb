@@ -184,7 +184,7 @@ default
     }
 
 unary
-    = operator:$("!" / "+" / "-" / "^") arg:unary {
+    = operator:$("!" / "+" / "-") arg:unary {
         return {type: UNARY[operator], args: [arg]};
     }
     / pipe
@@ -333,6 +333,9 @@ value
     }
     / "&" name:word args:args {
         return {type: name, args: args, inline: true};
+    }
+    / "^" value:value {
+        return {type: "parent", args: [value]};
     }
     / "(" expression:expression ")" {
         return expression;

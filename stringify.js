@@ -31,7 +31,7 @@ stringify.semantics = {
         var string;
         function stringifyChild(child) {
             var arg = stringify(child, scope);
-            if (!arg) return "()";
+            if (!arg) return "this";
             return arg;
         }
         if (stringifiers[syntax.type]) {
@@ -99,7 +99,7 @@ stringify.semantics = {
             return "{" + Object.map(syntax.args, function (value, key) {
                 var string;
                 if (value.type === "value") {
-                    string = "()";
+                    string = "this";
                 } else {
                     string = stringify(value, scope);
                 }
@@ -110,7 +110,7 @@ stringify.semantics = {
         tuple: function (syntax, scope, stringify) {
             return "[" + Object.map(syntax.args, function (value) {
                 if (value.type === "value") {
-                    return "()";
+                    return "this";
                 } else {
                     return stringify(value);
                 }
@@ -155,7 +155,7 @@ stringify.semantics = {
                 } else if (syntax.args[1].type === "literal") {
                     return "." + syntax.args[1].value;
                 } else {
-                    return "()[" + stringify(syntax.args[1], scope) + "]";
+                    return "this[" + stringify(syntax.args[1], scope) + "]";
                 }
             } else if (syntax.args[0].type === "parameters") {
                 return "$" + syntax.args[1].value;
@@ -176,16 +176,6 @@ stringify.semantics = {
         "with": function (syntax, scope, stringify) {
             var right = stringify(syntax.args[1], scope, syntax);
             return stringify(syntax.args[0], scope) + "." + right;
-        },
-
-        get: function (syntax, scope, stringify) {
-            var left;
-            if (syntax.args[0].type === "value") {
-                left = "()";
-            } else {
-                left = stringify(syntax.args[0], scope)
-            }
-            return left + "[" + stringify(syntax.args[1], scope) + "]";
         },
 
         not: function (syntax, scope, stringify) {

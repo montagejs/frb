@@ -57,6 +57,42 @@ module.exports = [
     },
 
     {
+        path: "a[b]",
+        syntax: {type: "property", args: [
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "a"}
+            ]},
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "b"}
+            ]}
+        ]}
+    },
+
+    {
+        path: "this[b]",
+        syntax: {type: "property", args: [
+            {type: "value"},
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "b"}
+            ]}
+        ]}
+    },
+
+    {
+        path: "get(key)",
+        syntax: {type: "get", args: [
+            {type: "value"},
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "key"}
+            ]}
+        ]}
+    },
+
+    {
         path: ".0",
         syntax: {type: "property", args: [
             {type: "value"},
@@ -234,6 +270,22 @@ module.exports = [
     },
 
     {
+        path: "^a.foo(bar)",
+        syntax: {type: "foo", args: [
+            {type: "parent", args: [
+                {type: "property", args: [
+                    {type: "value"},
+                    {type: "literal", value: "a"}
+                ]}
+            ]},
+            {type: "property", args: [
+                {type: "value"},
+                {type: "literal", value: "bar"}
+            ]}
+        ]}
+    },
+
+    {
         path: "[]",
         syntax: {type: "tuple", args: [
         ]}
@@ -259,14 +311,14 @@ module.exports = [
     },
 
     {
-        path: "[()]",
+        path: "[this]",
         syntax: {type: "tuple", args: [
             {type: "value"}
         ]}
     },
 
     {
-        path: "[(), ()]",
+        path: "[this, this]",
         syntax: {type: "tuple", args: [
             {type: "value"},
             {type: "value"}
@@ -570,7 +622,7 @@ module.exports = [
     },
 
     {
-        path: "()[a]",
+        path: "this[a]",
         syntax: {type: "property", args: [
             {type: "value"},
             {type: "property", args: [
@@ -581,7 +633,7 @@ module.exports = [
     },
 
     {
-        path: "()['~' + a]",
+        path: "this['~' + a]",
         syntax: {type: "property", args: [
             {type: "value"},
             {type: "add", args: [
@@ -595,7 +647,7 @@ module.exports = [
     },
 
     {
-        path: "()['a']",
+        path: "this['a']",
         syntax: {type: "property", args: [
             {type: "value"},
             {type: "literal", value: "a"}
@@ -945,7 +997,7 @@ module.exports = [
     },
 
     {
-        path: "path(())",
+        path: "path(this)",
         syntax: {type: "path", args: [
             {type: "value"},
             {type: "value"}
@@ -953,7 +1005,7 @@ module.exports = [
     },
 
     {
-        path: "path((), ())",
+        path: "path(this, this)",
         syntax: {type: "path", args: [
             {type: "value"},
             {type: "value"},
