@@ -1055,14 +1055,18 @@ function observeItemValue(emit, scope) {
 exports.makeToMapObserver = makeToMapObserver;
 function makeToMapObserver(observeObject) {
     return function observeToMap(emit, scope) {
-        var map = Map();
+        var map = new Map();
         var cancel = emit(map) || Function.noop;
 
         var cancelObjectObserver = observeObject(autoCancelPrevious(function replaceObject(object) {
             map.clear();
             if (!object) return;
 
-            if (object.addRangeChangeListener) { // array/collection of items
+            if (object.addMapChangeListener) {
+
+                // TODO
+
+            } else if (object.addRangeChangeListener) { // array/collection of items
 
                 // TODO
 
