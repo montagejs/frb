@@ -82,10 +82,13 @@ split,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 range(end),Y,Y,?,Y,Y,X,X,Y,Y,Y,X,Y
 "range(start, end)",Y,Y,?,N,N,X,X,N,Y,N,X,N
 ,,,,,,,,,,,,
-asArray(ranged),N,N,N,N,N,X,X,N,N,N,X,N
-asObject(map),N,N,N,N,N,X,X,N,N,N,X,N
-asSet(ranged),N,N,N,N,N,X,X,N,N,N,X,N
-asMap(object),Y,Y,Y,Y,Y,X,X,N,N,N,X,N
-asMap(items),N,N,N,N,N,X,X,N,N,N,X,N
+toArray(ranged),N,N,N,N,N,X,X,N,N,N,X,N
+toObject(object),N,N,N,N,N,X,X,N,N,N,X,N
+toObject(map),N,N,N,N,N,X,X,N,N,N,X,N
+toObject(entries),N,N,N,N,N,X,X,N,N,N,X,N
+toSet(ranged),N,N,N,N,N,X,X,N,N,N,X,N
+toMap(map),Y,Y,Y,N,N,X,X,N,N,N,X,N
+toMap(object),Y,Y,Y,Y,Y,X,X,N,N,N,X,N
+toMap(entries),N,N,Y,N,N,X,X,N,N,N,X,N
 ,,,,,,,,,,,,
 evaluate,Y,Y,Y,Y,Y,X,X,N,N,N,N,N

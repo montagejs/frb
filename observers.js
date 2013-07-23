@@ -1197,7 +1197,8 @@ function makeWithObserver(observeInput, observeExpression) {
     };
 }
 
-exports.makeAsArrayObserver = makeNonReplacing(Function.identity);
+exports.makeToArrayObserver = makeNonReplacing(Function.identity);
+exports.makeAsArrayObserver = exports.makeToArrayObserver; // XXX deprecated
 
 // Utility Methods
 // ---------------

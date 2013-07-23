@@ -53,7 +53,8 @@ var semantics = compile.semantics = {
         startsWith: Observers.makeStartsWithObserver,
         endsWith: Observers.makeEndsWithObserver,
         contains: Observers.makeContainsObserver,
-        asArray: Observers.makeAsArrayObserver,
+        toArray: Observers.makeToArrayObserver,
+        asArray: Observers.makeToArrayObserver // XXX deprecated
     },
 
     compile: function (syntax) {
