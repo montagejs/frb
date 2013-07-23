@@ -268,6 +268,18 @@ module.exports = [
     },
 
     {
+        path: "last()",
+        input: [1, 2, 3],
+        output: 3
+    },
+
+    {
+        path: "last()",
+        input: [],
+        output: null
+    },
+
+    {
         path: "flatten()",
         input: [[1], [2, 3], [4]],
         output: [1, 2, 3, 4]

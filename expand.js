@@ -49,6 +49,7 @@ expand.semantics = {
         "order",
         "sum",
         "average",
+        "last",
         "min",
         "max",
         "keys",

@@ -940,6 +940,47 @@ function observeRangeChange(collection, emit, scope) {
     });
 }
 
+exports.makeLastObserver = makeLastObserver;
+function makeLastObserver(observeCollection) {
+    return function observeLast(emit, scope) {
+        return observeCollection(autoCancelPrevious(function (collection) {
+            return _observeLast(collection, emit, scope);
+        }), scope);
+    };
+}
+
+// []
+// [1, 2, 3], [], 0 -> [1, 2, 3] grow from start
+// [4], [], 3 -> [1, 2, 3, 4] grow
+// [], [4], 3 -> [1, 2, 3]
+exports.observeLast = observeLast;
+var _observeLast = observeLast;
+function observeLast(collection, emit, scope) {
+    var lastIndex = -1;
+    var cancel = Function.noop;
+    var prev = null;
+    function rangeChange(plus, minus, index) {
+        lastIndex += plus.length - minus.length;
+        // short circuit if the change does not have the reach to change the
+        // last value
+        if (
+            index + minus.length < lastIndex &&
+            index + plus.length < lastIndex
+        ) {
+            return;
+        }
+        var next = lastIndex < 0 ? null : collection.get(lastIndex);
+        cancel();
+        cancel = emit(next) || Function.noop;
+        prev = next;
+    }
+    var cancelRangeChange = observeRangeChange(collection, rangeChange, scope);
+    return function cancelLastObserver() {
+        cancel();
+        cancelRangeChange();
+    };
+}
+
 exports.makeRangeContentObserver = makeRangeContentObserver;
 function makeRangeContentObserver(observeCollection) {
     return function observeContent(emit, scope) {

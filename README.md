@@ -185,6 +185,41 @@ bind(object, "average", {"<-": "array.average()"});
 expect(object.average).toEqual(2);
 ```
 
+### Last
+
+FRB provides an operator for watching the last value in an Array.
+
+```javascript
+var array = [1, 2, 3];
+var object = {array: array, last: null};
+Bindings.defineBinding(object, "last", {"<-": "array.last()"});
+expect(object.last).toBe(3);
+
+array.push(4);
+expect(object.last).toBe(4);
+```
+
+When the dust settles, `array.last()` is equivalent to
+`array[array.length - 1]`, but the `last` observer guarantees that it
+will not jitter between the ultimate value and null or the penultimate
+value of the collection.  With `array[array.length]`, the underlying may
+not change its content and length atomically.
+
+```javascript
+var changed = jasmine.createSpy();
+PropertyChanges.addOwnPropertyChangeListener(object, "last", changed);
+array.unshift(0);
+array.splice(3, 0, 3.5);
+expect(object.last).toBe(4);
+expect(changed).not.toHaveBeenCalled();
+
+array.pop();
+expect(object.last).toBe(3);
+
+array.clear();
+expect(object.last).toBe(null);
+```
+
 ### Map
 
 You can also create mappings from one array to a new array and an

@@ -129,3 +129,7 @@ exports.range = function (stop) {
     return range;
 };
 
+exports.last = function (collection) {
+    return collection.get(collection.length - 1);
+};
+

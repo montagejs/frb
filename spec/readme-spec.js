@@ -1,4 +1,5 @@
 
+var PropertyChanges = require("collections/listen/property-changes");
 var Bindings = require("../bindings");
 var bind = require("../bind");
 var observe = require("../observe");
@@ -95,6 +96,30 @@ describe("Tutorial", function () {
         var object = {array: [1, 2, 3]};
         bind(object, "average", {"<-": "array.average()"});
         expect(object.average).toEqual(2);
+    });
+
+    it("Last", function () {
+        var array = [1, 2, 3];
+        var object = {array: array, last: null};
+        Bindings.defineBinding(object, "last", {"<-": "array.last()"});
+        expect(object.last).toBe(3);
+
+        array.push(4);
+        expect(object.last).toBe(4);
+
+        // Continued...
+        var changed = jasmine.createSpy();
+        PropertyChanges.addOwnPropertyChangeListener(object, "last", changed);
+        array.unshift(0);
+        array.splice(3, 0, 3.5);
+        expect(object.last).toBe(4);
+        expect(changed).not.toHaveBeenCalled();
+
+        array.pop();
+        expect(object.last).toBe(3);
+
+        array.clear();
+        expect(object.last).toBe(null);
     });
 
     it("Map", function () {

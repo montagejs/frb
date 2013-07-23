@@ -44,6 +44,7 @@ var semantics = compile.semantics = {
         view: Observers.makeViewObserver,
         sum: Observers.makeSumObserver,
         average: Observers.makeAverageObserver,
+        last: Observers.makeLastObserver,
         has: Observers.makeHasObserver,
         // TODO zip
         tuple: Observers.makeArrayObserver,
