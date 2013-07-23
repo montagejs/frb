@@ -1,5 +1,111 @@
 
-# v0.2
+# v0.2.9
+
+-   Tighten the precedence of the `^` (parent scope) operator.  This
+    operator was on the same level as other unary operators, `+`, `-`,
+    and `!`, but now couples even more tightly.  Thus `^foo.bar()` was
+    equivalent to `^(foo.bar())` but is now equivalent to
+    `(^foo).bar()`.
+-   Adds the `last` operator, for observing the last value in a
+    collection without jitter.
+-   Finishes the `toMap` operator, which can now coerce and
+    incrementally update maps, fixed-shape objects (known as records),
+    and arrays (or other indexed collections) of entries (key value
+    pairs in duple arrays).
+-   Throw no errors.  It is now clear that FRB should not throw errors
+    if it encounteres invalid input.  It must propagate null instead.
+    This is because FRB inputs do not necessarily change atomically.
+    The result is that state must be made consistent by the end of a
+    turn (not enforced), but may pass through invalid states internally.
+    As such, throwing an exception would interfere.
+-   Deprecates `items` in favor of `entries` and makes the terminology
+    consistent throughout interfaces and documentation.
+-   Deprecates `asArray` in favor of `toArray`, in keeping with
+    precedent established in v0.2.7.
+-   Alters the `toString` operator such that only numbers and strings
+    can be coerced.  All other types propagate `null`.  This is intended
+    to simply the creation of `toString` operators for cross-language
+    bindings by not entraining JavaScript's string coercion semantics.
+
+# v0.2.8
+
+-   In keeping with the new `&&` and `||` bindings, implement binder and
+    assigner for the default operator, `??`.  The binding will apply the
+    source to the left side of the operator.
+
+# v0.2.7
+
+-   Implement logic bindings and assignment.  `&&` and `||` can now
+    meaningfully appear on the left side of a binding, or on either side
+    of a two-way binding.  The binding preserves the expressed predicate
+    by setting either the left side, right side, or both sides to `true`
+    or `false`.  If setting the left side of the operator is sufficient
+    to meet the predicate, only that side will be affected.  This makes
+    it possible to contrive bindings that account for check boxes that
+    should be unchecked when they are disabled.
+-   Changed `asString` and `asNumber` to `toString` and `toNumber`.  The
+    convention hereafter is to use method names consistent with
+    precedent in JavaScript, even in the case of `to` methods which do
+    not look right on the target side of a binding.  Since FRB delegates
+    to JavaScript methods as a fallback, the ship has sailed.
+-   Makes `flatten` fault-tolerant if any input array is null or
+    undefined.
+
+# v0.2.6
+
+-   Fixes `filter` blocks.  The optimization applied in v0.2.4 was
+    inccorrect.  The fix prevents the regression and produces the
+    originally intended optimization.
+-   Reintroduces the shortest-possible-transform algorithm and all
+    charges of bugs have been dropped.
+
+# v0.2.5
+
+-   Adds a `concat` operator.
+-   Removes the shortest-possible-transform algorithm on suspicion of
+    bugs.
+
+# v0.2.4
+
+-   Adds support for `reverters`, which are the same interface as
+    converters, but the `convert` and `revert` terminals are switched.
+    This is useful for hooking up a converter against the direction of
+    the binding arrow.
+-   Fixes `stringify` when `this` is passed as an argument to a
+    function.  Previously, the argument would be lost.
+-   Reduces the jitter on the output `filter` blocks.  This change
+    was later found to introduce bugs that were fixed in v0.2.6.
+-   All observers that produce arrays will now apply the shortest
+    possible sequence of splices to update the output array.  This
+    feature was removed in v0.2.5, and reintroduced in v0.2.6.
+-   Improves the debugging experience by providing meaningful names for
+    all observer and binder functions.
+
+# v0.2.3
+
+-   Partially fixes two-way range content bindings.
+    -   Content changes and right to left assignment propagate both
+        ways.
+    -   Propagation from left to right on assignment is still unsolved.
+-   Guarantees that rangeContent() bindings will produce a non-replacing
+    array both from observers and binders.
+-   Produces better function names in traces.
+
+# v0.2.2
+
+`stringify` can now accept a scope argument, which it will use for the
+sole purpose of expanding component labels.
+
+# v0.2.1
+
+Replace the FRB parser with a PEGJS implementation.  This extends the
+grammar for numbers and string literals (double-quotes are allowed)
+but removes support for certain hacks like using `.` for an empty
+expression.
+
+TODO commit 1a3a896464c501f851d1764d219c25bb2e989ab5
+
+# v0.2.0
 
 This release refactors most of the internals and some of the interface
 to introduce a parent scope operator, `^`.  As such, bindings now have a
