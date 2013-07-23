@@ -1,6 +1,8 @@
 
 require("collections/shim-object"); // equals, compare
 require("collections/shim-regexp"); // escape
+var Map = require("collections/map");
+var Set = require("collections/set");
 
 // from highest to lowest precedence
 
@@ -8,15 +10,21 @@ exports.toNumber = function (s) {
     return +s;
 };
 
-exports.toString = function (n) {
-    if (n == null) {
-        return "";
-    } else if (typeof n === "string") {
-        return n;
+exports.toString = function (value) {
+    if (value == null) {
+        return value;
+    } else if (typeof value === "string" || typeof value === "number") {
+        return "" + value;
     } else {
-        return "" + n;
+        return null;
     }
 };
+
+exports.toArray = Array.from;
+
+exports.toMap = Map;
+
+exports.toSet = Set;
 
 exports.not = function (b) {
     return !b;

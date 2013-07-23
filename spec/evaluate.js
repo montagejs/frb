@@ -535,6 +535,30 @@ module.exports = [
     },
 
     {
+        path: "toString()",
+        input: "Hello, World!",
+        output: "Hello, World!"
+    },
+
+    {
+        path: "toString()",
+        input: 10,
+        output: "10"
+    },
+
+    {
+        path: "toString()",
+        input: null,
+        output: null
+    },
+
+    {
+        path: "toString()",
+        input: {a: 10},
+        output: null
+    },
+
+    {
         path: "1 <=> 2",
         input: null,
         output: -1
