@@ -79,16 +79,16 @@ contains,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 join,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 split,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 ,,,,,,,,,,,,
-range(end),Y,Y,?,Y,Y,X,X,Y,Y,Y,X,Y
-"range(start, end)",Y,Y,?,N,N,X,X,N,Y,N,X,N
+range(end),Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
+"range(start, end)",Y,Y,Y,N,N,X,X,N,Y,N,X,N
 ,,,,,,,,,,,,
 toArray(ranged),Y,Y,Y,Y,Y,X,X,N,N,N,X,N
-toObject(object),N,N,N,N,N,X,X,N,N,N,X,N
-toObject(map),N,N,N,N,N,X,X,N,N,N,X,N
-toObject(entries),N,N,N,N,N,X,X,N,N,N,X,N
-toSet(ranged),Y,Y,N,Y,Y,X,X,N,N,N,X,N
-toMap(map),Y,Y,Y,N,N,X,X,N,N,N,X,N
-toMap(object),Y,Y,Y,Y,Y,X,X,N,N,N,X,N
-toMap(entries),N,N,Y,N,N,X,X,N,N,N,X,N
+toObject(object),N,N,Y,N,N,X,X,N,N,N,X,N
+toObject(map),N,N,Y,N,N,X,X,N,N,N,X,N
+toObject(entries),N,N,Y,N,N,X,X,N,N,N,X,N
+toSet(ranged),Y,Y,Y,Y,Y,X,X,N,N,N,X,N
+toMap(map),Y,Y,Y,Y,Y,X,X,Y,N,N,X,N
+toMap(object),Y,Y,Y,Y,Y,X,X,Y,N,N,X,N
+toMap(entries),Y,Y,Y,Y,N,X,X,Y,N,N,X,N
 ,,,,,,,,,,,,
 evaluate,Y,Y,Y,Y,Y,X,X,N,N,N,N,N

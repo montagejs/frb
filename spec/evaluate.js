@@ -1,3 +1,4 @@
+
 // these cases are used ot test evaluation compiler (evaluate-spec.js) and
 // observer compiler (for the initial value, evaluate-with-observe-spec.js).
 module.exports = [
@@ -556,6 +557,24 @@ module.exports = [
         path: "toString()",
         input: {a: 10},
         output: null
+    },
+
+    {
+        path: "toMap().entries()",
+        input: {a: 10, b: 20},
+        output: [['a', 10], ['b', 20]]
+    },
+
+    {
+        path: "toMap().entries()",
+        input: [['a', 10], ['b', 20]],
+        output: [['a', 10], ['b', 20]]
+    },
+
+    {
+        path: "toMap().toMap().entries()",
+        input: {a: 10, b: 20},
+        output: [['a', 10], ['b', 20]]
     },
 
     {

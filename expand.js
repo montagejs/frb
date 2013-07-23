@@ -29,36 +29,6 @@ expand.semantics = {
         "groupMapBlock"
     ]),
 
-    traverseAll: Set([
-        "if",
-        "tuple",
-        "property",
-        "get",
-        "has",
-        "map",
-        "filter",
-        "some",
-        "every",
-        "sorted",
-        "one",
-        "only",
-        "enumerate",
-        "flatten",
-        "reversed",
-        "view",
-        "order",
-        "sum",
-        "average",
-        "last",
-        "min",
-        "max",
-        "keys",
-        "values",
-        "items",
-        "evaluate",
-        "parent"
-    ]).addEach(Object.keys(Operators)),
-
     expanders: Map({
         value: function (syntax, scope) {
             return scope.value || {"type": "value"};

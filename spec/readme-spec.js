@@ -1,5 +1,6 @@
 
 var PropertyChanges = require("collections/listen/property-changes");
+var Map = require("collections/map");
 var Bindings = require("../bindings");
 var bind = require("../bind");
 var observe = require("../observe");
@@ -205,7 +206,6 @@ describe("Tutorial", function () {
         }));
 
     });
-
 
     it("Sorted", function () {
         var object = {numbers: [5, 2, 7, 3, 8, 1, 6, 4]};
@@ -533,6 +533,39 @@ describe("Tutorial", function () {
         expect(object.keys).toEqual(['b', 'c', 'd']);
         expect(object.values).toEqual([20, 30, 40]);
         expect(object.items).toEqual([['b', 20], ['c', 30], ['d', 40]]);
+    });
+
+    it("Coerce to Map", function () {
+        var object = Bindings.defineBindings({}, {
+            map: {"<-": "entries.toMap()"}
+        });
+
+        // map property will persist across changes to entries
+        var map = object.map;
+        expect(map).not.toBe(null);
+
+        object.entries = {a: 10};
+        expect(map.keys()).toEqual(['a']);
+        expect(map.has('a')).toBe(true);
+        expect(map.get('a')).toBe(10);
+
+        // Continued...
+        object.entries = [['b', 20], ['c', 30]];
+        expect(map.keys()).toEqual(['b', 'c']);
+
+        object.entries.push(object.entries.shift());
+        expect(map.keys()).toEqual(['c', 'b']);
+
+        // Continued...
+        object.entries = [['a', 10], ['a', 20]];
+        expect(map.get('a')).toEqual(20);
+        object.entries.pop();
+        expect(map.get('a')).toEqual(10);
+
+        // Continued...
+        object.entries = new Map({a: 10});
+        expect(map.keys()).toEqual(['a']);
+
     });
 
     it("Array Content", function () {

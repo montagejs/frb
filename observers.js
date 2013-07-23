@@ -639,27 +639,29 @@ function makeGroupMapBlockObserver(observeCollection, observeRelation) {
             var groups = Map();
 
             function rangeChange(plus, minus, index) {
-                var dirtyGroups = Set();
                 minus.forEach(function (item) {
                     // ASSERT groups.has(item[1]);
                     var group = groups.get(item[1]);
-                    group["delete"](item[0]);
-                    dirtyGroups.add(item[1]);
+                    if (group.length === 1) {
+                        groups["delete"](item[1]);
+                    } else {
+                        group["delete"](item[0]);
+                    }
                 });
                 plus.forEach(function (item) {
-                    if (!groups.has(item[1])) {
+                    var create = !groups.has(item[1]);
+                    var group;
+                    if (create) {
                         // constructClone ensures that the equivalence classes
                         // are the same type as the input.  It is shimmed on
                         // Array by Collections, and supported by all others.
-                        groups.set(item[1], original.constructClone());
+                        group = original.constructClone();
+                    } else {
+                        group = groups.get(item[1]);
                     }
-                    var group = groups.get(item[1]);
                     group.add(item[0]);
-                });
-                dirtyGroups.forEach(function (key) {
-                    var group = groups.get(key);
-                    if (group.length === 0) {
-                        groups["delete"](key);
+                    if (create) {
+                        groups.set(item[1], group);
                     }
                 });
             }
@@ -1013,12 +1015,17 @@ function makeMapContentObserver(observeCollection) {
 
 exports.observeMapChange = observeMapChange;
 function observeMapChange(collection, emit, scope) {
-    var cancelers = Map();
+    var cancelers = new Map();
     function mapChange(value, key, collection) {
         var cancelChild = cancelers.get(key) || Function.noop;
+        cancelers["delete"](key);
         cancelChild();
         cancelChild = emit(value, key, collection) || Function.noop;
-        cancelers.set(key, cancelChild);
+        if (value === undefined) {
+            cancelChild();
+        } else {
+            cancelers.set(key, cancelChild);
+        }
     }
     collection.forEach(mapChange);
     var cancelMapChange = collection.addMapChangeListener(mapChange, scope.beforeChange);
@@ -1103,25 +1110,42 @@ function makeToMapObserver(observeObject) {
             map.clear();
             if (!object) return;
 
-            if (object.addMapChangeListener) {
-
-                // TODO
-
-            } else if (object.addRangeChangeListener) { // array/collection of items
-
-                // TODO
-
+            // Must come first because Arrays also implement map changes, but
+            // Maps do not implement range changes.
+            if (object.addRangeChangeListener) { // array/collection of items
+                return observeUniqueEntries(autoCancelPrevious(function (entries) {
+                    function rangeChange(plus, minus) {
+                        minus.forEach(function (entry) {
+                            map["delete"](entry[0]);
+                        });
+                        plus.forEach(function (entry) {
+                            map.set(entry[0], entry[1]);
+                        });
+                    }
+                    return observeRangeChange(entries, rangeChange, scope);
+                }), Scope.nest(scope, object));
+            } else if (object.addMapChangeListener) { // map reflection
+                function mapChange(value, key) {
+                    if (value === undefined) {
+                        map["delete"](key);
+                    } else {
+                        map.set(key, value);
+                    }
+                }
+                return observeMapChange(object, mapChange, scope);
             } else { // object literal
-
                 var cancelers = Object.keys(object).map(function (key) {
                     return _observeProperty(object, key, autoCancelPrevious(function (value) {
-                        map.set(key, value);
+                        if (value === undefined) {
+                            map["delete"](key);
+                        } else {
+                            map.set(key, value);
+                        }
                     }), scope);
                 });
                 return function cancelPropertyObservers() {
                     cancelEach(cancelers);
                 };
-
             }
         }), scope);
 
@@ -1131,6 +1155,16 @@ function makeToMapObserver(observeObject) {
         };
     };
 }
+
+// A utility for makeToMapObserver
+// object.group{.0}.map{.1.last()}
+var observeUniqueEntries = makeMapBlockObserver(
+    makeGroupBlockObserver(
+        observeValue,
+        observeEntryKey
+    ),
+    makeLastObserver(observeEntryValue)
+);
 
 
 // Combinatoric Observers

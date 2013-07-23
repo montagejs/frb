@@ -818,6 +818,59 @@ expect(object.values).toEqual([20, 30, 40]);
 expect(object.entries).toEqual([['b', 20], ['c', 30], ['d', 40]]);
 ```
 
+### Coerce to Map
+
+Records (Objects with a fixed shape), arrays of entries, and Maps
+themselves can be coerced to an incrementally updated `Map` with the
+`toMap` operator.
+
+```javascript
+var object = Bindings.defineBindings({}, {
+    map: {"<-": "entries.toMap()"}
+});
+
+// map property will persist across changes to entries
+var map = object.map;
+expect(map).not.toBe(null);
+
+object.entries = {a: 10};
+expect(map.keys()).toEqual(['a']);
+expect(map.has('a')).toBe(true);
+expect(map.get('a')).toBe(10);
+```
+
+The `toMap` observer maintains the insertion order of the keys.
+
+```javascript
+// Continued...
+object.entries = [['b', 20], ['c', 30]];
+expect(map.keys()).toEqual(['b', 'c']);
+
+object.entries.push(object.entries.shift());
+expect(map.keys()).toEqual(['c', 'b']);
+```
+
+If the entries do not have unique keys, the last entry wins.  This is
+managed internally by observing, `entries.group{.0}.map{.1.last()}`.
+
+```javascript
+// Continued...
+object.entries = [['a', 10], ['a', 20]];
+expect(map.get('a')).toEqual(20);
+object.entries.pop();
+expect(map.get('a')).toEqual(10);
+```
+
+`toMap` binds the content of the output map to the content of the input
+map and will clear and repopulate the output map if the input map is
+replaced.
+
+```
+// Continued...
+object.entries = new Map({a: 10});
+expect(map.keys()).toEqual(['a']);
+```
+
 ### Equals
 
 You can bind to whether expressions are equal.
@@ -857,7 +910,6 @@ can use either `=` or `==`.
 FRB also supports a comparison operator, `<=>`, which uses
 `Object.compare` to determines how two operands should be sorted in
 relation to each other.
-
 
 ### Array and Map Content
 
@@ -1049,7 +1101,6 @@ FRB supports some common functions.  `startsWith`, `endsWith`, and
 `contains` all operate on strings.  `join` concatenates an array of
 strings with a given delimiter (or empty string).  `split` breaks a
 string between every delimiter (or just between every character).
-
 
 ### Conditional
 
