@@ -25,7 +25,8 @@ var semantics = compile.semantics = {
         mapContent: Function.identity,
         keys: Observers.makeKeysObserver,
         values: Observers.makeValuesObserver,
-        items: Observers.makeItemsObserver,
+        items: Observers.makeEntriesObserver, // XXX deprecated
+        entries: Observers.makeEntriesObserver,
         toMap: Observers.makeToMapObserver,
         mapBlock: Observers.makeMapBlockObserver,
         filterBlock: Observers.makeFilterBlockObserver,

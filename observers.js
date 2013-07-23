@@ -461,10 +461,10 @@ function makeReplacingFilterBlockObserver(observeCollection, observePredicate) {
 
 exports.makeSortedBlockObserver = makeSortedBlockObserver;
 function makeSortedBlockObserver(observeCollection, observeRelation) {
-    var observeRelationItem = makeRelationItemObserver(observeRelation);
-    var observeRelationItems = makeReplacingMapBlockObserver(observeCollection, observeRelationItem);
+    var observeRelationEntry = makeRelationEntryObserver(observeRelation);
+    var observeRelationEntries = makeReplacingMapBlockObserver(observeCollection, observeRelationEntry);
     var observeSort = function (emit, scope) {
-        return observeRelationItems(autoCancelPrevious(function (input) {
+        return observeRelationEntries(autoCancelPrevious(function (input) {
             if (!input) return emit();
 
             var output = [];
@@ -489,11 +489,11 @@ function makeSortedBlockObserver(observeCollection, observeRelation) {
             };
         }), scope);
     };
-    return makeMapBlockObserver(observeSort, observeItemKey);
+    return makeMapBlockObserver(observeSort, observeEntryKey);
 }
 
 // Transforms a value into a [value, relation(value)] tuple
-function makeRelationItemObserver(observeRelation) {
+function makeRelationEntryObserver(observeRelation) {
     return function (emit, scope) {
         return observeRelation(autoCancelPrevious(function (value) {
             return emit([scope.value, value]) || Function.noop;
@@ -625,15 +625,15 @@ function makeEveryBlockObserver(observeCollection, observePredicate) {
 exports.makeGroupBlockObserver = makeGroupBlockObserver;
 function makeGroupBlockObserver(observeCollection, observeRelation) {
     var observeGroup = makeGroupMapBlockObserver(observeCollection, observeRelation);
-    return makeItemsObserver(observeGroup);
+    return makeEntriesObserver(observeGroup);
 }
 
 exports.makeGroupMapBlockObserver = makeGroupMapBlockObserver;
 function makeGroupMapBlockObserver(observeCollection, observeRelation) {
-    var observeRelationItem = makeRelationItemObserver(observeRelation);
-    var observeRelationItems = makeReplacingMapBlockObserver(observeCollection, observeRelationItem);
+    var observeRelationEntry = makeRelationEntryObserver(observeRelation);
+    var observeRelationEntries = makeReplacingMapBlockObserver(observeCollection, observeRelationEntry);
     return function observeGroup(emit, scope) {
-        return observeRelationItems(autoCancelPrevious(function (input, original) {
+        return observeRelationEntries(autoCancelPrevious(function (input, original) {
             if (!input) return emit();
 
             var groups = Map();
@@ -675,8 +675,8 @@ function makeGroupMapBlockObserver(observeCollection, observeRelation) {
 }
 
 function makeHeapBlockObserver(observeCollection, observeRelation, order) {
-    var observeRelationItem = makeRelationItemObserver(observeRelation);
-    var observeRelationItems = makeReplacingMapBlockObserver(observeCollection, observeRelationItem);
+    var observeRelationEntry = makeRelationEntryObserver(observeRelation);
+    var observeRelationEntries = makeReplacingMapBlockObserver(observeCollection, observeRelationEntry);
 
     function itemCompare(a, b) {
         return Object.compare(a[1], b[1]) * order;
@@ -687,7 +687,7 @@ function makeHeapBlockObserver(observeCollection, observeRelation, order) {
 
     return function observeHeapBlock(emit, scope) {
 
-        return observeRelationItems(autoCancelPrevious(function (input) {
+        return observeRelationEntries(autoCancelPrevious(function (input) {
             if (!input) return emit();
 
             var heap = new Heap(null, itemEquals, itemCompare);
@@ -1030,40 +1030,40 @@ function observeMapChange(collection, emit, scope) {
     });
 }
 
-var makeItemsObserver = exports.makeItemsObserver = makeNonReplacing(makeReplacingItemsObserver);
-function makeReplacingItemsObserver(observeCollection) {
-    return function _observeItems(emit, scope) {
+var makeEntriesObserver = exports.makeEntriesObserver = makeNonReplacing(makeReplacingEntriesObserver);
+function makeReplacingEntriesObserver(observeCollection) {
+    return function _observeEntries(emit, scope) {
         return observeCollection(autoCancelPrevious(function (collection) {
             if (!collection) return emit();
-            return observeItems(collection, emit, scope);
+            return observeEntries(collection, emit, scope);
         }), scope);
     };
 }
 
-exports.observeItems = observeItems;
-function observeItems(collection, emit, scope) {
+exports.observeEntries = observeEntries;
+function observeEntries(collection, emit, scope) {
     var items = [];
-    var keyToItem = Map();
+    var keyToEntry = Map();
     var cancel = emit(items) || Function.noop;
     // TODO observe addition and deletion with separate observers
     function mapChange(value, key, collection) {
         var item, index;
-        if (!keyToItem.has(key)) { // add
+        if (!keyToEntry.has(key)) { // add
             item = [key, value];
-            keyToItem.set(key, item);
+            keyToEntry.set(key, item);
             items.push(item);
         } else if (value == null) { // delete
-            item = keyToItem.get(key);
-            keyToItem["delete"](key);
+            item = keyToEntry.get(key);
+            keyToEntry["delete"](key);
             index = items.indexOf(item);
             items.splice(index, 1);
         } else { // update
-            item = keyToItem.get(key);
+            item = keyToEntry.get(key);
             item.set(1, value);
         }
     }
     var cancelMapChange = observeMapChange(collection, mapChange, scope);
-    return once(function cancelObserveItems() {
+    return once(function cancelObserveEntries() {
         cancel();
         cancelMapChange();
     });
@@ -1071,24 +1071,24 @@ function observeItems(collection, emit, scope) {
 
 exports.makeKeysObserver = makeKeysObserver;
 function makeKeysObserver(observeCollection) {
-    var observeItems = makeItemsObserver(observeCollection);
-    return makeMapBlockObserver(observeItems, observeItemKey);
+    var observeEntries = makeEntriesObserver(observeCollection);
+    return makeMapBlockObserver(observeEntries, observeEntryKey);
 }
 
-exports.observeItemKey = observeItemKey;
-function observeItemKey(emit, scope) {
+exports.observeEntryKey = observeEntryKey;
+function observeEntryKey(emit, scope) {
     if (!scope.value) return emit();
     return emit(scope.value[0]) || Function.noop;
 }
 
 exports.makeValuesObserver = makeValuesObserver;
 function makeValuesObserver(observeCollection) {
-    var observeItems = makeItemsObserver(observeCollection);
-    return makeMapBlockObserver(observeItems, observeItemValue);
+    var observeEntries = makeEntriesObserver(observeCollection);
+    return makeMapBlockObserver(observeEntries, observeEntryValue);
 }
 
-exports.observeItemValue = observeItemValue;
-function observeItemValue(emit, scope) {
+exports.observeEntryValue = observeEntryValue;
+function observeEntryValue(emit, scope) {
     if (!scope.value) return emit();
     return emit(scope.value[1]) || Function.noop;
 }

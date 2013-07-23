@@ -516,7 +516,7 @@ describe("Tutorial", function () {
         expect(object.b.toObject()).toEqual({a: 10, b: 20});
     });
 
-    it("Keys, Values, Items", function () {
+    it("Keys, Values, Entries", function () {
         var Map = require("collections/map");
         var object = Bindings.defineBindings({}, {
             keys: {"<-": "map.keys()"},
