@@ -94,3 +94,6 @@ Object.keys(Operators).forEach(function (name) {
     }
 });
 
+// a special Hell for non-enumerable inheritance
+compilers.toString = Observers.makeOperatorObserverMaker(Operators.toString);
+
