@@ -233,7 +233,7 @@ function makeRangeContentBinder(observeTarget, bindTarget) {
                     return;
                 }
                 if (!source.addRangeChangeListener) {
-                    throw new Error("Can't bind rangeContent() from object that does not support range content change listeners: " + source);
+                    return;
                 }
 
                 function rangeContentSourceRangeChange(plus, minus, index) {

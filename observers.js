@@ -259,7 +259,7 @@ function makeMethodObserverMaker(name) {
                     if (object[name]) {
                         return emit(object[name].apply(object, operands));
                     } else {
-                        throw new Error("Object has no method " + JSON.stringify(name) + ": " + object);
+                        return emit();
                     }
                 }), scope);
             }), scope);
@@ -924,10 +924,10 @@ function observeRangeChange(collection, emit, scope) {
         cancelChild = emit(plus, minus, index) || Function.noop;
     }
     if (!collection.toArray) {
-        throw new Error("Can't observe range changes on " + collection + " because it has no toArray method");
+        return;
     }
     if (!collection.addRangeChangeListener) {
-        throw new Error("Can't observe range changes on " + collection);
+        return;
     }
     rangeChange(collection.toArray(), [], 0);
     var cancelRangeChange = collection.addRangeChangeListener(
