@@ -256,7 +256,7 @@ function makeMethodObserverMaker(name) {
                 return observeOperandChanges(autoCancelPrevious(function (operands) {
                     if (!operands.every(Operators.defined))
                         return emit();
-                    if (object[name]) {
+                    if (typeof object[name] === "function") {
                         return emit(object[name].apply(object, operands));
                     } else {
                         return emit();
@@ -1015,6 +1015,8 @@ function makeMapContentObserver(observeCollection) {
 
 exports.observeMapChange = observeMapChange;
 function observeMapChange(collection, emit, scope) {
+    if (!collection.addMapChangeListener)
+        return;
     var cancelers = new Map();
     function mapChange(value, key, collection) {
         var cancelChild = cancelers.get(key) || Function.noop;
@@ -1069,7 +1071,7 @@ function observeEntries(collection, emit, scope) {
             item.set(1, value);
         }
     }
-    var cancelMapChange = observeMapChange(collection, mapChange, scope);
+    var cancelMapChange = observeMapChange(collection, mapChange, scope) || Function.noop;
     return once(function cancelObserveEntries() {
         cancel();
         cancelMapChange();
