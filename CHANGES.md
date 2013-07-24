@@ -1,4 +1,9 @@
 
+# v0.2.10
+
+-   Uprev `collections`
+-   Increase fault-tolerance of map change observers
+
 # v0.2.9
 
 -   Tighten the precedence of the `^` (parent scope) operator.  This
