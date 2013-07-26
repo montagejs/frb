@@ -29,6 +29,12 @@ compile.semantics = {
         var compilers = this.compilers;
         if (syntax.type === "default") {
             return this.compile(syntax.args[0]);
+        } else if (syntax.type === "literal") {
+            if (syntax.value == null) {
+                return Function.noop;
+            } else {
+                throw new Error("Can't bind to literal: " + syntax.value);
+            }
         } else if (syntax.type === "equals") {
             var bindLeft = this.compile(syntax.args[0]);
             var observeRight = compileObserver(syntax.args[1]);
