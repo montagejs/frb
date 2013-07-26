@@ -1110,7 +1110,7 @@ function makeToMapObserver(observeObject) {
 
         var cancelObjectObserver = observeObject(autoCancelPrevious(function replaceObject(object) {
             map.clear();
-            if (!object) return;
+            if (!object || typeof object !== "object") return;
 
             // Must come first because Arrays also implement map changes, but
             // Maps do not implement range changes.
