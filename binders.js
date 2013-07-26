@@ -9,6 +9,7 @@ var makeNotObserver = Observers.makeNotObserver;
 var makeOrObserver = Observers.makeOrObserver;
 var makeAndObserver = Observers.makeAndObserver;
 var observeValue = Observers.observeValue;
+var observeUndefined = Observers.makeLiteralObserver();
 var trueScope = new Scope(true);
 var falseScope = new Scope(false);
 
@@ -331,6 +332,26 @@ function makeReversedBinder(observeTarget) {
         }), target);
     };
 }
+
+exports.makeDefinedBinder = makeDefinedBinder;
+function makeDefinedBinder(bindTarget) {
+    return function bindReversed(observeSource, sourceScope, targetScope, descriptor, trace) {
+        return observeSource(autoCancelPrevious(function replaceSource(condition) {
+            if (!condition) {
+                return bindTarget(
+                    observeUndefined,
+                    sourceScope,
+                    targetScope,
+                    descriptor,
+                    trace
+                );
+            } else {
+                return Function.noop;
+            }
+        }), targetScope);
+    }
+}
+
 
 function isActive(target) {
     return (

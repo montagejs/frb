@@ -70,6 +70,9 @@ compile.semantics = {
                 bindTarget = Function.noop;
             }
             return Binders.makeRangeContentBinder(observeTarget, bindTarget);
+        } else if (syntax.type === "defined") {
+            var bindTarget = this.compile(syntax.args[0]);
+            return Binders.makeDefinedBinder(bindTarget);
         } else if (compilers.hasOwnProperty(syntax.type)) {
             var argObservers = syntax.args.map(compileObserver, compileObserver.semantics);
             return compilers[syntax.type].apply(null, argObservers);
