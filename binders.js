@@ -88,6 +88,7 @@ function makeHasBinder(observeSet, observeValue) {
         return observeSet(autoCancelPrevious(function replaceHasBindingSet(set) {
             if (!set) return;
             return observeValue(autoCancelPrevious(function replaceHasBindingValue(value) {
+                if (value == null) return;
                 return observeHas(autoCancelPrevious(function changeWhetherSetHas(has) {
                     // wait for the initial value to be updated by the
                     // other-way binding
