@@ -1,4 +1,15 @@
 
+# v0.2.11
+
+-   Adds the ability to bind to conditionally bind to `null`, to disable
+    a binding, e.g., `unstopableForce <-> never ? imovableObject :
+    null`.
+-   Adds support to bind to `defined()`, e.g., `value.defined() <-
+    defined`, which will bind `value` to `undefined` when `defined`
+    is `false`.  Takes no action when `defined` becomes `true`.
+-   Short circuit `has(value)` observers if `value` is null.
+-   Soort circuit `object.toMap()` if `object` is null or not an object.
+
 # v0.2.10
 
 -   Uprev `collections`
