@@ -54,6 +54,7 @@ var semantics = compile.semantics = {
         startsWith: Observers.makeStartsWithObserver,
         endsWith: Observers.makeEndsWithObserver,
         contains: Observers.makeContainsObserver,
+        join: Observers.makeJoinObserver,
         toArray: Observers.makeToArrayObserver,
         asArray: Observers.makeToArrayObserver // XXX deprecated
     },

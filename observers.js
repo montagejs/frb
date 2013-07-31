@@ -914,6 +914,32 @@ function makeContainsObserver(observeHaystack, observeNeedle) {
     }
 }
 
+exports.makeJoinObserver = makeJoinObserver;
+function makeJoinObserver(observeArray, observeDelimiter) {
+    observeDelimiter = observeDelimiter || observeNullStringLiteral;
+    return function observeJoin(emit, scope) {
+        return observeArray(autoCancelPrevious(function changeJoinArray(array) {
+            if (!array)
+                return emit() || Function.noop;
+            return observeDelimiter(autoCancelPrevious(function changeJoinDelimiter(delimiter) {
+                if (typeof delimiter !== "string")
+                    return emit() || Function.noop;
+                var cancel = Function.noop;
+                function rangeChange() {
+                    cancel = emit(array.join(delimiter)) || Function.noop;
+                }
+                var cancelRangeChange = observeRangeChange(array, rangeChange, scope);
+                return function cancelJoinObserver() {
+                    cancelRangeChange();
+                    cancel();
+                };
+            }), scope);
+        }), scope);
+    };
+}
+
+var observeNullStringLiteral = makeLiteralObserver("");
+
 // Collection Observers
 
 exports.observeRangeChange = observeRangeChange;
