@@ -983,6 +983,29 @@ function observeLast(collection, emit, scope) {
     };
 }
 
+exports.makeOnlyObserver = makeOnlyObserver;
+function makeOnlyObserver(observeCollection) {
+    return function (emit, scope) {
+        return observeCollection(autoCancelPrevious(makeUniq(function replaceCollectionForOnly(collection) {
+            return observeOnly(collection, emit, scope);
+        })), scope);
+    };
+}
+
+exports.observeOnly = observeOnly;
+function observeOnly(collection, emit, scope) {
+    var length = 0;
+    function rangeChange(plus, minus, index) {
+        length += plus.length - minus.length;
+        if (length === 1) {
+            return emit(collection.only());
+        } else {
+            return emit();
+        }
+    }
+    return observeRangeChange(collection, rangeChange, scope);
+}
+
 exports.makeRangeContentObserver = makeRangeContentObserver;
 function makeRangeContentObserver(observeCollection) {
     return function observeContent(emit, scope) {

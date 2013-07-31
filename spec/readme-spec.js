@@ -123,6 +123,35 @@ describe("Tutorial", function () {
         expect(object.last).toBe(null);
     });
 
+    it("Only", function () {
+        var object = {array: [], only: null};
+        Bindings.defineBindings(object, {
+            only: {"<->": "array.only()"}
+        });
+
+        object.array = [1];
+        expect(object.only).toBe(1);
+
+        object.array.pop();
+        expect(object.only).toBe(undefined);
+
+        object.array = [1, 2, 3];
+        expect(object.only).toBe(undefined);
+
+        // (binding)
+        // Continued from above...
+        object.only = 2;
+        expect(object.array.slice()).toEqual([2]);
+        // Note that slice() is necessary only because the testing scaffold
+        // does not consider an observable array equivalent to a plain array
+        // with the same content
+
+        object.only = null;
+        object.array.push(3);
+        expect(object.array.slice()).toEqual([2, 3]);
+
+    });
+
     it("Map", function () {
         var object = {objects: [
             {number: 10},

@@ -220,6 +220,50 @@ array.clear();
 expect(object.last).toBe(null);
 ```
 
+### Only
+
+FRB provides an `only` operator, which can either observe or bind the
+only element of a collection.  The `only` observer watches a collection
+for when there is only one value in that collection and emits that
+value..  If there are multiple values, it emits null.
+
+```javascript
+var object = {array: [], only: null};
+Bindings.defineBindings(object, {
+    only: {"<->": "array.only()"}
+});
+
+object.array = [1];
+expect(object.only).toBe(1);
+
+object.array.pop();
+expect(object.only).toBe(undefined);
+
+object.array = [1, 2, 3];
+expect(object.only).toBe(undefined);
+```
+
+THe `only` binder watches a value.  When the value is null, it does
+nothing.  Otherwise, it will update the bound collection such that it
+only contains that value.  If the collection was empty, it adds the
+value.  Otherwise, if the collection did not have the value, it replaces
+the collection's content with the one value.  Otherwise, it removes
+everything but the value it already contains.  Regardless of the means,
+the end result is the same.  If the value is non-null, it will be the
+only value in the collection.
+
+```javascript
+object.only = 2;
+expect(object.array.slice()).toEqual([2]);
+// Note that slice() is necessary only because the testing scaffold
+// does not consider an observable array equivalent to a plain array
+// with the same content
+
+object.only = null;
+object.array.push(3);
+expect(object.array.slice()).toEqual([2, 3]);
+```
+
 ### Map
 
 You can also create mappings from one array to a new array and an

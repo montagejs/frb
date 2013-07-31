@@ -211,6 +211,20 @@ function makeConditionalBinder(observeCondition, bindConsequent, bindAlternate) 
     };
 }
 
+// array.only() <- value
+exports.makeOnlyBinder = makeOnlyBinder;
+function makeOnlyBinder(observeArray) {
+    return function bindOnly(observeValue, sourceScope, targetScope, descriptor, trace) {
+        return observeArray(autoCancelPrevious(function replaceArray(array) {
+            if (!array) return;
+            return observeValue(autoCancelPrevious(function replaceOnlyValue(value) {
+                if (value == null) return;
+                array.splice(0, array.length, value);
+            }), sourceScope);
+        }), targetScope);
+    };
+}
+
 // a.* <- b.*
 exports.makeRangeContentBinder = makeRangeContentBinder;
 function makeRangeContentBinder(observeTarget, bindTarget) {
