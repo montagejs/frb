@@ -415,6 +415,14 @@ module.exports = [
     },
 
     {
+        path: "sortedSet{}",
+        syntax: {type: "sortedSetBlock", args: [
+            {type: "value"},
+            {type: "value"}
+        ]}
+    },
+
+    {
         path: "flatten()",
         syntax: {type: "flatten", args: [
             {type: "value"}

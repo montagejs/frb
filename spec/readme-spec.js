@@ -269,6 +269,57 @@ describe("Tutorial", function () {
         ]);
     });
 
+    it("Unique and Sorted", function () {
+
+        var object = Bindings.defineBindings({
+            folks: [
+                {id: 4, name: "Bob"},
+                {id: 2, name: "Alice"},
+                {id: 3, name: "Bob"},
+                {id: 1, name: "Alice"},
+                {id: 1, name: "Alice"} // redundant
+            ]
+        }, {
+            inOrder: {"<-": "folks.sortedSet{id}"},
+            byId: {"<-": "folks.map{[id, this]}.toMap()"},
+            byName: {"<-": "inOrder.toArray().group{name}.toMap()"}
+        });
+
+        expect(object.inOrder.toArray()).toEqual([
+            object.byId.get(1),
+            object.byId.get(2),
+            object.byId.get(3),
+            object.byId.get(4)
+        ]);
+
+        expect(object.byName.get("Alice")).toEqual([
+            object.byId.get(1),
+            object.byId.get(2)
+        ]);
+
+    });
+
+    it("Unique and Sorted (Array)", function () {
+        var object = Bindings.defineBindings({
+            folks: [
+                {id: 4, name: "Bob"},
+                {id: 2, name: "Alice"},
+                {id: 3, name: "Bob"},
+                {id: 1, name: "Alice"},
+                {id: 1, name: "Alice"} // redundant
+            ]
+        }, {
+            index: {"<-": "folks.group{id}.sorted{.0}.map{.1.last()}"}
+        });
+
+        expect(object.index).toEqual([
+            {id: 1, name: "Alice"},
+            {id: 2, name: "Alice"},
+            {id: 3, name: "Bob"},
+            {id: 4, name: "Bob"}
+        ]);
+    });
+
     it("Min and Max", function () {
         var object = Bindings.defineBindings({}, {
             min: {"<-": "values.min{}"},

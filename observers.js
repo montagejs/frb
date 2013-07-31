@@ -3,6 +3,7 @@ require("collections/shim"); // Function.noop
 var PropertyChanges = require("collections/listen/property-changes");
 require("collections/listen/array-changes");
 var SortedArray = require("collections/sorted-array");
+var SortedSet = require("collections/sorted-set");
 var Map = require("collections/map");
 var Set = require("collections/set");
 var Heap = require("collections/heap");
@@ -466,17 +467,8 @@ function makeSortedBlockObserver(observeCollection, observeRelation) {
     var observeSort = function (emit, scope) {
         return observeRelationEntries(autoCancelPrevious(function (input) {
             if (!input) return emit();
-
             var output = [];
-            var sorted = SortedArray(
-                output,
-                function equals(x, y) {
-                    return Object.equals(x[1], y[1]);
-                },
-                function compare(x, y) {
-                    return Object.compare(x[1], y[1]);
-                }
-            );
+            var sorted = SortedArray(output, entryValueEquals, entryValueCompare);
             function rangeChange(plus, minus) {
                 sorted.addEach(plus);
                 sorted.deleteEach(minus);
@@ -492,6 +484,14 @@ function makeSortedBlockObserver(observeCollection, observeRelation) {
     return makeMapBlockObserver(observeSort, observeEntryKey);
 }
 
+function entryValueEquals(x, y) {
+    return Object.equals(x[1], y[1]);
+}
+
+function entryValueCompare(x, y) {
+    return Object.compare(x[1], y[1]);
+}
+
 // Transforms a value into a [value, relation(value)] tuple
 function makeRelationEntryObserver(observeRelation) {
     return function (emit, scope) {
@@ -501,7 +501,47 @@ function makeRelationEntryObserver(observeRelation) {
     };
 }
 
-// TODO makeSortedSetBlockObserver
+exports.makeSortedSetBlockObserver = makeSortedSetBlockObserver;
+function makeSortedSetBlockObserver(observeCollection, observeRelation) {
+    var observeRelationEntry = makeRelationEntryObserver(observeRelation);
+    var observeRelationEntries = makeReplacingMapBlockObserver(observeCollection, observeRelationEntry);
+    var observeRelationEntryGroups = makeGroupBlockObserver(observeRelationEntries, observeEntryValue);
+    var observeUniqueRelationEntries = makeReplacingMapBlockObserver(observeRelationEntryGroups, makeLastObserver(observeEntryValue));
+    return function observeSortedSetBlock(emit, scope) {
+        var order = new Map();
+        function compare(x, y) {
+            x = order.get(x);
+            y = order.get(y);
+            return Object.compare(x, y);
+        }
+        function equals(x, y) {
+            x = order.get(x);
+            y = order.get(y);
+            return Object.equals(x, y);
+        }
+        var sortedSet = new SortedSet(null, equals, compare);
+        var cancel = emit(sortedSet) || Function.noop;
+        function rangeChange(plus, minus) {
+            minus.forEach(function (entry) {
+                sortedSet["delete"](entry[0]);
+                order["delete"](entry[0]);
+            });
+            plus.forEach(function (entry) {
+                order.set(entry[0], entry[1]);
+                sortedSet.add(entry[0]);
+            });
+        }
+        function entriesChange(entries) {
+            sortedSet.clear();
+            return observeRangeChange(entries, rangeChange, scope);
+        }
+        var cancelUniqueValuesObserver = observeUniqueRelationEntries(entriesChange, scope);
+        return function cancelSortedSetObserver() {
+            cancel();
+            cancelUniqueValuesObserver();
+        };
+    };
+}
 
 // calculating the reflected index for an incremental change:
 // [0, 1, 2, 3]  length 4
@@ -680,11 +720,8 @@ function makeHeapBlockObserver(observeCollection, observeRelation, order) {
     var observeRelationEntry = makeRelationEntryObserver(observeRelation);
     var observeRelationEntries = makeReplacingMapBlockObserver(observeCollection, observeRelationEntry);
 
-    function itemCompare(a, b) {
+    function entryValueOrderCompare(a, b) {
         return Object.compare(a[1], b[1]) * order;
-    }
-    function itemEquals(a, b) {
-        return Object.equals(a[1], b[1]);
     }
 
     return function observeHeapBlock(emit, scope) {
@@ -692,7 +729,7 @@ function makeHeapBlockObserver(observeCollection, observeRelation, order) {
         return observeRelationEntries(autoCancelPrevious(function (input) {
             if (!input) return emit();
 
-            var heap = new Heap(null, itemEquals, itemCompare);
+            var heap = new Heap(null, entryValueEquals, entryValueOrderCompare);
 
             function rangeChange(plus, minus) {
                 heap.addEach(plus);

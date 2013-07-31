@@ -4494,6 +4494,7 @@ module.exports = (function() {
             "some": "someBlock",
             "every": "everyBlock",
             "sorted": "sortedBlock",
+            "sortedSet": "sortedSetBlock",
             "group": "groupBlock",
             "groupMap": "groupMapBlock",
             "min": "minBlock",

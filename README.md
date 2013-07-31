@@ -432,6 +432,65 @@ expect(object.sorted.map(function (array) {
 ]);
 ```
 
+### Unique and Sorted
+
+FRB can create a sorted index of unique values using `sortedSet` blocks.
+
+```javascript
+var object = Bindings.defineBindings({
+    folks: [
+        {id: 4, name: "Bob"},
+        {id: 2, name: "Alice"},
+        {id: 3, name: "Bob"},
+        {id: 1, name: "Alice"},
+        {id: 1, name: "Alice"} // redundant
+    ]
+}, {
+    inOrder: {"<-": "folks.sortedSet{id}"},
+    byId: {"<-": "folks.map{[id, this]}.toMap()"},
+    byName: {"<-": "inOrder.toArray().group{name}.toMap()"}
+});
+
+expect(object.inOrder.toArray()).toEqual([
+    object.byId.get(1),
+    object.byId.get(2),
+    object.byId.get(3),
+    object.byId.get(4)
+]);
+
+expect(object.byName.get("Alice")).toEqual([
+    object.byId.get(1),
+    object.byId.get(2)
+]);
+```
+
+The outcome is a `SortedSet` data structure, not an `Array`.  The sorted
+set is useful for fast lookups, inserts, and deletes on sorted, unique
+data.  If you would prefer a sorted array of unique values, you can
+combine other operators to the same effect.
+
+```javascript
+var object = Bindings.defineBindings({
+    folks: [
+        {id: 4, name: "Bob"},
+        {id: 2, name: "Alice"},
+        {id: 3, name: "Bob"},
+        {id: 1, name: "Alice"},
+        {id: 1, name: "Alice"} // redundant
+    ]
+}, {
+    index: {"<-": "folks.group{id}.sorted{.0}.map{.1.last()}"}
+});
+
+expect(object.index).toEqual([
+    {id: 1, name: "Alice"},
+    {id: 2, name: "Alice"},
+    {id: 3, name: "Bob"},
+    {id: 4, name: "Bob"}
+]);
+```
+
+
 ### Min and Max
 
 A binding can observe the minimum or maximum of a collection.  FRB uses
@@ -2094,9 +2153,10 @@ expect(path).toBe("a && b");
 -   **block-call** = **function-name** `{` **expression** `}`
     -   **block-name** = `map` *(mapBlock)* or `filter` *(filterBlock)*
         or `some` *(someBlock)* or `every` *(everyBlock)* or `sorted`
-        *(sortedBlock)* or `min` *(minBlock)* or `max` *(maxBlock)* or
-        `group` *(groupBlock)* or `groupMap` *(groupMapBlock)* or
-        **function-name** *(map followed by function-call)*
+        *(sortedBlock)* or `sortedSet` *(sortedSetBlock)* or `min`
+        *(minBlock)* or `max` *(maxBlock)* or `group` *(groupBlock)* or
+        `groupMap` *(groupMapBlock)* or **function-name** *(map followed
+        by function-call)*
 -   **literal** = **string-literal** or **number-literal**
     -   **number-literal** = **digits** ( `.` **digits** )? *(literal
         and value is a number)*
@@ -2167,6 +2227,12 @@ available.
     property of each value described in the block, or itself if empty.
     Sorted arrays are incrementally updating as values are added and
     deleted from the source.
+-   A "sortedSet" block observes a collection that emits range change
+    events, by way of a property of each value described in the block,
+    or itself if empty, emitting a `SortedSet` value exactly once.  If
+    the input is or becomes invalid, the sorted set is cleared, not
+    replaced.  The sorted set will always contain the last of each group
+    of equivalant values from the input.
 -   A "min" block observes the which of the values in a given collection
     produces the smallest value through the given relation.
 -   A "max" block observes the which of the values in a given collection
@@ -2377,6 +2443,7 @@ nodes (or an "args" object for `record`).
 -   `everyBlock`: the left is the input, the right is a criterion.
 -   `sortedBlock`: the left is the input, the right is a relation on
     each value of the input on which to compare to determine the order.
+-   `sortedSetBlock`: differs only in semantics from `sortedBlock`.
 -   `minBlock`: the left is the input, the right is a relation on each
     value of the input by which to compare the value to others.
 -   `maxBlock`: the left is the input, the right is a relation on each

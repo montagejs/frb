@@ -33,7 +33,7 @@ var semantics = compile.semantics = {
         everyBlock: Observers.makeEveryBlockObserver,
         someBlock: Observers.makeSomeBlockObserver,
         sortedBlock: Observers.makeSortedBlockObserver,
-        // TODO sortedSetBlock: Observers.makeSortedSetBlockObserver,
+        sortedSetBlock: Observers.makeSortedSetBlockObserver,
         groupBlock: Observers.makeGroupBlockObserver,
         groupMapBlock: Observers.makeGroupMapBlockObserver,
         minBlock: Observers.makeMinBlockObserver,

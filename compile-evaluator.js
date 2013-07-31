@@ -1,6 +1,7 @@
 
 var Object = require("collections/shim-object");
 var Map = require("collections/map");
+var SortedSet = require("collections/sorted-set");
 var Operators = require("./operators");
 var Scope = require("./scope");
 
@@ -111,6 +112,25 @@ var argCompilers = {
             .sorted(Function.by(function (value) {
                 return evaluateRelation(Scope.nest(scope, value));
             }));
+        };
+    },
+
+    sortedSetBlock: function (evaluateCollection, evaluateRelation) {
+        return function (scope) {
+            function map(x) {
+                return evaluateRelation(Scope.nest(scope, x));
+            }
+            function contentCompare(x, y) {
+                return Object.compare(map(x), map(y));
+            }
+            function contentEquals(x, y) {
+                return Object.equals(map(x), map(y));
+            }
+            return new SortedSet(
+                evaluateCollection(scope),
+                contentEquals,
+                contentCompare
+            );
         };
     },
 

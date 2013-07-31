@@ -22,7 +22,7 @@ defined,Y,Y,Y,Y,Y,X,X,N,N,N,N,N
 mapBlock,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 filterBlock,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 sortedBlock,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
-sortedSetBlock,N,N,Y,N,N,X,X,N,N,N,X,N
+sortedSetBlock,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 groupBlock,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 groupMapBlock,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 mapContent,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y

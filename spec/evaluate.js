@@ -215,6 +215,12 @@ module.exports = [
     },
 
     {
+        path: "sortedSet{foo}.map{foo}.reversed()",
+        input: [{foo: 3}, {foo: 1}, {foo: 1}, {foo: 2}],
+        output: [3, 2, 1]
+    },
+
+    {
         path: "group{score}",
         input: [{score: 1, name: "Josh"}, {score: 1, name: "Ben"}, {score: 2, name: "Alice"}],
         output: [
