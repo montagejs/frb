@@ -110,7 +110,16 @@ solve.semantics = {
         },
         root: function (target, source) {
             return this.invert(target, source, 'pow');
+        },
+        // terms.join(delimiter) <- string
+        // terms <- string.split(delimiter)
+        join: function (target, source) {
+            return this.invert(target, source, 'split');
+        },
+        split: function (target, source) {
+            return this.invert(target, source, 'join');
         }
+
     }
 
 };

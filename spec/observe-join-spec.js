@@ -6,7 +6,7 @@ describe("join", function () {
     it("should observe changes to the input", function () {
 
         var object = Bindings.defineBindings({}, {
-            joined: {"<-": "terms.join(delimiter)"}
+            joined: {"<->": "terms.join(delimiter)"}
         });
 
         object.terms = ['a', 'b', 'c'];
@@ -24,6 +24,22 @@ describe("join", function () {
 
         object.terms.clear();
         expect(object.joined).toBe("");
+
+        // ->
+        object.joined = 'x, y, z';
+        expect(object.terms.slice()).toEqual(['x', 'y', 'z']);
+    });
+
+    it("two-way bindings should work for split as well", function () {
+        var object = Bindings.defineBindings({}, {
+            split: {"<->": "string.split(', ')"}
+        });
+
+        object.string = 'a, b, c';
+        expect(object.split.slice()).toEqual(['a', 'b', 'c']);
+
+        object.split = ['x', 'y'];
+        expect(object.string).toEqual('x, y');
     });
 
     it("should join on null string if no argument given", function () {

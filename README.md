@@ -1204,6 +1204,7 @@ FRB supports some common functions.  `startsWith`, `endsWith`, and
 `contains` all operate on strings.  `join` concatenates an array of
 strings with a given delimiter (or empty string).  `split` breaks a
 string between every delimiter (or just between every character).
+`join` and `split` are algebraic and can be bound as well as observed.
 
 ### Conditional
 
@@ -1241,8 +1242,8 @@ expect(object.consequent).toBe(40);
 ### Algebra
 
 FRB can automatically invert algebraic operators as long as they operate
-strictly on numbers and the left-most expressions on both the source and
-target are bindable properties.
+strictly on the left-most expressions on both the source and target are
+bindable properties.
 
 In this example, the primary binding is ```notToBe <- !toBe```, and the
 inverse binding is automatically computed ```toBe <- !notToBe```.
