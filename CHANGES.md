@@ -1,4 +1,12 @@
 
+# v0.2.12
+
+-   Adds `only` binder and observer.
+-   Adds `sortedSet` observer.
+-   Adds `join` observer.
+-   Makes `join` and `split` algebraic inversions which qualifies these
+    operators for binders in addition to observers.
+
 # v0.2.11
 
 -   Adds the ability to bind to conditionally bind to `null`, to disable
