@@ -38,6 +38,28 @@ module.exports = [
     },
 
     {
+        path: "'\"'",
+        syntax: {type: "literal", value: "\""}
+    },
+
+    {
+        path: "'\\''",
+        syntax: {type: "literal", value: "'"}
+    },
+
+    {
+        path: "\"\\\"\"",
+        syntax: {type: "literal", value: "\""},
+        nonCanon: true
+    },
+
+    {
+        path: "\"'\"",
+        syntax: {type: "literal", value: "'"},
+        nonCanon: true
+    },
+
+    {
         path: "a",
         syntax: {type: "property", args: [
             {type: "value"},
