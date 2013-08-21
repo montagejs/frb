@@ -13,6 +13,10 @@ var observeUndefined = Observers.makeLiteralObserver();
 var trueScope = new Scope(true);
 var falseScope = new Scope(false);
 
+function getStackTrace() {
+    return new Error("").stack.replace(/^.*\n.*\n/, "\n");
+}
+
 exports.bindProperty = bindProperty;
 var _bindProperty = bindProperty; // to bypass scope shadowing problems below
 function bindProperty(object, key, observeValue, source, descriptor, trace) {
@@ -22,7 +26,7 @@ function bindProperty(object, key, observeValue, source, descriptor, trace) {
         }
         try {
             descriptor.isActive = true;
-            trace && console.log("SET", trace.targetPath, "TO", value, "ON", object, "BECAUSE", trace.sourcePath, new Error("here").stack);
+            trace && console.log("SET", trace.targetPath, "TO", value, "ON", object, "BECAUSE", trace.sourcePath, getStackTrace());
             if (Array.isArray(object) && key >>> 0 === key) {
                 // TODO spec this case
                 object.set(key, value);
@@ -61,7 +65,7 @@ function bindGet(collection, key, observeValue, source, descriptor, trace) {
         }
         try {
             descriptor.isActive = true;
-            trace && console.log("SET FOR KEY", key, "TO", value, "ON", collection, "BECAUSE", trace.sourcePath, new Error("here").stack);
+            trace && console.log("SET FOR KEY", key, "TO", value, "ON", collection, "BECAUSE", trace.sourcePath, getStackTrace());
             collection.set(key, value);
         } finally {
             descriptor.isActive = false;
@@ -94,12 +98,12 @@ function makeHasBinder(observeSet, observeValue) {
                     // other-way binding
                     if (has) { // should be in set
                         if (!(set.has || set.contains).call(set, value)) {
-                            trace && console.log("ADD", value, "TO", trace.targetPath, "BECAUSE", trace.sourcePath, new Error("here").stack);
+                            trace && console.log("ADD", value, "TO", trace.targetPath, "BECAUSE", trace.sourcePath, getStackTrace());
                             set.add(value);
                         }
                     } else { // should not be in set
                         while ((set.has || set.contains).call(set, value)) {
-                            trace && console.log("REMOVE", value, "FROM", trace.targetPath, "BECAUSE", trace.sourcePath, new Error("here").stack);
+                            trace && console.log("REMOVE", value, "FROM", trace.targetPath, "BECAUSE", trace.sourcePath, getStackTrace());
                             (set.remove || set['delete']).call(set, value);
                         }
                     }
@@ -116,11 +120,11 @@ function makeEqualityBinder(bindLeft, observeRight) {
         // c
         return observeEquals(autoCancelPrevious(function changeWhetherEquals(equals) {
             if (equals) {
-                trace && console.log("BIND", trace.targetPath, "TO", trace.sourcePath, new Error("here").stack);
+                trace && console.log("BIND", trace.targetPath, "TO", trace.sourcePath, getStackTrace());
                 // a <-> b
                 var cancel = bindLeft(observeRight, source, source, descriptor, trace);
                 return function cancelEqualityBinding() {
-                    trace && console.log("UNBIND", trace.targetPath, "FROM", trace.sourcePath, new Error("here").stack);
+                    trace && console.log("UNBIND", trace.targetPath, "FROM", trace.sourcePath, getStackTrace());
                 };
             }
         }), target);
@@ -256,7 +260,7 @@ function makeRangeContentBinder(observeTarget, bindTarget) {
                     if (isActive(target))
                         return;
                     if (trace) {
-                        console.log("SWAPPING", minus, "FOR", plus, "AT", index, "ON", trace.targetPath, new Error("here").stack);
+                        console.log("SWAPPING", minus, "FOR", plus, "AT", index, "ON", trace.targetPath, getStackTrace());
                     }
                     if (target.swap) {
                         target.swap(index, minus.length, plus);
@@ -295,7 +299,7 @@ function makeMapContentBinder(observeTarget) {
                         descriptor.isActive = true;
                         if (value === undefined) {
                             if (trace) {
-                                trace && console.log("DELETED", trace.targetPath, "FOR KEY", key, "ON", target, "BECAUSE", trace.sourcePath, new Error("here").stack);
+                                trace && console.log("DELETED", trace.targetPath, "FOR KEY", key, "ON", target, "BECAUSE", trace.sourcePath, getStackTrace());
                             }
                             if (Array.isArray(target)) {
                                 target.splice(key, 1);
@@ -304,7 +308,7 @@ function makeMapContentBinder(observeTarget) {
                             }
                         } else {
                             if (trace) {
-                                trace && console.log("SET", trace.targetPath, "FOR KEY", key, "TO", value, "ON", target, "BECAUSE", trace.sourcePath, new Error("here").stack);
+                                trace && console.log("SET", trace.targetPath, "FOR KEY", key, "TO", value, "ON", target, "BECAUSE", trace.sourcePath, getStackTrace());
                             }
                             target.set(key, value);
                         }
