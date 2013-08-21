@@ -791,6 +791,8 @@ function makeCollectionObserverMaker(setup) {
 exports.makeSumObserver = makeCollectionObserverMaker(function setup() {
     var sum = 0;
     return function rangeChange(plus, minus, index) {
+        plus = plus.filter(isNumber);
+        minus = minus.filter(isNumber);
         sum += plus.sum() - minus.sum();
         return sum;
     };
@@ -800,11 +802,17 @@ exports.makeAverageObserver = makeCollectionObserverMaker(function setup() {
     var sum = 0;
     var count = 0;
     return function rangeChange(plus, minus, index) {
+        plus = plus.filter(isNumber);
+        minus = minus.filter(isNumber);
         sum += plus.sum() - minus.sum();
         count += plus.length - minus.length;
         return sum / count;
     };
 });
+
+function isNumber(value) {
+    return typeof value === "number" && !isNaN(value);
+}
 
 exports.makeViewObserver = makeNonReplacing(makeReplacingViewObserver);
 function makeReplacingViewObserver(observeInput, observeStart, observeLength) {
