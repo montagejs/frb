@@ -1,4 +1,11 @@
 
+# v0.2.13
+
+-   Makes traced binding messages appear less like errors by stripping
+    the first line.
+-   Makes `sum` and `average` observers more resilient against
+    transient, invalid input.
+
 # v0.2.12
 
 -   Adds `only` binder and observer.
