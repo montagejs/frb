@@ -50,5 +50,25 @@ describe("sorted block observer", function () {
         expect(object.sorted).toEqual([array[2], array[1], array[0]]);
     });
 
+    it("sorts objects with equal values", function () {
+
+        var array = [
+            {key: 0, value: "b"},
+            {key: 1, value: "b"},
+            {key: 2, value: "b"}
+        ];
+
+        var object = Bindings.defineBindings({
+            array: array
+        }, {
+            sorted: {"<-": "array.sorted{value}"}
+        });
+
+        array[2].value = 'a';
+        array[0].value = 'c';
+
+        expect(object.sorted).toEqual([array[2], array[1], array[0]]);
+    });
+
 });
 
