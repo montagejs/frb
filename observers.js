@@ -423,7 +423,7 @@ function makeReplacingFilterBlockObserver(observeCollection, observePredicate) {
 
             function update(index) {
                 for (; index < predicates.length; index++) {
-                    cumulativeLengths[index + 1] = cumulativeLengths[index] + predicates[index];
+                    cumulativeLengths[index + 1] = cumulativeLengths[index] + !!predicates[index];
                 }
             }
 
@@ -439,7 +439,7 @@ function makeReplacingFilterBlockObserver(observeCollection, observePredicate) {
                 // changed
                 if (
                     minusOutput.length !== plusOutput.length ||
-                    minusOutput.every(function (value, offset) {
+                    minusOutput.some(function (value, offset) {
                         return value !== plusOutput[offset];
                     })
                 ) {
