@@ -2607,10 +2607,10 @@ source, target, parameters)` and return a `cancel()` function.
 -   `makeReversedBinder(observeTarget)`
 
 
-[Collections]: https://github.com/kriskowal/collections
+[Collections]: https://github.com/montagejs/collections
 [Define Property]: http://kangax.github.com/es5-compat-table/#define-property-webkit-note
 [Montage]: https://github.com/montagejs/montage
-[Mr]: https://github.com/kriskowal/mr
+[Mr]: https://github.com/montagejs/mr
 [Mutation Observers]: https://developer.mozilla.org/en-US/docs/DOM/DOM_Mutation_Observers
 [Node.js]: http://nodejs.org/
 
