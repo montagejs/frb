@@ -3,6 +3,7 @@ var parse = require("./parse");
 var compile = require("./compile-evaluator");
 var Scope = require("./scope");
 
+// TODO deprecate: this can be done much better with a Scope API
 module.exports = evaluate;
 function evaluate(path, value, parameters, document, components) {
     var syntax;
@@ -12,6 +13,10 @@ function evaluate(path, value, parameters, document, components) {
         syntax = path;
     }
     var evaluate = compile(syntax);
-    return evaluate(new Scope(value, null, parameters, document, components));
+    var scope = new Scope(value);
+    scope.parameters = parameters;
+    scope.document = document;
+    scope.components = components;
+    return evaluate(scope);
 }
 

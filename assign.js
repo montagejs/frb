@@ -3,6 +3,8 @@ var parse = require("./parse");
 var compile = require("./compile-assigner");
 var Scope = require("./scope");
 
+// TODO deprecate.  this is too easy to implement better at other layers,
+// depending on scopes.
 module.exports = assign;
 function assign(target, path, value, parameters, document, components) {
     var syntax;
@@ -12,6 +14,10 @@ function assign(target, path, value, parameters, document, components) {
         syntax = path;
     }
     var assign = compile(syntax);
-    return assign(value, new Scope(target, null, parameters, document, components));
+    var scope = new Scope(target);
+    scope.parameters = parameters;
+    scope.document = document;
+    scope.components = components;
+    return assign(value, scope);
 }
 

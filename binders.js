@@ -142,7 +142,7 @@ function makeEveryBlockBinder(observeCollection, bindCondition, observeValue) {
                 var cancelers = [];
                 function rangeChange(plus, minus, index) {
                     cancelers.swap(index, minus.length, plus.map(function (value, offset) {
-                        var scope = Scope.nest(target, value);
+                        var scope = target.nest(value);
                         return bindCondition(observeValue, scope, scope, descriptor, trace);
                     }));
                 }
