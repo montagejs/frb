@@ -22,15 +22,14 @@ function observe(source, expression, descriptorOrFunction) {
     var components = descriptor.components;
     var beforeChange = descriptor.beforeChange;
     var contentChange = descriptor.contentChange;
-    var sourceScope = new Scope(
-        source,
-        null,
-        parameters,
-        document,
-        components,
-        beforeChange
-    );
 
+    // TODO consider the possibility that source has an intrinsic scope
+    // property
+    var sourceScope = new Scope(source);
+    sourceScope.parameters = parameters;
+    sourceScope.document = document;
+    sourceScope.components = components;
+    sourceScope.beforeChange = beforeChange;
 
     var syntax = parse(expression);
     var observe = compile(syntax);

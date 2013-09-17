@@ -23,8 +23,17 @@ function bind(target, targetPath, descriptor) {
     var components = descriptor.components;
     var trace = descriptor.trace;
 
-    var sourceScope = descriptor.sourceScope = new Scope(source, null, parameters, document, components);
-    var targetScope = descriptor.targetScope = new Scope(target, null, parameters, document, components);
+    // TODO: consider the possibility that source and target have intrinsic
+    // scope properties
+
+    var sourceScope = descriptor.sourceScope = new Scope(source);
+    sourceScope.parameters = parameters;
+    sourceScope.document = document;
+    sourceScope.components = components;
+    var targetScope = descriptor.targetScope = new Scope(target);
+    targetScope.parameters = parameters;
+    targetScope.document = document;
+    targetScope.components = components;
 
     // promote convert and revert from a converter object up to the descriptor
     if (descriptor.converter) {

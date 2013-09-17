@@ -182,7 +182,7 @@ compile.semantics = {
                     var collection = evaluateCollection(scope);
                     var effect = evaluateEffect(scope);
                     collection.forEach(function (content) {
-                        assignCondition(effect, Scope.nest(scope, content));
+                        assignCondition(effect, scope.nest(content));
                     });
                 }
             };
