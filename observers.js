@@ -85,7 +85,7 @@ exports.makePropertyObserver = makePropertyObserver;
 function makePropertyObserver(observeObject, observeKey) {
     return function observeProperty(emit, scope) {
         return observeKey(autoCancelPrevious(function replaceKey(key) {
-            if (key == null) return emit();
+            if (typeof key !== "string" && typeof key !== "number") return emit();
             return observeObject(autoCancelPrevious(function replaceObject(object) {
                 if (object == null) return emit();
                 if (object.observeProperty) {
