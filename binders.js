@@ -371,6 +371,33 @@ function makeDefinedBinder(bindTarget) {
     }
 }
 
+exports.makeParentBinder = makeParentBinder;
+function makeParentBinder(bindTarget) {
+    return function bindParent(observeSource, sourceScope, targetScope, descriptor, trace) {
+        if (!targetScope.parent) {
+            return;
+        }
+        return bindTarget(observeSource, sourceScope, targetScope.parent, descriptor, trace);
+    };
+}
+
+exports.makeWithBinder = makeWithBinder;
+function makeWithBinder(observeTarget, bindTarget) {
+    return function bindWith(observeSource, sourceScope, targetScope, descriptor, trace) {
+        return observeTarget(autoCancelPrevious(function replaceTarget(target) {
+            if (target == null) {
+                return;
+            }
+            return bindTarget(
+                observeSource,
+                sourceScope,
+                targetScope.nest(target),
+                descriptor,
+                trace
+            );
+        }), targetScope);
+    };
+}
 
 function isActive(target) {
     return (

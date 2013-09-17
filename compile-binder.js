@@ -80,6 +80,13 @@ compile.semantics = {
         } else if (syntax.type === "defined") {
             var bindTarget = this.compile(syntax.args[0]);
             return Binders.makeDefinedBinder(bindTarget);
+        } else if (syntax.type === "parent") {
+            var bindTarget = this.compile(syntax.args[0]);
+            return Binders.makeParentBinder(bindTarget);
+        } else if (syntax.type === "with") {
+            var observeTarget = compileObserver(syntax.args[0]);
+            var bindTarget = this.compile(syntax.args[1]);
+            return Binders.makeWithBinder(observeTarget, bindTarget);
         } else if (compilers.hasOwnProperty(syntax.type)) {
             var argObservers = syntax.args.map(compileObserver, compileObserver.semantics);
             return compilers[syntax.type].apply(null, argObservers);
