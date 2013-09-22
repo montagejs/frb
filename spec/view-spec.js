@@ -37,5 +37,17 @@ describe("view", function () {
         object.array.push(12);
         expect(object.view).toEqual([6, 8, 10]);
     });
+
+    it("uses array.length - start if length is ommitted", function () {
+        Bindings.defineBindings(object, {
+            view: {"<-": "array.view(2)"}
+        });
+
+        expect(object.view).toEqual([6, 8]);
+        object.array.push(10);
+        expect(object.view).toEqual([6, 8, 10]);
+        object.array.push(12, 14, 16);
+        expect(object.view).toEqual([6, 8, 10, 12, 14, 16]);
+    });
 });
 
