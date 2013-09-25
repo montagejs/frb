@@ -1567,8 +1567,14 @@ function cancelEach(cancelers) {
 // XXX deprecated Retained because this function is used in Montage.
 exports.autoCancelPrevious = autoCancelPrevious;
 function autoCancelPrevious(emit) {
-    return function () {
-        return emit.apply(null, arguments) || Function.noop;
+    var cancelPrevious = Function.noop;
+    return function replaceObserver(value) {
+        cancelPrevious();
+        cancelPrevious = emit.apply(this, arguments) || Function.noop;
+        return function cancelObserver() {
+            cancelPrevious();
+            cancelPrevious = Function.noop;
+        };
     };
 }
 
