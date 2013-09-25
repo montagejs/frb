@@ -69,7 +69,7 @@ function observeProperty(object, key, emit, scope) {
         scope.beforeChange
     );
     propertyChange(object[key], key, object);
-    return once(function cancelPropertyObserver() {
+    return function cancelPropertyObserver() {
         cancel();
         PropertyChanges.removeOwnPropertyChangeListener(
             object,
@@ -77,7 +77,7 @@ function observeProperty(object, key, emit, scope) {
             propertyChange,
             scope.beforeChange
         );
-    });
+    };
 }
 
 exports.makePropertyObserver = makePropertyObserver;
@@ -111,10 +111,10 @@ function observeGet(collection, key, emit, scope) {
     }
     mapChange(collection.get(key), key, collection);
     collection.addMapChangeListener(mapChange, scope.beforeChange);
-    return once(function cancelMapObserver() {
+    return function cancelMapObserver() {
         cancel();
         collection.removeMapChangeListener(mapChange);
-    });
+    };
 }
 
 exports.makeGetObserver = makeGetObserver;
@@ -172,10 +172,10 @@ function makeObserversObserver(observers) {
             }, scope);
         });
         var cancel = emit(output) || Function.noop;
-        return once(function cancelObserversObserver() {
+        return function cancelObserversObserver() {
             cancel();
             cancelEach(cancelers);
-        });
+        };
     };
 }
 
@@ -395,11 +395,11 @@ function makeReplacingMapBlockObserver(observeCollection, observeRelation) {
             // mapping observer, utilized by filter observers
             var cancel = emit(output, input) || Function.noop;
 
-            return once(function cancelMapObserver() {
+            return function cancelMapObserver() {
                 cancel();
                 cancelEach(cancelers);
                 cancelRangeChange();
-            });
+            };
         }), scope);
     };
 }
@@ -444,11 +444,11 @@ function makeReplacingFilterBlockObserver(observeCollection, observePredicate) {
 
             var cancelRangeChange = observeRangeChange(predicates, rangeChange, scope);
             var cancel = emit(output) || Function.noop;
-            return once(function cancelFilterObserver() {
+            return function cancelFilterObserver() {
                 cancel();
                 cancelEach(cancelers);
                 cancelRangeChange();
-            });
+            };
 
         }), scope);
     };
@@ -558,10 +558,10 @@ function makeReplacingReversedObserver(observeArray) {
             }
             var cancelRangeChange = observeRangeChange(input, rangeChange, scope);
             var cancel = emit(output);
-            return once(function cancelReversedObserver() {
+            return function cancelReversedObserver() {
                 cancel();
                 cancelRangeChange();
-            });
+            };
         }), scope);
     };
 }
@@ -624,11 +624,11 @@ function makeReplacingFlattenObserver(observeArray) {
             var cancelRangeChange = observeRangeChange(input, rangeChange, scope);
             var cancel = emit(output) || Function.noop;
 
-            return once(function cancelFlattenObserver() {
+            return function cancelFlattenObserver() {
                 cancel();
                 cancelEach(cancelers);
                 cancelRangeChange();
-            });
+            };
         }), scope);
     };
 }
@@ -1263,12 +1263,12 @@ function observeMapChange(collection, emit, scope) {
     }
     collection.forEach(mapChange);
     var cancelMapChange = collection.addMapChangeListener(mapChange, scope.beforeChange);
-    return once(function cancelMapObserver() {
+    return function cancelMapObserver() {
         cancelers.forEach(function (cancel) {
             cancel();
         });
         cancelMapChange();
-    });
+    };
 }
 
 var makeEntriesObserver = exports.makeEntriesObserver = makeNonReplacing(makeReplacingEntriesObserver);
@@ -1304,10 +1304,10 @@ function observeEntries(collection, emit, scope) {
         }
     }
     var cancelMapChange = observeMapChange(collection, mapChange, scope) || Function.noop;
-    return once(function cancelObserveEntries() {
+    return function cancelObserveEntries() {
         cancel();
         cancelMapChange();
-    });
+    };
 }
 
 exports.makeKeysObserver = makeKeysObserver;
@@ -1505,14 +1505,14 @@ function makeNonReplacing(wrapped) {
                         null,
                         scope.beforeChange
                     );
-                    return once(cancelRangeChange);
+                    return cancelRangeChange;
                 }
             }), scope);
             var cancel = emit(output) || Function.noop;
-            return once(function cancelNonReplacingObserver() {
+            return function cancelNonReplacingObserver() {
                 cancelObserver();
                 cancel();
-            });
+            };
         };
     };
 }
@@ -1553,20 +1553,6 @@ function autoCancelPrevious(emit) {
             cancelPrevious();
             cancelPrevious = Function.noop;
         };
-    };
-}
-
-exports.once = once;
-function once(callback) {
-    var done;
-    return function once() {
-        if (done) {
-            return Function.noop; // TODO fix bugs that make this sensitive
-            //throw new Error("Redundant call: " + callback + " " + done.stack + "\nSecond call:");
-        }
-        done = true;
-        //done = new Error("First call:");
-        return callback.apply(this, arguments);
     };
 }
 

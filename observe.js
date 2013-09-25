@@ -45,9 +45,9 @@ function observe(source, expression, descriptorOrFunction) {
             return descriptor.change.apply(source, arguments);
         } else if (typeof contentChange === "function") {
             value.addRangeChangeListener(contentChange);
-            return Observers.once(function () {
+            return function () {
                 value.removeRangeChangeListener(contentChange);
-            });
+            };
         }
     }), sourceScope);
 }

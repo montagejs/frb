@@ -2,7 +2,6 @@
 var Scope = require("./scope");
 var Observers = require("./observers");
 var autoCancelPrevious = Observers.autoCancelPrevious;
-var once = Observers.once;
 var observeRangeChange = Observers.observeRangeChange;
 var cancelEach = Observers.cancelEach;
 var makeNotObserver = Observers.makeNotObserver;
@@ -303,9 +302,9 @@ function makeRangeContentBinder(observeTarget, bindTarget) {
 
                 source.addRangeChangeListener(rangeContentSourceRangeChange);
                 rangeContentSourceRangeChange(Array.from(source), Array.from(target), 0);
-                return once(function cancelRangeContentBinding() {
+                return function cancelRangeContentBinding() {
                     source.removeRangeChangeListener(rangeContentSourceRangeChange);
-                });
+                };
             }), sourceScope);
         }), targetScope);
     };
@@ -375,9 +374,9 @@ function makeReversedBinder(observeTarget) {
                 }
                 source.addRangeChangeListener(rangeChange);
                 rangeChange(source, target, 0);
-                return once(function cancelReversedBinding() {
+                return function cancelReversedBinding() {
                     source.removeRangeChangeListener(rangeChange);
-                });
+                };
             }), source);
         }), target);
     };
