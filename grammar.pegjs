@@ -215,7 +215,7 @@ chain
     }
 
 tail
-    = name:word "{" expression:expression "}" {
+    = name:$(word) "{" expression:expression "}" {
         if (BLOCKS[name]) {
             return function (previous) {
                 return {
@@ -244,7 +244,7 @@ tail
             };
         }
     }
-    / name:word args:args {
+    / name:$(word) args:args {
         return function (previous) {
             return {
                 type: name,
@@ -263,7 +263,7 @@ tail
             };
         };
     }
-    / name:word {
+    / name:$(word) {
         return function (previous) {
             return {
                 type: "property",
@@ -317,10 +317,10 @@ value
     / "true" { return {type: "literal", value: true}; }
     / "false" { return {type: "literal", value: false}; }
     / "null" { return {type: "literal", value: null}; }
-    / "@" name:word {
-        return {type: "component", label: name};
+    / "@" label:$(label) {
+        return {type: "component", label: label};
     }
-    / "$" name:word {
+    / "$" name:$(word) {
         return {type: "property", args: [
             {type: "parameters"},
             {type: "literal", value: name}
@@ -329,10 +329,10 @@ value
     / "$" {
         return {type: "parameters"};
     }
-    / "#" name:word {
+    / "#" name:$(word) {
         return {type: "element", id: name};
     }
-    / "&" name:word args:args {
+    / "&" name:$(word) args:args {
         return {type: name, args: args, inline: true};
     }
     / "^" value:value {
@@ -349,9 +349,7 @@ value
     }
 
 word "word"
-    = chars:[a-zA-Z_0-9-]+ {
-        return chars.join("");
-    }
+    = [a-zA-Z_0-9-]+
 
 string "string"
     = "'" chars:tickedChar* "'" { return {type: "literal", value: chars.join("")}; }
@@ -406,7 +404,7 @@ pairs
     }
 
 pair
-    = name:word ":" _ value:expression { return [name, value]; }
+    = name:$(word) ":" _ value:expression { return [name, value]; }
 
 
 // literals closely modeled after the JSON PEGJS example
@@ -471,13 +469,13 @@ sheet
     }
 
 block
-    = "@" name:word _ annotation:annotation? "{" _ statements:statements "}" _ {
+    = "@" label:$(label) _ annotation:annotation? "{" _ statements:statements "}" _ {
         return {
             type: "block",
             connection: annotation.connection,
             module: annotation.module,
             exports: annotation.exports,
-            label: name,
+            label: label,
             statements: statements
         };
     }
@@ -488,11 +486,14 @@ annotation
             connection: {"<": "prototype", ":": "object"}[connection],
             module: module && module.value,
             exports: exports !== "" ? exports[1] : undefined
-        }
+        };
     }
     / _ {
         return {};
     }
+
+label
+    = [a-zA-Z_0-9]+ ( ":" [a-zA-Z_0-9]+ )*
 
 statements
     = head:statement _ tail:(";" _ statement _)* ";"? _ {
@@ -510,11 +511,11 @@ statements
     }
 
 statement
-    = when:("on" / "before") " " _ type:word _ "->" _ listener:expression _ {
+    = when:("on" / "before") " " _ type:$(word) _ "->" _ listener:expression _ {
         return {type: "event", when: when, event: type, listener: listener};
     }
     / target:expression _ arrow:(":" / "<->" / "<-") _ source:expression _
-      descriptor:("," _ name:word _ ":" _ expression:expression _)*
+      descriptor:("," _ name:$(word) _ ":" _ expression:expression _)*
     {
         var result = {type: STATEMENTS[arrow], args: [
             target,
@@ -529,7 +530,7 @@ statement
         }
         return result;
     }
-    / name:word _ expression:expression _ {
+    / name:$(word) _ expression:expression _ {
         return {type: "unit", name: name, value: expression};
     }
 
