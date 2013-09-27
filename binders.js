@@ -215,15 +215,20 @@ function makeConditionalBinder(observeCondition, bindConsequent, bindAlternate) 
     };
 }
 
-// array.only() <- value
+// collection.only() <- value
 exports.makeOnlyBinder = makeOnlyBinder;
-function makeOnlyBinder(observeArray) {
+function makeOnlyBinder(observeCollection) {
     return function bindOnly(observeValue, sourceScope, targetScope, descriptor, trace) {
-        return observeArray(autoCancelPrevious(function replaceArray(array) {
-            if (!array) return;
+        return observeCollection(autoCancelPrevious(function replaceCollection(collection) {
+            if (!collection) return;
             return observeValue(autoCancelPrevious(function replaceOnlyValue(value) {
                 if (value == null) return;
-                array.splice(0, array.length, value);
+                if (collection.splice) {
+                    collection.splice(0, collection.length, value);
+                } else if (collection.clear && collection.add) {
+                    collection.clear();
+                    collection.add(value);
+                }
             }), sourceScope);
         }), targetScope);
     };
