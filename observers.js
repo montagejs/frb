@@ -390,7 +390,7 @@ function makeReplacingMapBlockObserver(observeCollection, observeRelation) {
                             // does not dispatch changes.
                             initial[offset] = value;
                         }
-                    }), Scope.nest(scope, value));
+                    }), scope.nest(value));
                 })));
                 initialized = true;
                 output.swap(index, minus.length, initial);
@@ -1219,7 +1219,7 @@ function makeToMapObserver(observeObject) {
                         });
                     }
                     return observeRangeChange(entries, rangeChange, scope);
-                }), Scope.nest(scope, object));
+                }), scope.nest(object));
             } else if (object.addMapChangeListener) { // map reflection
                 function mapChange(value, key) {
                     if (value === undefined) {
@@ -1268,7 +1268,7 @@ var observeUniqueEntries = makeMapBlockObserver(
 exports.makeParentObserver = makeParentObserver;
 function makeParentObserver(observeExpression) {
     return function observeParentScope(emit, scope) {
-        return observeExpression(emit, scope.parent || new Scope());
+        return observeExpression(emit, scope.parent || scope.nest());
     };
 }
 
@@ -1310,7 +1310,7 @@ function makeExpressionObserver(observeInput, observeExpression) {
                 return emit();
             }
             return observeInput(autoCancelPrevious(function replaceInput(input) {
-                return observeOutput(emit, Scope.nest(scope, input));
+                return observeOutput(emit, scope.nest(input));
             }), scope);
         }), scope);
     };
@@ -1322,7 +1322,7 @@ function makeWithObserver(observeInput, observeExpression) {
         return observeInput(autoCancelPrevious(function replaceInput(input) {
             return observeExpression(autoCancelPrevious(function replaceValue(value) {
                 return emit(value);
-            }), Scope.nest(scope, input));
+            }), scope.nest(input));
         }), scope);
     };
 }

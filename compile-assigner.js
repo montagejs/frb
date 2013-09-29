@@ -47,6 +47,11 @@ compile.semantics = {
             var assignCondition = this.compile(args[0]);
             var evaluateValue = this.compileEvaluator(args[1]);
             return compilers["everyBlock"](evaluateCollection, assignCondition, evaluateValue);
+        } else if (syntax.type === "parent") {
+            var assignParent = this.compile(syntax.args[0]);
+            return function (value, scope) {
+                return assignParent(value, scope.parent);
+            };
         } else if (compilers.hasOwnProperty(syntax.type)) {
             var argEvaluators = syntax.args.map(this.compileEvaluator, this.compileEvaluator.semantics);
             return compilers[syntax.type].apply(null, argEvaluators);
@@ -182,7 +187,7 @@ compile.semantics = {
                     var collection = evaluateCollection(scope);
                     var effect = evaluateEffect(scope);
                     collection.forEach(function (content) {
-                        assignCondition(effect, Scope.nest(scope, content));
+                        assignCondition(effect, scope.nest(content));
                     });
                 }
             };
