@@ -1,4 +1,14 @@
 
+# v0.2.14
+
+-   Adds support for binding to the `only` operator with sets.
+-   Implements binder for parent scope operator
+-   Adds support for polymorphic scope nesting.
+-   Fixes two bugs in `filter`.
+-   Restricts the domain of property change observers to numbers and
+    strings, ignoring all else.
+-   Collections 0.2.0
+
 # v0.2.13
 
 -   Makes traced binding messages appear less like errors by stripping
