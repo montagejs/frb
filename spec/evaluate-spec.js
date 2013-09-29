@@ -1,7 +1,6 @@
 
 var parse = require("../parse");
 var evaluate = require("../evaluate");
-var Scope = require("../scope");
 var cases = require("./evaluate");
 
 describe("evaluate", function () {

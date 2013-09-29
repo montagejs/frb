@@ -74,7 +74,7 @@ var argCompilers = {
         return function (scope) {
             return evaluateCollection(scope)
             .map(function (value) {
-                return evaluateRelation(Scope.nest(scope, value));
+                return evaluateRelation(scope.nest(value));
             });
         };
     },
@@ -83,7 +83,7 @@ var argCompilers = {
         return function (scope) {
             return evaluateCollection(scope)
             .filter(function (value) {
-                return evaluatePredicate(Scope.nest(scope, value));
+                return evaluatePredicate(scope.nest(value));
             });
         };
     },
@@ -92,7 +92,7 @@ var argCompilers = {
         return function (scope) {
             return evaluateCollection(scope)
             .some(function (value) {
-                return evaluatePredicate(Scope.nest(scope, value));
+                return evaluatePredicate(scope.nest(value));
             });
         };
     },
@@ -101,7 +101,7 @@ var argCompilers = {
         return function (scope) {
             return evaluateCollection(scope)
             .every(function (value) {
-                return evaluatePredicate(Scope.nest(scope, value));
+                return evaluatePredicate(scope.nest(value));
             });
         };
     },
@@ -110,7 +110,7 @@ var argCompilers = {
         return function (scope) {
             return evaluateCollection(scope)
             .sorted(Function.by(function (value) {
-                return evaluateRelation(Scope.nest(scope, value));
+                return evaluateRelation(scope.nest(value));
             }));
         };
     },
@@ -118,7 +118,7 @@ var argCompilers = {
     sortedSetBlock: function (evaluateCollection, evaluateRelation) {
         return function (scope) {
             function map(x) {
-                return evaluateRelation(Scope.nest(scope, x));
+                return evaluateRelation(scope.nest(x));
             }
             function contentCompare(x, y) {
                 return Object.compare(map(x), map(y));
@@ -138,7 +138,7 @@ var argCompilers = {
         return function (scope) {
             return evaluateCollection(scope)
             .group(function (value) {
-                return evaluateRelation(Scope.nest(scope, value));
+                return evaluateRelation(scope.nest(value));
             });
         };
     },
@@ -147,7 +147,7 @@ var argCompilers = {
         return function (scope) {
             return new Map(evaluateCollection(scope)
             .group(function (value) {
-                return evaluateRelation(Scope.nest(scope, value));
+                return evaluateRelation(scope.nest(value));
             }));
         };
     },
@@ -156,7 +156,7 @@ var argCompilers = {
         return function (scope) {
             return evaluateCollection(scope)
             .min(Function.by(function (value) {
-                return evaluateRelation(Scope.nest(scope, value));
+                return evaluateRelation(scope.nest(value));
             }))
         };
     },
@@ -165,7 +165,7 @@ var argCompilers = {
         return function (scope) {
             return evaluateCollection(scope)
             .max(Function.by(function (value) {
-                return evaluateRelation(Scope.nest(scope, value));
+                return evaluateRelation(scope.nest(value));
             }))
         };
     },
@@ -178,7 +178,7 @@ var argCompilers = {
 
     "with": function (evaluateContext, evaluateExpression) {
         return function (scope) {
-            return evaluateExpression(Scope.nest(scope, evaluateContext(scope)));
+            return evaluateExpression(scope.nest(evaluateContext(scope)));
         };
     },
 
@@ -236,7 +236,7 @@ var argCompilers = {
             try {
                 var syntax = parse(path);
                 var evaluate = compile(syntax);
-                return evaluate(Scope.nest(scope, value));
+                return evaluate(scope.nest(value));
             } catch (exception) {
             }
         }
