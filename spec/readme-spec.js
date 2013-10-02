@@ -174,6 +174,27 @@ describe("Tutorial", function () {
         expect(object.evens).toEqual([4, 6, 8]);
     });
 
+    it("Scope", function () {
+        var object = Bindings.defineBindings({
+            numbers: [1, 2, 3, 4, 5],
+            maxNumber: 3
+        }, {
+            smallNumbers: {
+                "<-": "numbers.filter{this <= ^maxNumber}"
+            }
+        });
+        expect(object.smallNumbers).toEqual([1, 2, 3]);
+    });
+
+    it("This", function () {
+        var object = Bindings.defineBindings({
+            "this": 10
+        }, {
+            that: {"<-": ".this"}
+        });
+        expect(object.that).toBe(object["this"]);
+    });
+
     it("Some", function () {
         var object = Bindings.defineBindings({
             options: [
@@ -815,6 +836,141 @@ describe("Tutorial", function () {
         expect(object.consequent).toBe(40);
     });
 
+    it("And", function () {
+        var object = Bindings.defineBindings({
+            left: undefined,
+            right: undefined
+        }, {
+            and: {"<-": "left && right"}
+        });
+
+        object.right = 10;
+        expect(object.and).toBe(undefined);
+
+        // Continued...
+        object.left = 20;
+        expect(object.and).toBe(10);
+    });
+
+    it("And (bound)", function () {
+        var object = Bindings.defineBindings({}, {
+            "left && right": {
+                "<-": "leftAndRight"
+            }
+        });
+
+        object.leftAndRight = true;
+        expect(object.left).toBe(true);
+        expect(object.right).toBe(true);
+
+        // Continued...
+        object.leftAndRight = false;
+        expect(object.left).toBe(false);
+        expect(object.right).toBe(true);
+    });
+
+    it("And (checkbox)", function () {
+        var controller = Bindings.defineBindings({
+            checkbox: {
+                checked: false,
+                disabled: false
+            },
+            model: {
+                expanded: false,
+                children: [1, 2, 3]
+            }
+        }, {
+            "checkbox.checked": {"<->": "model.expanded && expandable"},
+            "checkbox.disabled": {"<-": "!expandable"},
+            "expandable": {"<-": "model.children.length > 0"}
+        });
+
+        expect(controller.checkbox.checked).toBe(false);
+        expect(controller.checkbox.disabled).toBe(false);
+
+        // check the checkbox
+        controller.checkbox.checked = true;
+        expect(controller.model.expanded).toBe(true);
+
+        // alter the model such that the checkbox is unchecked and
+        // disabled
+        controller.model.children.clear();
+        expect(controller.checkbox.checked).toBe(false);
+        expect(controller.checkbox.disabled).toBe(true);
+    });
+
+    it("Or", function () {
+        var object = Bindings.defineBindings({
+            left: undefined,
+            right: undefined
+        }, {
+            or: {"<-": "left || right"}
+        });
+
+        object.right = 10;
+        expect(object.or).toBe(10);
+
+        // Continued...
+        object.left = 20;
+        expect(object.or).toBe(20);
+
+        // Continued...
+        object.right = undefined;
+        expect(object.or).toBe(20);
+    });
+
+    it("Default", function () {
+        var object = Bindings.defineBindings({
+            left: undefined,
+            right: undefined
+        }, {
+            or: {"<-": "left ?? right"}
+        });
+
+        object.right = 10;
+        expect(object.or).toBe(10);
+
+        object.left = false;
+        expect(object.or).toBe(false);
+    });
+
+    it("Defined", function () {
+        var object = Bindings.defineBindings({}, {
+            ready: {
+                "<-": "value.defined()"
+            }
+        });
+        expect(object.ready).toBe(false);
+
+        object.value = 10;
+        expect(object.ready).toBe(true);
+    });
+
+    it("Defined (bind)", function () {
+        var object = Bindings.defineBindings({
+            value: 10,
+            operational: true
+        }, {
+            "value.defined()": {"<-": "operational"}
+        });
+        expect(object.value).toBe(10);
+
+        object.operational = false;
+        expect(object.value).toBe(undefined);
+
+        // Continued...
+        object.operational = true;
+        expect(object.value).toBe(undefined);
+
+        // Continued...
+        Bindings.defineBindings(object, {
+            "value == 10": {
+                "<-": "operational"
+            }
+        });
+        expect(object.value).toBe(10);
+    });
+
     it("Algebra", function () {
         var caesar = {toBe: false};
         bind(caesar, "notToBe", {"<->": "!toBe"});
@@ -1084,6 +1240,88 @@ describe("Tutorial", function () {
             "window.location.search": {
                 "<-": "queryString"
             }
+        });
+    });
+
+    describe("Polymorphic Extensibility", function () {
+
+        it("works for observer method", function () {
+
+            function Clock() {
+            }
+
+            Clock.prototype.observeTime = function (emit) {
+                var cancel, timeoutHandle;
+                function tick() {
+                    if (cancel) {
+                        cancel();
+                    }
+                    cancel = emit(Date.now());
+                    timeoutHandle = setTimeout(tick, 1000);
+                }
+                tick();
+                return function cancelTimeObserver() {
+                    clearTimeout(timeoutHandle);
+                    if (cancel) {
+                        cancel();
+                    }
+                };
+            };
+
+            var object = Bindings.defineBindings({
+                clock: new Clock()
+            }, {
+                "time": {"<-": "clock.time()"}
+            });
+
+            expect(object.time).not.toBe(undefined);
+
+            Bindings.cancelBindings(object);
+
+        });
+
+        it("works for observer maker method", function () {
+
+            function Clock() {
+            }
+
+            Clock.prototype.observeTime = function (emit, resolution) {
+                var cancel, timeoutHandle;
+                function tick() {
+                    if (cancel) {
+                        cancel();
+                    }
+                    cancel = emit(Date.now());
+                    timeoutHandle = setTimeout(tick, resolution);
+                }
+                tick();
+                return function cancelTimeObserver() {
+                    clearTimeout(timeoutHandle);
+                    if (cancel) {
+                        cancel();
+                    }
+                };
+            };
+
+            Clock.prototype.makeTimeObserver = function (observeResolution) {
+                var self = this;
+                return function observeTime(emit, scope) {
+                    return observeResolution(function replaceResolution(resolution) {
+                        return self.observeTime(emit, resolution);
+                    }, scope);
+                };
+            };
+
+            var object = Bindings.defineBindings({
+                clock: new Clock()
+            }, {
+                "time": {"<-": "clock.time(1000)"}
+            });
+
+            expect(object.time).not.toBe(undefined);
+
+            Bindings.cancelBindings(object);
+
         });
     });
 

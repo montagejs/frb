@@ -308,6 +308,52 @@ object.numbers.shift();
 expect(object.evens).toEqual([4, 6, 8]);
 ```
 
+### Scope
+
+In a binding, there is always a value in scope.  It is the implicit
+value for looking up properties and for applying operators, like
+methods.  The value in scope can be called out explicitly as `this`.  On
+the left side, the value in scope is called the target, on the right it
+is called the source.
+
+Each scope has a `this` value and may have a parent scope.  Inside a
+map block, like the `number` in `numbers.map{number}`, the value in
+scope is one of the numbers, and the value in the parent scope is an
+object with a `numbers` property.  To access the value in a parent
+scope, use the parent scope operator, `^`.
+
+Suppose you have an object with `numbers` and `maxNumber` properties.
+In this example, we bind a property, `smallNumbers` to an array of all
+the `numbers` less than or equal to the `maxNumber`.
+
+```javascript
+var object = Bindings.defineBindings({
+    numbers: [1, 2, 3, 4, 5],
+    maxNumber: 3
+}, {
+    smallNumbers: {
+        "<-": "numbers.filter{this <= ^maxNumber}"
+    }
+});
+```
+
+Keywords like `this` overlap with the notation normally used for
+properties of `this`.  If an object has a `this` property, you may use
+the notation `.this`, `this.this`, or `this['this']`.  `.this` is the
+normal form.
+
+```javascript
+var object = Bindings.defineBindings({
+    "this": 10
+}, {
+    that: {"<-": ".this"}
+});
+expect(object.that).toBe(object["this"]);
+```
+
+The only other FRB keywords that collide with propery names are `true`,
+`false`, and `null`, and the same technique for disambiguation applies.
+
 ### Some and Every
 
 A `some` block incrementally tracks whether some of the values in a
@@ -796,7 +842,7 @@ bind(document.body, "classList.has('dark')", {
 ```
 
 The DOM `classList` does not however implement
-`addContentChangeListener` or `removeContentChangeListener`, so it
+`addRangeChangeListener` or `removeRangeChangeListener`, so it
 cannot be used on the right-hand-side of a binding, and such bindings
 cannot be bidirectional.  With some DOM [Mutation Observers][], you
 might be able to help FRB overcome this limitation in the future.
@@ -1239,6 +1285,258 @@ object.choice = 40;
 expect(object.consequent).toBe(40);
 ```
 
+### And
+
+The logical **and** operator, `&&`, observes either the left or right
+argument depending on whether the first argument is both defined and
+true.  If the first argument is null, undefined, or false, it will stand
+for the whole expression.  Otherwise, the second argument will stand for
+the whole expression.
+
+If we assume that the first and second argument are always defined and
+either true or false, the **and** operator serves strictly as a logical
+combinator.  However, with bindings, it is common for a value to at
+least initially be null or undefined.  Logical operators are the
+exception to the rule that an expression will necessarily terminate if
+any operand is null or undefined.
+
+In this example, the left and right sides are initially undefined.  We
+set the right operand to `10` and the bound value remains undefined.
+
+```javascript
+var object = Bindings.defineBindings({
+    left: undefined,
+    right: undefined
+}, {
+    and: {"<-": "left && right"}
+});
+
+object.right = 10;
+expect(object.and).toBe(undefined);
+```
+
+We set the left operand to `20`.  The bound value becomes the value of
+the right operand, `10`.
+
+```javascript
+// Continued...
+object.left = 20;
+expect(object.and).toBe(10);
+```
+
+---
+
+Interestingly, logical **and** is bindable.  The objective of the
+binding is to do whatever is necessary, if possible, to make the logical
+expression equal the bound value.
+
+Supposing that both the left and right operands are false, and the
+result is or becomes true, to satisfy the equality `left && right ==
+true`, both left and right must be set and bound to `true`.
+
+```javascript
+var object = Bindings.defineBindings({}, {
+    "left && right": {
+        "<-": "leftAndRight"
+    }
+});
+
+object.leftAndRight = true;
+expect(object.left).toBe(true);
+expect(object.right).toBe(true);
+```
+
+As with the equals binder, logic bindings will prefer to alter the left
+operand if altering either operand would suffice to validate the
+expression.  So, if the expression then becomes false, it is sufficient
+to set the left side to false to satisfy the equality.
+
+```javascript
+// Continued...
+object.leftAndRight = false;
+expect(object.left).toBe(false);
+expect(object.right).toBe(true);
+```
+
+This can facilitate some interesting, tri-state logic.  For example, if
+you have a checkbox that can be checked, unchecked, or disabled, and you
+want it to be unchecked if it is disabled, you can use logic bindings to
+ensure this.
+
+```javascript
+var controller = Bindings.defineBindings({
+    checkbox: {
+        checked: false,
+        disabled: false
+    },
+    model: {
+        expanded: false,
+        children: [1, 2, 3]
+    }
+}, {
+    "checkbox.checked": {"<->": "model.expanded && expandable"},
+    "checkbox.disabled": {"<-": "!expandable"},
+    "expandable": {"<-": "model.children.length > 0"}
+});
+
+expect(controller.checkbox.checked).toBe(false);
+expect(controller.checkbox.disabled).toBe(false);
+
+// check the checkbox
+controller.checkbox.checked = true;
+expect(controller.model.expanded).toBe(true);
+
+// alter the model such that the checkbox is unchecked and disabled
+controller.model.children.clear();
+expect(controller.checkbox.checked).toBe(false);
+expect(controller.checkbox.disabled).toBe(true);
+```
+
+### Or
+
+As with the **and** operator, the logical **or** is an exception to the
+rule that an expression is null, undefined, or empty if any of the
+operands are null or undefined.  If both operands are defined and
+boolean, **or** expressions behave strictly within the realm of logic.
+However, if the values are non-boolean or even non-values, they serve to
+select either the left or right side based on whether the left side is
+defined and true.
+
+If the first argument is undefined or false, the aggregate expression
+will evaluate to the second argument, even if that argument is null or
+undefined.
+
+Suppose we bind `or` to `left || right` on some object.  `or` will be
+`undefined` initially, but if we set the `right` to `10`, `or` will
+become `10`, bypassing the still undefined left side.
+
+```javascript
+var object = Bindings.defineBindings({
+    left: undefined,
+    right: undefined
+}, {
+    or: {"<-": "left || right"}
+});
+
+object.right = 10;
+expect(object.or).toBe(10);
+```
+
+However, the left hand side takes precedence over the right if it is
+defined and true.
+
+```javascript
+// Continued...
+object.left = 20;
+expect(object.or).toBe(20);
+```
+
+And it will remain bound, even if the right hand side becomes undefined.
+
+```javascript
+object.right = undefined;
+expect(object.or).toBe(20);
+```
+
+> Aside: JavaScript’s `delete` operator performs a configuration change,
+> and desugars to `Object.defineProperty`, and is not interceptable with
+> an ES5 setter.  So, don't use it on any property that is involved in a
+> binding.  Setting to null or undefined should suffice.
+
+---
+
+Logical **or** is bindable.  As with logical **and**, the binding
+performs the minimum operation necessary to ensure that the expression
+is equal.  If the expression becomes true, and either of the operands
+are true, the nothing needs to change.  If the expression becomes false,
+however, both operands must be bound to false.  If the expression
+becomes true again, it is sufficient to bind the left operand to true to
+ensure that the expression as a whole is true.  Rather than belabor the
+point, I leave as an exercise to the reader to apply DeMorgan’s Theorem
+to the documentation for logical **and** bindings.
+
+
+### Default
+
+The **default** operator, `??`, is similar to the **or**, `||` operator,
+except that it decides whether to use the left or right solely based on
+whether the left is defined.  If the left is null or undefined, the
+aggregate expression will evaluate to the right expression.  If the left
+is defined, even if it is false, the result will be the left expression.
+
+```javascript
+var object = Bindings.defineBindings({
+    left: undefined,
+    right: undefined
+}, {
+    or: {"<-": "left ?? right"}
+});
+
+object.right = 10;
+expect(object.or).toBe(10);
+
+object.left = false;
+expect(object.or).toBe(false);
+```
+
+The default operator is not bindable, but weirder things have happened.
+
+### Defined
+
+The `defined()` operator serves a similar role to the default operator.
+If the value in scope is null or undefined, it the result will be false,
+and otherwise it will be true.  This will allow a term that may be
+undefined to propagate.
+
+```javascript
+var object = Bindings.defineBindings({}, {
+    ready: {
+        "<-": "value.defined()"
+    }
+});
+expect(object.ready).toBe(false);
+
+object.value = 10;
+expect(object.ready).toBe(true);
+```
+
+The defined operator is also bindable.  If the source is or becomes
+false, the target will be bound to `null`.  If the source is null or
+false, the binding has no effect.
+
+```javascript
+var object = Bindings.defineBindings({
+    value: 10,
+    operational: true
+}, {
+    "value.defined()": {"<-": "operational"}
+});
+expect(object.value).toBe(10);
+
+object.operational = false;
+expect(object.value).toBe(undefined);
+```
+
+If the source becomes null or undefined, it will cancel the previous
+binding but does not set or restore the bound value.  Vaguely becoming
+“defined” is not enough information to settle on a particular value.
+
+```javascript
+object.operational = true;
+expect(object.value).toBe(undefined);
+```
+
+However, another binding might settle the issue.
+
+```javascript
+Bindings.defineBindings(object, {
+    "value == 10": {
+        "<-": "operational"
+    }
+});
+expect(object.value).toBe(10);
+```
+
 ### Algebra
 
 FRB can automatically invert algebraic operators as long as they operate
@@ -1454,7 +1752,8 @@ expect(results).toEqual([10, 20]);
 ```
 
 For more complex cases, you can specify a descriptor instead of the
-callback.  For example, to observe a property’s value *before it changes*, you can use the `beforeChange` flag.
+callback.  For example, to observe a property’s value *before it
+changes*, you can use the `beforeChange` flag.
 
 ```javascript
 var results = [];
@@ -1522,9 +1821,9 @@ var cancel = observe(array, "map{sum()}", function (array) {
         i++;
     }
     contentChange();
-    array.addContentChangeListener(contentChange);
-    return function cancelContentChange() {
-        array.removeContentChangeListener(contentChange);
+    array.addRangeChangeListener(contentChange);
+    return function cancelRangeChange() {
+        array.removeRangeChangeListener(contentChange);
     };
 });
 array.push([0]);
@@ -1764,6 +2063,122 @@ Bindings.defineBindings({
 });
 ```
 
+### Polymorphic Extensibility
+
+Bindings support three levels of polymorphic extensibility depending on
+the needs of a method that FRB does not anticipate.
+
+If an operator is pure, meaning that all of its operands are value types
+that will necessarily need to be replaced outright if they every change,
+meaning that they are all effectively stateless, and if all of the
+operands must be defined in order for the output to be defined, it is
+sufficient to just use a plain JavaScript method.  For example,
+`string.toUpperCase()` will work fine.
+
+If an operator responds to state changes of its one and only operand, an
+object may implement an observer method.  If the operator is `foo` in
+FRB, the JavaScript method is `observeFoo(emit)`.  The observer must
+return a cancel function if it will emit new values after it returns, or
+if it uses observers itself.  It must stop emitting new values if FRB
+calls its canceler.  The emitter may return a canceler itself, and the
+observer must call that canceler before it emits a new value.
+
+This is an example of a clock.  The `clock.time()` is an observable
+operator of the clock in FRB, implemented by `observeTime`.  It will
+emit a new value once a second.
+
+```javascript
+function Clock() {
+}
+
+Clock.prototype.observeTime = function (emit) {
+    var cancel, timeoutHandle;
+    function tick() {
+        if (cancel) {
+            cancel();
+        }
+        cancel = emit(Date.now());
+        timeoutHandle = setTimeout(tick, 1000);
+    }
+    tick();
+    return function cancelTimeObserver() {
+        clearTimeout(timeoutHandle);
+        if (cancel) {
+            cancel();
+        }
+    };
+};
+
+var object = Bindings.defineBindings({
+    clock: new Clock()
+}, {
+    "time": {"<-": "clock.time()"}
+});
+
+expect(object.time).not.toBe(undefined);
+
+Bindings.cancelBindings(object);
+```
+
+If an operator responds to state changes of its operands, you will need
+to implement an observer maker.  An observer maker is a function that
+returns an observer function, and accepts observer functions for all of
+the arguments you are expected to observe.  The observer must also
+handle a scope argument, usually just passing it on at run-time,
+`observe(emit, scope)`.  Otherwise it is much the same.
+
+FRB would delegate to `makeTimeObserver(observeResolution)` for a
+`clock.time(ms)` FRB expression.
+
+This is an updated rendition of the clock example except that it will
+observe changes to a resolution operand and adjust its tick frequency
+accordingly.
+
+```javascript
+function Clock() {
+}
+
+Clock.prototype.observeTime = function (emit, resolution) {
+    var cancel, timeoutHandle;
+    function tick() {
+        if (cancel) {
+            cancel();
+        }
+        cancel = emit(Date.now());
+        timeoutHandle = setTimeout(tick, resolution);
+    }
+    tick();
+    return function cancelTimeObserver() {
+        clearTimeout(timeoutHandle);
+        if (cancel) {
+            cancel();
+        }
+    };
+};
+
+Clock.prototype.makeTimeObserver = function (observeResolution) {
+    var self = this;
+    return function observeTime(emit, scope) {
+        return observeResolution(function replaceResolution(resolution) {
+            return self.observeTime(emit, resolution);
+        }, scope);
+    };
+};
+
+var object = Bindings.defineBindings({
+    clock: new Clock()
+}, {
+    "time": {"<-": "clock.time(1000)"}
+});
+
+expect(object.time).not.toBe(undefined);
+
+Bindings.cancelBindings(object);
+```
+
+Polymorphic binders are not strictly impossible, but you would be mad to
+try them.
+
 
 ## Reference
 
@@ -1776,7 +2191,7 @@ It must prove itself worthy before it can return.
 -   **functional**: The implementation uses functional building blocks
     to compose observers and binders.
 -   **generic**: The implementation uses generic methods on collections,
-    like `addContentChangeListener`, so any object can implement the
+    like `addRangeChangeListener`, so any object can implement the
     same interface and be used in a binding.
 -   **reactive**: The values of properties and contents of collections
     react to changes in the objects and collections on which they
@@ -2092,90 +2507,8 @@ expect(path).toBe("a && b");
 
 ### Grammar
 
--   **expression** = **logical-or-expression**
--   **conditional-expression** = **logical-or-expression** ( `?`
-    **expression** `:` **expression** )?
--   **logical-or-expression** = **logical-and-expression** ( `||` *(or)*
-    **relation expression** )?
--   **logical-and-expression** = **relation-expression** ( `&&` *(and)*
-    **relation-expression** )?
--   **relation-expression** = **arithmetic expression** (
-    **relation-operator** **arithmetic-expression** )?
-    -   **relation-operator** = `==` *(equals)* or ```<``` *(lt)* or
-        ```<=``` *(le)* or ```>``` *(gt)* or ```>=``` *(ge)* or
-        ```<=>``` *(compare)*
--   **arithmetic-expression** = **multiplicative-expresion** delimited by **arithmetic-operator**
-    -   **arithmetic-operator** = `+` *(add)* or `-` *(sub)*
--   **multiplicative-expression** = **exponential-expression**
-    delimited by **multiplicative-operator**
-    -   **multiplicative-operator** = `*` *(mul)* or `/` *(div)* or
-        `%` *(mod)* or `rem` *(rem)*
--   **exponential-expression** = **unary-expression** delimited by
-    **exponential-operator**
-    -   **exponential-operator** = `**` *(pow)* or `//` *(root)* or
-        `%%` *(log)*
--   **unary-expression** = **unary-operator** ? **path-expression**
-    -   **unary-operator** = `+` *(number)* or `-` *(neg)* or `!` *(not)*
--   **path-expression** =
-    -   **literal** *(literal with value)* or
-    -   **array-expression** *(tuple)* or
-    -   **object-expression** *(record)* or
-    -   `(` **expression** `)` **tail-expression** or
-    -   **property-name** **tail-expression** *(property)* or
-    -   **function-call** *(piped)* **tail-expression** or
-    -   **block-call** **tail-expression** or
-    -   `#` **element-id** **tail-expression** *(element by id)* or
-    -   `@` **component-label** **tail-expression** *(component by label)*
-    -   `&` **function-call** *(bare)* **tail-expression** or
--   **tail-expression** =
-    -   **property-expression** or
-    -   **with-expression** or
-    -   **variable-property-expression**
--   **property-expression** = `.` **property-name** **tail-expression**
-    *(property)*
--   **with-expression** = `.`
-    -   `(` **expression** `)` **tail-expression** or
-    -   **array-expression** **tail-expression** or
-    -   **object-expression** **tail-expression**
--   **variable-property-expression** = `[` **expression** `]`
-    **tail-expression** *(property)*
--   **array-expression** = `[` ( **expression** or `()` *(value)* )
-    delimited by `,` `]` *(tuple with each expression in args array)*
--   **object-expression** = `{` (**property-name** `:` **expression**)
-    delimited by `,` `}` *(record, with each expression as a value in an
-    args object instead of array)*
--   **property-name** = ( **non-space-character** )+
--   **function-call** = **function-name** `(` **expression** delimited
-    by `,` `)`
-    -   **function-name** = `flatten` or `reversed` or `enumerate` or
-        `sum` or `average` or `has` or `view` or `startsWith` or
-        `endsWith` or `contains` or `join` or `split` or `range` or
-        `keys` or `values` or `entries` *(eponymous syntax node types)*
--   **block-call** = **function-name** `{` **expression** `}`
-    -   **block-name** = `map` *(mapBlock)* or `filter` *(filterBlock)*
-        or `some` *(someBlock)* or `every` *(everyBlock)* or `sorted`
-        *(sortedBlock)* or `sortedSet` *(sortedSetBlock)* or `min`
-        *(minBlock)* or `max` *(maxBlock)* or `group` *(groupBlock)* or
-        `groupMap` *(groupMapBlock)* or **function-name** *(map followed
-        by function-call)*
--   **literal** = **string-literal** or **number-literal**
-    -   **number-literal** = **digits** ( `.` **digits** )? *(literal
-        and value is a number)*
-    -   **string-literal** = `'` ( **non-quote-character** or `\`
-        **character** ) `'` *(literal and value is a string)*
-
-Legend:
-
--   **terms-of-the-grammar**
--   `tokens`
--   *(corresponding syntax node type name)*
--   (group)
--   definition =
--   or
--   delimited by
--   optional?
--   any*
--   some+
+The grammar is expressed succinctly in `grammar.pegjs` and is subject to
+ammendment.
 
 ### Semantics
 
@@ -2207,10 +2540,15 @@ available.
     `serialization.getObjectForLable(label)`, or dies trying.  Changes
     to the serialization are not observed.  This syntax exists to
     support [Montage][] serializations.
+-   A "parent" scope operator, `^` observes the given expression in the
+    context of the current scope's parent.
+-   A "with" scope operator, e.g., `context.(expression)`, observes the
+    given expression in a new scope that uses the `context` as its value
+    and the current scope as its parent.
 -   A "map" block observes the source array and emits a target array.
     The target array is emitted once and all subsequent updates are
     reflected as content changes that can be independently observed with
-    `addContentChangeListener`.  Each element of the target array
+    `addRangeChangeListener`.  Each element of the target array
     corresponds to the observed value of the block expression using the
     respective element in the source array as the source value.
 -   A "map" function call receives a function as its argument rather
@@ -2251,11 +2589,13 @@ available.
 -   A "flatten" function call observes a source array and produces a
     target array.  The source array must only contain inner arrays.  The
     target array is emitted once and all subsequent updates can be
-    independently observed with `addContentChangeListener`.  The target
+    independently observed with `addRangeChangeListener`.  The target
     array will always contain the concatenation of all of the source
     arrays.  Changes to the inner and outer source arrays are reflected
     with incremental splices to the target array in their corresponding
     positions.
+-   A "concat" function call observes a source array and all of its
+    argument arrays and effectively flattens all of these arrays.
 -   A "reversed" function call observes the source array and produces a
     target array that contains the elements of the source array in
     reverse order.  The target is incrementally updated.
@@ -2272,6 +2612,13 @@ available.
     of the spliced values, added and removed.
 -   An "average" function call observes the average of the input values,
     much like "sum".
+-   A "last" function call observes the last of the input values, if
+    there is one.  It does this by watching range changes that overlap
+    the last entry of the collection and emitting the new last value
+    when necessary, or undefined if the collection becomes empty.
+-   An "only" function call observes the only value of the input values,
+    if there is only one such value.  If there are none or more than
+    one, the only function emits undefined.
 -   A "has" function call observes the source collection for whether it
     contains an observed value.
 -   A "tuple" expression observes a source value and emits a single
@@ -2308,7 +2655,8 @@ Unary operators:
 
 -   "number" coerces the value to a number.
 -   "neg" converts a number to its negative.
--   "not" converts a boolean to its logical opposite.
+-   "not" converts a boolean  to its logical opposite, treating null or
+    undefined as false.
 
 Binary operators:
 
@@ -2341,8 +2689,8 @@ Binary operators:
     `Object.equals(left, right)`.
 -   *Note: there is no "not equals" syntax node. The `!=` operator gets
     converted into a "not" node around an "equals" node.
--   "and" logical union
--   "or" logical intersection
+-   "and" logical union, or short circuit on false
+-   "or" logical intersection, or short circuit on true
 
 Ternary operator:
 
@@ -2356,6 +2704,16 @@ Ternary operator:
 On the left hand side of a binding, the last term has alternate
 semantics.  Binders receive a target as well as a source.
 
+-   A "with" binding takes a "context" and "expression" argument from
+    the target, and a "value" expression from the source.  If and when
+    the context is or becomes defined, the binder creates a child scope
+    with the context as its value and binds the expression in that scope
+    to the source in its own.
+-   A "parent" binding takes an "expression" argument from the target,
+    and a "value" expression from the source.  If and when there is a
+    parent scope, and if and when there is or becomes a value in that
+    scope, the binder establishes a binding from the source expression
+    to the target expression in the parent scope.
 -   A "property" observes an object and a property name from the target,
     and a value from the source.  When any of these change, the binder
     upates the value for the property name of the object.
@@ -2379,16 +2737,58 @@ semantics.  Binders receive a target as well as a source.
     the value is false and the value does appear in the collection one
     or more times, the binder uses the `delete` or `remove` method of
     the collection to remove all occurrences of the sought value.
+-   An "only" function call binder observes a boolean value from the
+    source.  If the source value and target collection are both defined,
+    the binder ensures that the source is the only value in the target
+    collection.  The target collection may have the ranged collection
+    interface (`has` and `swap`) or it may have the set collection
+    interface (`has`, `clear`, and `add`), and the binder prefers the
+    former if both are supported because it results in a single range
+    change dispatch on the target collection.
 -   An "if" binding observes the condition and binds the target either
     to the consequent or alternate.  If the condition is null or
     undefined, the target is not bound.
-
-If the target expression ends with `.*`, the content of the target is
-bound instead of the property.  This is useful for binding the content
-of a non-array collection to the content of another indexed collection.
-The collection can be any collection that implements the "observable
-content" interface including `dispatchContentChange(plus, minus,
-index)`, `addContentChangeListener`, and `removeContentChangeListener`.
+-   For an "everyBlock" binding, the first argument of the target
+    expression is the "collection", the second argument is the "block"
+    expression, and the source is the "guard".  If and when the guard is
+    or becomes true, the binder maintains a child scope for every value
+    in the collection and binds the "block" in that scope to be true.
+    If the guard is or becomes false, all of these bindings are
+    canceled.  When the "guard" is false, the every block produces no
+    bindings, and when the "guard" becomes false, no state is modified.
+-   For a "someBlock" binding, the first argument of the target
+    expression is the "collection", the second argument is the "block"
+    expression, and the source is the "guard".  If and when the guard is
+    or becomes false, the binder maintains a child scope for every value
+    in the collection and binds the "block" in that scope to be false.
+    If the guard is or becomes true, all of these bindings are canceled.
+    When the "guard" is true, the every block produces no bindings, and
+    when the "guard" becomes true, no state is modified.
+-   The "and" operator validates the logical expression by binding the
+    operands.  If the source expression is true, both the left and right
+    argument expressions are bound to true.  If the source expression is
+    false, and the right operand is false, the binding does nothing.  If
+    the source expression is false and the right operand is true, the
+    left operand is bound to false.
+-   The "or" operator validates the logical expression by binding the
+    operands.  If the source expression is false, both the left and
+    right argument expressions are bout to false.  If the source
+    expression is true, and the right operand is true, the binding does
+    nothing.  If the source expression is true and the right operand is
+    false, the left operand is bound to false.
+-   The "rangeContent" binding guarantees that the ranged content (as in
+    subarrays) of the target will be bound to the content of the source,
+    if both are defined, but will not replace the target collection.
+    This is useful for ensuring that a property collection with
+    important event listeners is never replaced if the bound source is
+    replaced.  The source collection must implement range change
+    dispatch, like Array, Set, List, and SortedSet.
+-   The "mapContent" binding guarantees that the map content of the
+    target will be bound to the content of the source, if both are
+    defined, but will not replace the target map.  This is useful for
+    ensuring that a map property with important event listeners is never
+    replaced if the bound source is replaced.   The source collection
+    must implement map change dispatch, like Map, Dict, and SortedMap.
 
 ### Language Interface
 
@@ -2434,6 +2834,8 @@ nodes (or an "args" object for `record`).
     argument) in a collection (first argument).
 -   `with`: corresponds to observing the right expression using the left
     expression as the source.
+-   `parent`: corresponds to observing the given expression (only
+    argument) in the parent scope.
 -   `has`: corresponds to whether the key (second argument) exists
     within a collection (first argument)
 -   `mapBlock`: the left is the input, the right is an expression to
@@ -2509,6 +2911,7 @@ For all binary operators, the node types are:
     algebraically.
 -   ```&&```, `and`, logical and
 -   ```||```, `or`, logical or
+-   ```??```, `default`
 
 For the ternary operator:
 
@@ -2516,21 +2919,25 @@ For the ternary operator:
 
 For all function calls, the right hand side is a tuple of arguments.
 
--   `reversed`
--   `enumerate`
--   `flatten`
--   `sum`
--   `average`
--   `startsWith`
--   `endsWith`
--   `contains`
--   `join`
--   `split`
--   `range`
--   `keys`
--   `values`
--   `entries`
-
+-   `reversed()`
+-   `enumerate()`
+-   `flatten()`
+-   `sum()`
+-   `average()`
+-   `last()`
+-   `only()`
+-   `one()`
+-   `startsWith(other)`
+-   `endsWith(other)`
+-   `contains(other)`
+-   `join(delimiter)`
+-   `split(delimiter)`
+-   `concat(...arrays)`
+-   `range()`
+-   `keys()`
+-   `values()`
+-   `entries()`
+-   `defined()`
 
 ### Observers and Binders
 
@@ -2606,6 +3013,8 @@ source, target, parameters)` and return a `cancel()` function.
 -   `makeMapContentBinder(observeTarget)`
 -   `makeReversedBinder(observeTarget)`
 
+This documentation of the internal observer and binder functions is not
+exhaustive.
 
 [Collections]: https://github.com/montagejs/collections
 [Define Property]: http://kangax.github.com/es5-compat-table/#define-property-webkit-note
