@@ -44,7 +44,7 @@ order,N,N,Y,N,N,X,X,N,N,N,X,N
 sum,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 average,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 last,Y,Y,Y,Y,Y,X,X,Y,N,N,X,N
-one,Y,Y,Y,Y,N,X,X,N,N,N,X,N
+one,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 only,Y,Y,Y,Y,Y,Y,Y,Y,N,N,N,N
 minBlock,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y
 maxBlock,Y,Y,Y,Y,Y,X,X,Y,Y,Y,X,Y

@@ -1077,6 +1077,30 @@ function observeOnly(collection, emit, scope) {
     return observeRangeChange(collection, rangeChange, scope);
 }
 
+exports.makeOneObserver = makeOneObserver;
+function makeOneObserver(observeCollection) {
+    return function (emit, scope) {
+        return observeCollection(autoCancelPrevious(makeUniq(function replaceCollectionForOne(collection) {
+            return observeOne(collection, emit, scope);
+        })), scope);
+    };
+}
+
+exports.observeOne = observeOne;
+function observeOne(collection, emit, scope) {
+    var length = 0;
+    function rangeChange(plus, minus, index) {
+        length += plus.length - minus.length;
+        console.log(plus, minus, index, length);
+        if (length > 0) {
+            return emit(collection.one());
+        } else {
+            return emit();
+        }
+    }
+    return observeRangeChange(collection, rangeChange, scope);
+}
+
 exports.makeRangeContentObserver = makeRangeContentObserver;
 function makeRangeContentObserver(observeCollection) {
     return function observeContent(emit, scope) {
