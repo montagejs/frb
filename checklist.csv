@@ -44,7 +44,7 @@ order,N,N,Y,N,N,X,X,N,N,X,N
 sum,Y,Y,Y,Y,Y,X,X,Y,Y,X,Y
 average,Y,Y,Y,Y,Y,X,X,Y,Y,X,Y
 last,Y,Y,Y,Y,Y,X,X,Y,Y,X,Y
-one,Y,Y,Y,Y,N,X,X,N,N,X,Y
+one,Y,Y,Y,Y,Y,X,X,Y,N,X,Y
 only,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 minBlock,Y,Y,Y,Y,Y,X,X,Y,Y,X,Y
 maxBlock,Y,Y,Y,Y,Y,X,X,Y,Y,X,Y
@@ -69,6 +69,9 @@ le,Y,Y,Y,Y,Y,X,X,Y,Y,X,Y
 gt,Y,Y,Y,Y,Y,X,X,Y,Y,X,Y
 ge,Y,Y,Y,Y,Y,X,X,Y,Y,X,Y
 compare,Y,Y,Y,Y,Y,X,X,Y,Y,X,Y
+floor,Y,Y,Y,Y,Y,X,X,Y,Y,X,Y
+ceil,Y,Y,Y,Y,Y,X,X,Y,Y,X,Y
+round,Y,Y,Y,Y,Y,X,X,Y,Y,X,Y
 ,,,,,,,,,,,
 and,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
 or,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y

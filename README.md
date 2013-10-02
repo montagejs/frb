@@ -261,7 +261,7 @@ object.array = [1, 2, 3];
 expect(object.only).toBe(undefined);
 ```
 
-THe `only` binder watches a value.  When the value is null, it does
+The `only` binder watches a value.  When the value is null, it does
 nothing.  Otherwise, it will update the bound collection such that it
 only contains that value.  If the collection was empty, it adds the
 value.  Otherwise, if the collection did not have the value, it replaces
@@ -281,6 +281,33 @@ object.only = null;
 object.array.push(3);
 expect(object.array.slice()).toEqual([2, 3]);
 ```
+
+### One
+
+Like the `only` operator, there is also a `one` operator.  The `one`
+operator will observe one value from a collection, whatever value is
+easiest to obtain.  For an array, it's the first value; for a sorted
+set, it's whatever value was most recently found or added; for a heap,
+it's whatever is on top.  However, if the collection is null, undefined,
+or empty, the result is `undefined`.
+
+```javascript
+var object = {array: [], one: null};
+Bindings.defineBindings(object, {
+    one: {"<-": "array.one()"}
+});
+
+expect(object.one).toBe(undefined);
+
+object.array.push(1);
+expect(object.one).toBe(1);
+
+// Still there...
+object.array.push(2);
+expect(object.one).toBe(1);
+```
+
+Unlike `only`, `one` is not bindable.
 
 ### Map
 
@@ -2640,6 +2667,10 @@ available.
 -   An "only" function call observes the only value of the input values,
     if there is only one such value.  If there are none or more than
     one, the only function emits undefined.
+-   A "one" function call observes one of the values from a collection,
+    if there is one.  Otherwise it is undefined.  The collection is at
+    liberty to determine whatever value it can most quickly and sensibly
+    provide.
 -   A "round" function call observes the nearest integer to the input
     value, rounding `0.5` toward infinity.
 -   A "floor" function call observes the nearest integer to the input

@@ -164,6 +164,22 @@ describe("Tutorial", function () {
 
     });
 
+    it("One", function () {
+        var object = {array: [], one: null};
+        Bindings.defineBindings(object, {
+            one: {"<-": "array.one()"}
+        });
+
+        expect(object.one).toBe(undefined);
+
+        object.array.push(1);
+        expect(object.one).toBe(1);
+
+        // Still there...
+        object.array.push(2);
+        expect(object.one).toBe(1);
+    });
+
     it("Map", function () {
         var object = {objects: [
             {number: 10},
