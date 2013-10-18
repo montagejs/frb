@@ -38,16 +38,22 @@ describe("view", function () {
         expect(object.view).toEqual([6, 8, 10]);
     });
 
-    it("uses array.length - start if length is ommitted", function () {
+    it("start defaults to zero", function () {
         Bindings.defineBindings(object, {
-            view: {"<-": "array.view(2)"}
+            view: {"<-": "array.view(length)"}
         });
 
-        expect(object.view).toEqual([6, 8]);
-        object.array.push(10);
-        expect(object.view).toEqual([6, 8, 10]);
-        object.array.push(12, 14, 16);
-        expect(object.view).toEqual([6, 8, 10, 12, 14, 16]);
+        object.length = 3;
+        expect(object.view).toEqual([2, 4, 6]);
+        object.array.splice(2, object.array.length - 2);
+        expect(object.view).toEqual([2, 4]);
+        object.array.unshift(0);
+        expect(object.view).toEqual([0, 2, 4]);
+        object.array.splice(2, 0, 3);
+        object.array.splice(1, 0, 1);
+        object.length += 1;
+        expect(object.view).toEqual([0, 1, 2, 3]);
     });
+
 });
 
