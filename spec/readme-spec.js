@@ -322,8 +322,8 @@ describe("Tutorial", function () {
 
     it("Min and Max", function () {
         var object = Bindings.defineBindings({}, {
-            min: {"<-": "values.min{}"},
-            max: {"<-": "values.max{}"}
+            min: {"<-": "values.min()"},
+            max: {"<-": "values.max()"}
         });
 
         expect(object.min).toBe(undefined);
@@ -332,6 +332,9 @@ describe("Tutorial", function () {
         object.values = [2, 3, 2, 1, 2];
         expect(object.min).toBe(1);
         expect(object.max).toBe(3);
+
+        object.values.push(4);
+        expect(object.max).toBe(4);
     });
 
     it("Min and Max (by property)", function () {
