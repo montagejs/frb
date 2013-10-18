@@ -70,6 +70,18 @@ exports.sub = function (a, b) {
     return a - b;
 };
 
+exports.ceil = function (n) {
+    return Math.ceil(n);
+};
+
+exports.floor = function (n) {
+    return Math.floor(n);
+};
+
+exports.round = function (n) {
+    return Math.round(n);
+};
+
 exports.lt = function (a, b) {
     return Object.compare(a, b) < 0;
 };
