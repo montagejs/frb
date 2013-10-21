@@ -1158,6 +1158,11 @@ module.exports = [
         }
     },
 
+    {
+        path: "@foo:thingy",
+        syntax: { type: "component", label: "foo:thingy" }
+    },
+
     // Invalid syntax
 
     {
