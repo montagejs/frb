@@ -1,3 +1,7 @@
+# v0.2.15
+
+-   Collections 0.2.1, fixes a bug that impacts FRB on Chrome 30 and
+    all future browsers that implement ES6 methods on arrays.
 
 # v0.2.14
 
