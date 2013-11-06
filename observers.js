@@ -1005,6 +1005,7 @@ function observeRangeChange(collection, emit, scope) {
     rangeChange(collection.toArray(), [], 0);
     var cancelRangeChange = collection.addRangeChangeListener(
         rangeChange,
+        null,
         scope.beforeChange
     );
     return once(function cancelRangeObserver() {
@@ -1356,6 +1357,7 @@ function makeNonReplacing(wrapped) {
                     // TODO fix problem that this would get called twice on replacement
                     var cancelRangeChange = input.addRangeChangeListener(
                         rangeChange,
+                        null,
                         scope.beforeChange
                     );
                     return once(cancelRangeChange);
