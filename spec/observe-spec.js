@@ -97,4 +97,45 @@ describe("observe", function () {
         ]);
     });
 
+    it("should observe a range property before its content changes", function () {
+        var spy = jasmine.createSpy();
+        var originalArray = [10];
+        var object = {
+            a: originalArray
+        };
+
+        observe(object, 'a', {
+            change: function (value) {
+                expect(value).toBe(originalArray);
+                expect(value.length).toBe(1);
+                spy();
+            },
+            beforeChange: true,
+            contentChange: true
+        });
+
+        originalArray.push(20);
+
+        expect(spy).toHaveBeenCalled();
+    });
+
+    it("should observe a range property after its content changes", function () {
+        var spy = jasmine.createSpy();
+        var originalArray = [10];
+        var object = {
+            a: originalArray
+        };
+
+        observe(object, 'a', {
+            change: spy,
+            contentChange: true
+        });
+
+        originalArray.push(20);
+
+        var updatedArray = spy.mostRecentCall.args[0];
+        expect(updatedArray).toEqual(originalArray);
+        expect(updatedArray.length).toBe(2);
+
+    });
 });
