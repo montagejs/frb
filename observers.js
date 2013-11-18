@@ -816,52 +816,152 @@ function isNumber(value) {
 
 exports.makeViewObserver = makeNonReplacing(makeReplacingViewObserver);
 function makeReplacingViewObserver(observeInput, observeStart, observeLength) {
+    if (!observeLength) {
+        observeLength = observeStart;
+        observeStart = observeZero;
+    }
     return function observeView(emit, scope) {
         return observeInput(autoCancelPrevious(function (input) {
             if (!input) return emit();
-            return observeLength(autoCancelPrevious(function (length) {
-                if (length == null) return emit();
-                var previousStart;
-                return observeStart(autoCancelPrevious(function (start) {
-                    if (start == null) return emit();
-                    var output = [];
-                    function rangeChange(plus, minus, index) {
-                        var diff = plus.length - minus.length;
-                        if (index < start && diff < 0 && diff < length) { // shrink before
-                            // inject elements at the end
-                            output.swap(output.length, 0, input.slice(start + length + diff, start + length));
-                            // remove elements at the beginning
-                            output.splice(0, -diff);
-                        } else if (index < start && diff > 0 && diff < length) { // grow before
-                            // inject elements
-                            output.swap(0, 0, input.slice(start, start + diff));
-                            // remove elements from end
-                            output.splice(output.length - diff, diff);
-                        } else if (index >= start && diff < 0 && index < start + length) { // shrink within
-                            // inject elements to end
-                            output.swap(output.length, 0, input.slice(start + length + diff, start + length));
-                            // remove elements from within
-                            output.splice(index - start, -diff);
-                        } else if (index >= start && diff > 0 && index < start + length) { // grow within
-                            // inject elements within
-                            output.swap(index - start, 0, input.slice(index, index + diff));
-                            // remove elements from end
-                            output.splice(output.length - diff, diff);
-                        } else if (index < start + length) {
-                            output.swap(0, output.length, input.slice(start, start + length));
-                        }
+
+            var output = [];
+            var length;
+            var start;
+            var boundedLength;
+            var boundedStart;
+            var active = false;
+
+            var cancelRangeChangeObserver = observeRangeChange(input, rangeChange, scope);
+
+            var cancelLengthObserver = observeLength(function replaceLength(newLength) {
+                newLength = +newLength;
+                if (isNaN(newLength)) {
+                    newLength = undefined;
+                }
+                var becomesActive = typeof newLength === "number" && typeof start === "number";
+                var newBoundedLength = Math.max(0, newLength);
+                if (typeof boundedStart === "number") {
+                    newBoundedLength = Math.min(newBoundedLength, input.length - boundedStart);
+                }
+                if (active !== becomesActive) {
+                    if (becomesActive) {
+                        output.swap(0, 0, input.slice(boundedStart, boundedStart + newBoundedLength));
+                    } else {
+                        output.clear();
                     }
-                    var cancelRangeChange = observeRangeChange(input, rangeChange, scope);
-                    var cancel = emit(output) || Function.noop;
-                    return once(function cancelViewObserver() {
-                        cancel();
-                        cancelRangeChange();
-                    });
-                }), scope);
-            }), scope);
+                    active = becomesActive;
+                } else if (active && boundedLength !== newBoundedLength) {
+                    if (newBoundedLength < boundedLength) { // shrink
+                        // A B C D E F
+                        output.splice(newLength, boundedLength - newBoundedLength);
+                        // A B C D
+                    } else { // grow
+                        // A B C D
+                        output.swap(boundedLength, 0, input.slice(boundedStart + boundedLength, boundedStart + newBoundedLength));
+                        // A B C D E F
+                    }
+                } // otherwise, was inactive, remains inactive
+                length = newLength;
+                boundedLength = newBoundedLength;
+            }, scope);
+
+            var cancelStartObserver = observeStart(function replaceStart(newStart) {
+                newStart = +newStart;
+                if (isNaN(newStart)) {
+                    newStart = undefined;
+                }
+                var becomesActive = typeof length === "number" && typeof newStart === "number";
+                var newBoundedStart = Math.max(0, newStart);
+                if (typeof length === "number") {
+                    newBoundedStart = Math.min(newBoundedStart, input.length);
+                }
+                var newBoundedLength = Math.max(0, length);
+                if (typeof newBoundedStart === "number") {
+                    newBoundedLength = Math.min(newBoundedLength, input.length - newBoundedStart);
+                }
+                if (active !== becomesActive) {
+                    if (becomesActive) {
+                        output.swap(0, output.length, input.slice(newBoundedStart, newBoundedStart + newBoundedLength));
+                    } else {
+                        output.clear();
+                    }
+                    active = becomesActive;
+                } else if (active && boundedStart !== newBoundedStart) {
+                    var diff = Math.abs(newBoundedStart - boundedStart);
+                    if (diff < boundedLength && newBoundedStart < boundedStart) { // rolling backward
+                        // old:     C D E F
+                        output.swap(0, 0, input.slice(newBoundedStart, boundedStart));
+                        // mid: A B C D E F
+                        output.splice(newBoundedLength, output.length - newBoundedLength);
+                        // new: A B C D
+                    } else if (diff < boundedLength && newBoundedStart > boundedStart) { // rolling forward
+                        // old: A B C D
+                        output.swap(output.length, 0, input.slice(boundedStart + boundedLength, newBoundedStart + newBoundedLength));
+                        // mid: A B C D E F
+                        output.splice(0, output.length - newBoundedLength);
+                        // new:     C D E F
+                    } else {
+                        // a new window that does not overlap the previous
+                        output.swap(0, output.length, input.slice(newBoundedStart, newBoundedStart + newBoundedLength));
+                    }
+                } // otherwise, was inactive, remains inactive
+                start = newStart;
+                boundedStart = newBoundedStart;
+                boundedLength = newBoundedLength;
+            }, scope);
+
+            function rangeChange(plus, minus, index) {
+                if (!active) {
+                    return;
+                }
+                var diff = plus.length - minus.length;
+                if (index <= start) { // before window
+                    if (diff > 0) { // grow by diff on leading side, rolling forward
+                        // 0 1 2 3 4 5
+                        //   ----- (start 1, length 3)
+                        // A C D E F
+                        // A>B<C D E F (["B"], [], 1)
+                        // old: C D E
+                        output.swap(0, 0, input.slice(start, start + diff));
+                        // mid: B C D E
+                        output.splice(length, output.length - length);
+                        // new: B C D
+                    } else { // shrink by -diff on leading side, rolling backward
+                        // 0 1 2 3 4 5
+                        //   ----- (start 1, length 3)
+                        // A B C D E F
+                        // A-C D E F ([], ["B"], 1)
+                        // old: B C D
+                        output.splice(0, -diff);
+                        // mid: C D
+                        output.swap(output.length, 0, input.slice(start + output.length, start + length));
+                        // new: C D E
+                    }
+                } else if (index < start + length) { // within the window
+                    output.swap(index - start, minus.length, plus);
+                    if (diff > 0) {
+                        // truncate
+                        output.splice(length, output.length - length);
+                    } else {
+                        // regrow
+                        output.swap(output.length, 0, input.slice(start + output.length, start + length));
+                    }
+                } // after the window
+            }
+
+            var cancel = emit(output) || Function.noop;
+
+            return function cancelViewChangeObserver() {
+                cancel();
+                cancelLengthObserver();
+                cancelStartObserver();
+                cancelRangeChangeObserver();
+            };
         }), scope);
     };
 }
+
+var observeZero = makeLiteralObserver(0);
 
 exports.makeEnumerateObserver = makeNonReplacing(makeReplacingEnumerateObserver);
 exports.makeEnumerationObserver = exports.makeEnumerateObserver; // deprecated
@@ -961,7 +1061,7 @@ function makeContainsObserver(observeHaystack, observeNeedle) {
 
 exports.makeJoinObserver = makeJoinObserver;
 function makeJoinObserver(observeArray, observeDelimiter) {
-    observeDelimiter = observeDelimiter || observeNullStringLiteral;
+    observeDelimiter = observeDelimiter || observeNullString;
     return function observeJoin(emit, scope) {
         return observeArray(autoCancelPrevious(function changeJoinArray(array) {
             if (!array)
@@ -983,7 +1083,7 @@ function makeJoinObserver(observeArray, observeDelimiter) {
     };
 }
 
-var observeNullStringLiteral = makeLiteralObserver("");
+var observeNullString = makeLiteralObserver("");
 
 // Collection Observers
 
