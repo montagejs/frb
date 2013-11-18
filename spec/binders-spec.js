@@ -42,3 +42,22 @@ describe("makeOneBinder", function () {
 
     });
 });
+
+describe("makeRangeContentBinder", function () {
+    it("should work when replacing", function () {
+        var o = Bindings.defineBindings({
+            target: [1, 2, 3]
+        }, {
+            source: {"<->": "target.rangeContent()"}
+        });
+
+        expect(o.source).toEqual([1, 2, 3]);
+
+        o.source = [2, 3];
+        expect(o.target).toEqual([2, 3]);
+
+        o.target.splice(0, 3, 1, 2);
+        expect(o.source).toEqual([1, 2]);
+
+    });
+});
