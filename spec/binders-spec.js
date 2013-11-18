@@ -1,5 +1,6 @@
 
 var Binders = require("../binders");
+var Bindings = require("../bindings");
 var Observers = require("../observers");
 var Scope = require("../scope");
 
@@ -25,3 +26,19 @@ describe("makePropertyBinder", function () {
     });
 });
 
+describe("makeOneBinder", function () {
+    it("should work", function () {
+        var o = Bindings.defineBindings({
+            items: [1, 2, 3],
+        }, {
+            item: { "<->": "items.one()" }
+        });
+
+        expect(o.items).toEqual([1, 2, 3]);
+        expect(o.item).toBe(1);
+
+        o.item = 3;
+        expect(o.items).toEqual([3]);
+
+    });
+});

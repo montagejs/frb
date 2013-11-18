@@ -664,6 +664,21 @@ describe("makeAndObserver", function () {
     // TODO
 });
 
+describe("makeOnlyObserver", function () {
+    it("should work", function () {
+        var collectionSignal = new Signal;
+        var observeOutput = Observers.makeOnlyObserver(
+            collectionSignal.observe
+        );
+        var spy = jasmine.createSpy();
+        var cancel = observeOutput(spy, new Scope());
+        expect(spy).not.toHaveBeenCalled();
+
+        collectionSignal.emit([1]);
+        expect(spy).toHaveBeenCalledWith(1);
+    })
+});
+
 
 // Utility Methods
 // ---------------
