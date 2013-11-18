@@ -234,6 +234,32 @@ function makeOnlyBinder(observeCollection) {
     };
 }
 
+// collection.one() <- value
+// empty the collection and set its one item to value
+exports.makeOneBinder = makeOneBinder;
+function makeOneBinder(observeCollection) {
+    return function bindOne(observeValue, sourceScope, targetScope, descriptor, trace) {
+        return observeCollection(autoCancelPrevious(function replaceCollection(collection) {
+            if (!collection) return;
+            return observeValue(autoCancelPrevious(function replaceOneValue(value) {
+                if (value == null) return;
+
+                // FIXME: this is debatable. If set to its current value, do we clear the rest of the collection?
+                // I err towards no, in part because this solves the case of two-way bindings, where we were always
+                // clearing out the source collection. That could be solved other ways without this little quirk.
+                if (value === collection.one()) return;
+
+                if (collection.splice) {
+                    collection.splice(0, collection.length, value);
+                } else if (collection.clear && collection.add) {
+                    collection.clear();
+                    collection.add(value);
+                }
+            }), sourceScope);
+        }), targetScope);
+    };
+}
+
 // a.* <- b.*
 exports.makeRangeContentBinder = makeRangeContentBinder;
 function makeRangeContentBinder(observeTarget, bindTarget) {

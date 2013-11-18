@@ -19,6 +19,7 @@ compile.semantics = {
         get: Binders.makeGetBinder,
         has: Binders.makeHasBinder,
         only: Binders.makeOnlyBinder,
+        one: Binders.makeOneBinder,
         rangeContent: Binders.makeRangeContentBinder,
         mapContent: Binders.makeMapContentBinder,
         reversed: Binders.makeReversedBinder,
