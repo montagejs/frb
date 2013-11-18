@@ -545,8 +545,8 @@ value of the collection.
 
 ```javascript
 var object = Bindings.defineBindings({}, {
-    min: {"<-": "values.min{}"},
-    max: {"<-": "values.max{}"}
+    min: {"<-": "values.min()"},
+    max: {"<-": "values.max()"}
 });
 
 expect(object.min).toBe(undefined);
@@ -555,6 +555,9 @@ expect(object.max).toBe(undefined);
 object.values = [2, 3, 2, 1, 2];
 expect(object.min).toBe(1);
 expect(object.max).toBe(3);
+
+object.values.push(4);
+expect(object.max).toBe(4);
 ```
 
 Min and max blocks accept an expression on which to compare values from

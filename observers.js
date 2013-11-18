@@ -767,6 +767,16 @@ function makeMinBlockObserver(observeCollection, observeRelation) {
     return makeHeapBlockObserver(observeCollection, observeRelation, -1);
 }
 
+exports.makeMaxObserver = makeMaxObserver;
+function makeMaxObserver(observeCollection) {
+    return makeHeapBlockObserver(observeCollection, observeValue, 1);
+}
+
+exports.makeMinObserver = makeMinObserver;
+function makeMinObserver(observeCollection) {
+    return makeHeapBlockObserver(observeCollection, observeValue, -1);
+}
+
 // used by both some and every blocks
 var observeLengthLiteral = makeLiteralObserver("length");
 

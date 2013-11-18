@@ -38,6 +38,8 @@ var semantics = compile.semantics = {
         groupMapBlock: Observers.makeGroupMapBlockObserver,
         minBlock: Observers.makeMinBlockObserver,
         maxBlock: Observers.makeMaxBlockObserver,
+        min: Observers.makeMinObserver,
+        max: Observers.makeMaxObserver,
         enumerate: Observers.makeEnumerationObserver,
         reversed: Observers.makeReversedObserver,
         flatten: Observers.makeFlattenObserver,
