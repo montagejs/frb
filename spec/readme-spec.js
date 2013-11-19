@@ -99,6 +99,18 @@ describe("Tutorial", function () {
         expect(object.average).toEqual(2);
     });
 
+    it("Rounding", function () {
+        var object = {number: -0.5};
+        Bindings.defineBindings(object, {
+            "round": {"<-": "number.round()"},
+            "floor": {"<-": "number.floor()"},
+            "ceil": {"<-": "number.ceil()"}
+        });
+        expect(object.round).toBe(0);
+        expect(object.floor).toBe(-1);
+        expect(object.ceil).toBe(0);
+    });
+
     it("Last", function () {
         var array = [1, 2, 3];
         var object = {array: array, last: null};
