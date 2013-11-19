@@ -1,3 +1,13 @@
+
+# v0.2.16
+
+-   Add support for `one()` bindings.
+-   Add support for `min()` and `max()` observers (in addition to the
+    already-supported `min{}` and `max{}` blocks).
+-   Fixes `view(start, length)` observers.
+-   Fixes range change listeners with beforeChange and handlerToken
+    arguments.
+
 # v0.2.15
 
 -   Collections 0.2.1, fixes a bug that impacts FRB on Chrome 30 and
