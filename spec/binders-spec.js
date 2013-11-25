@@ -53,11 +53,13 @@ describe("makeRangeContentBinder", function () {
 
         expect(o.source).toEqual([1, 2, 3]);
 
+        var oldSource = o.source;
         o.source = [2, 3];
         expect(o.target).toEqual([2, 3]);
 
         o.target.splice(0, 3, 1, 2);
-        expect(o.source).toEqual([1, 2]);
+        expect(oldSource).toEqual([1, 2, 3]);
+        expect(oldSource).toBe(o.source);
 
     });
 });
