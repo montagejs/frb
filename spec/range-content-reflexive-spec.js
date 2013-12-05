@@ -95,7 +95,7 @@ describe("two way bindings with range content on both sides", function () {
         });
 
         object.yang = [1];
-        expect(object.yin.slice()).toEqual([1]);
+        expect(object.yin).toEqual([1]);
 
     });
 

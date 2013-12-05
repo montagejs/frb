@@ -32,6 +32,7 @@ solve.semantics = {
                 source = source.args[0];
             }
         }
+
         return [target, source];
     },
 
@@ -131,7 +132,11 @@ solve.semantics = {
         // y = x.rangeContent()
         // y.rangeContent() = x
         rangeContent: function (target, source) {
-            return {type: source.type, args: [target]};
+            if (target.type === "rangeContent") {
+                return target;
+            } else {
+                return {type: source.type, args: [target]};
+            }
         }
     }
 

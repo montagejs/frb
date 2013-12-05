@@ -990,27 +990,27 @@ var observeNullStringLiteral = makeLiteralObserver("");
 exports.observeRangeChange = observeRangeChange;
 function observeRangeChange(collection, emit, scope) {
     if (!collection)
-        return;
+        return Function.noop;
     var cancelChild = Function.noop;
+    if (!collection.toArray) {
+        return Function.noop;
+    }
+    if (!collection.addRangeChangeListener) {
+        return Function.noop;
+    }
     function rangeChange(plus, minus, index) {
         cancelChild();
         cancelChild = emit(plus, minus, index) || Function.noop;
-    }
-    if (!collection.toArray) {
-        return;
-    }
-    if (!collection.addRangeChangeListener) {
-        return;
     }
     rangeChange(collection.toArray(), [], 0);
     var cancelRangeChange = collection.addRangeChangeListener(
         rangeChange,
         scope.beforeChange
     );
-    return once(function cancelRangeObserver() {
+    return function cancelRangeObserver() {
         cancelChild();
         cancelRangeChange();
-    });
+    };
 }
 
 exports.makeLastObserver = makeLastObserver;
