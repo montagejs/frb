@@ -1,5 +1,6 @@
-
 <img src="frb.png" align="right" alt="FRB Logo">
+
+[![Build Status](https://travis-ci.org/montagejs/frb.png?branch=master)](http://travis-ci.org/montagejs/frb)
 
 # Functional Reactive Bindings
 
