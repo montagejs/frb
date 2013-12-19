@@ -19,13 +19,20 @@ solve.semantics = {
                     break;
                 }
             }
+            var canRotateTargetToSource = this.rotateTargetToSource.hasOwnProperty(target.type);
+            var canRotateSourceToTarget = this.rotateSourceToTarget.hasOwnProperty(source.type);
             // solve for bindable target (rotate terms to source)
-            if (!this.solvers.hasOwnProperty(target.type)) {
+            if (!canRotateTargetToSource && !canRotateSourceToTarget) {
                 break;
+            } else if (canRotateTargetToSource) {
+                source = this.rotateTargetToSource[target.type](target, source);
+                target = target.args[0];
+            } else if (canRotateSourceToTarget) {
+                target = this.rotateSourceToTarget[source.type](target, source);
+                source = source.args[0];
             }
-            source = this.solvers[target.type](target, source);
-            target = target.args[0];
         }
+
         return [target, source];
     },
 
@@ -65,7 +72,7 @@ solve.semantics = {
         }
     },
 
-    solvers: {
+    rotateTargetToSource: {
         // e.g.,
         // !y = x
         // y = !x
@@ -119,7 +126,18 @@ solve.semantics = {
         split: function (target, source) {
             return this.invert(target, source, 'join');
         }
+    },
 
+    rotateSourceToTarget: {
+        // y = x.rangeContent()
+        // y.rangeContent() = x
+        rangeContent: function (target, source) {
+            if (target.type === "rangeContent") {
+                return target;
+            } else {
+                return {type: source.type, args: [target]};
+            }
+        }
     }
 
 };

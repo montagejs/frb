@@ -260,7 +260,7 @@ function makeOneBinder(observeCollection) {
     };
 }
 
-// a.* <- b.*
+// a.rangeContent() <- b
 exports.makeRangeContentBinder = makeRangeContentBinder;
 function makeRangeContentBinder(observeTarget, bindTarget) {
     return function bindRangeContent(observeSource, sourceScope, targetScope, descriptor, trace) {

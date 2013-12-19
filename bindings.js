@@ -3,6 +3,7 @@ var Map = require("collections/map");
 var bind = require("./bind");
 var compute = require("./compute");
 var observe = require("./observe");
+var stringify = require("./stringify");
 
 var bindingsForObject = new Map();
 var owns = Object.prototype.hasOwnProperty;
