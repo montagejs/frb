@@ -184,7 +184,9 @@ var argCompilers = {
 
     "if": function (evaluateCondition, evaluateConsequent, evaluateAlternate) {
         return function (scope) {
-            if (evaluateCondition(scope)) {
+            var condition = evaluateCondition(scope);
+            if (condition == null) return;
+            if (condition) {
                 return evaluateConsequent(scope);
             } else {
                 return evaluateAlternate(scope);
