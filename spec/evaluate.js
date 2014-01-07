@@ -664,6 +664,24 @@ module.exports = [
             }
         },
         output: true
+    },
+
+    {
+        path: "isAdmin ? 'admin' : 'user'",
+        input: {},
+        output: undefined
+    },
+
+    {
+        path: "isAdmin ? 'admin' : 'user'",
+        input: {isAdmin: true},
+        output: 'admin'
+    },
+
+    {
+        path: "isAdmin ? 'admin' : 'user'",
+        input: {isAdmin: false},
+        output: 'user'
     }
 
 ];
