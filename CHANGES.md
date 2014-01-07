@@ -1,4 +1,11 @@
 
+# v0.2.17
+
+-   Fix evaluator for ternary conditional operator to match the behavior of the
+    observer. A null input should result in a null output, not be interpreted as
+    false and result in the alternate.
+-   Makes two way range content bindings propagate propertly in both directions.
+
 # v0.2.16
 
 -   Add support for `one()` bindings.
