@@ -964,6 +964,35 @@ object.key = a; // no effect
 expect(object.selected).toBe(40);
 ```
 
+If a `get` function call appears on the target side of a binding, the
+expression as a whole becomes a `set` or `delete` binding.  The name of
+the function does not change to `set` because the expression may be used
+as both a source and target if the binding is bidirectional.  If the
+bound value is `null` or `undefined`, the binding will delete whatever
+value exists for the observed key.
+
+```javascript
+var Dict = require("collections/dict");
+var object = Bindings.defineBindings({
+    dict: new Dict({a: 10}),
+    key: "a"
+}, {
+    "dict.get(key)": {"<->": "value"}
+});
+
+expect(object.dict.has("a")).toBe(false);
+
+object.value = 10;
+expect(object.dict.get("a")).toBe(10);
+
+object.dict.set("a", 20);
+expect(object.value).toBe(20);
+
+object.key = "b";
+expect(object.dict.get("a")).toBe(10);
+expect(object.dict.get("b")).toBe(20);
+```
+
 You can also bind the entire content of a map-like collection to the
 content of another.  Bear in mind that the content of the source
 replaces the content of the target initially.

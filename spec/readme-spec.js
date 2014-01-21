@@ -629,6 +629,28 @@ describe("Tutorial", function () {
         expect(object.selected).toBe(40);
     });
 
+    it("Get (Bind)", function () {
+        var Dict = require("collections/dict");
+        var object = Bindings.defineBindings({
+            dict: new Dict({a: 10}),
+            key: "a"
+        }, {
+            "dict.get(key)": {"<->": "value"}
+        });
+
+        expect(object.dict.has("a")).toBe(false);
+
+        object.value = 10;
+        expect(object.dict.get("a")).toBe(10);
+
+        object.dict.set("a", 20);
+        expect(object.value).toBe(20);
+
+        object.key = "b";
+        expect(object.dict.get("a")).toBe(10);
+        expect(object.dict.get("b")).toBe(20);
+    });
+
     it("Get (all content)", function () {
         var Map = require("collections/map");
         var object = {

@@ -45,12 +45,16 @@ function makePropertyBinder(observeObject, observeKey) {
         return observeKey(autoCancelPrevious(function replaceKey(key) {
             if (key == null) return;
             return observeObject(autoCancelPrevious(function replaceObject(object) {
+                var restore = object[key];
                 if (object == null) return;
                 if (object.bindProperty) {
                     return object.bindProperty(key, observeValue, source, descriptor, trace);
                 } else {
                     return _bindProperty(object, key, observeValue, source, descriptor, trace);
                 }
+                return function cancelPropertyBinder() {
+                    object[key] = restore;
+                };
             }), target);
         }), target);
     };
@@ -60,16 +64,30 @@ exports.bindGet = bindGet;
 var _bindGet = bindGet; // to bypass scope shadowing below
 function bindGet(collection, key, observeValue, source, descriptor, trace) {
     return observeValue(autoCancelPrevious(function replaceValue(value) {
+        var restore = collection.get(key);
         if (descriptor.isActive) {
             return;
         }
         try {
             descriptor.isActive = true;
-            trace && console.log("SET FOR KEY", key, "TO", value, "ON", collection, "BECAUSE", trace.sourcePath, getStackTrace());
-            collection.set(key, value);
+            if (value == null) {
+                trace && console.log("DELETE FOR KEY", key, "ON", collection, "BECAUSE", trace.sourcePath, getStackTrace());
+                collection["delete"](key);
+            } else {
+                trace && console.log("SET FOR KEY", key, "TO", value, "ON", collection, "BECAUSE", trace.sourcePath, getStackTrace());
+                collection.set(key, value);
+            }
         } finally {
             descriptor.isActive = false;
         }
+        return function cancelGetBinding() {
+            if (Array.isArray(collection)) {
+            } else if (restore == null) {
+                collection["delete"](key);
+            } else {
+                collection.set(key, restore);
+            }
+        };
     }), source);
 }
 
@@ -101,11 +119,23 @@ function makeHasBinder(observeSet, observeValue) {
                             trace && console.log("ADD", value, "TO", trace.targetPath, "BECAUSE", trace.sourcePath, getStackTrace());
                             set.add(value);
                         }
+                        return function cancelHasBinding() {
+                            while ((set.has || set.contains).call(set, value)) {
+                                trace && console.log("REMOVE", value, "FROM", trace.targetPath, "BECAUSE", trace.sourcePath, getStackTrace());
+                                (set.remove || set['delete']).call(set, value);
+                            }
+                        };
                     } else { // should not be in set
                         while ((set.has || set.contains).call(set, value)) {
                             trace && console.log("REMOVE", value, "FROM", trace.targetPath, "BECAUSE", trace.sourcePath, getStackTrace());
                             (set.remove || set['delete']).call(set, value);
                         }
+                        return function cancelHasBinding() {
+                            if (!(set.has || set.contains).call(set, value)) {
+                                trace && console.log("ADD", value, "TO", trace.targetPath, "BECAUSE", trace.sourcePath, getStackTrace());
+                                set.add(value);
+                            }
+                        };
                     }
                 }), source);
             }), target);
