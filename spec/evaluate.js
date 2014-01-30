@@ -497,6 +497,33 @@ module.exports = [
     },
 
     {
+        path: "x.startsWith(y)",
+        input: {
+            x: undefined,
+            y: undefined
+        },
+        output: undefined
+    },
+
+    {
+        path: "x.startsWith(y)",
+        input: {
+            x: "",
+            y: undefined
+        },
+        output: undefined
+    },
+
+    {
+        path: "x.startsWith(y)",
+        input: {
+            x: undefined,
+            y: ""
+        },
+        output: undefined
+    },
+
+    {
         path: "x.endsWith(y)",
         input: {
             x: "|.!",
@@ -515,6 +542,60 @@ module.exports = [
     },
 
     {
+        path: "x.endsWith(y)",
+        input: {
+            x: undefined,
+            y: undefined
+        },
+        output: undefined
+    },
+
+    {
+        path: "x.endsWith(y)",
+        input: {
+            x: "",
+            y: undefined
+        },
+        output: undefined
+    },
+
+    {
+        path: "x.endsWith(y)",
+        input: {
+            x: undefined,
+            y: ""
+        },
+        output: undefined
+    },
+
+    {
+        path: "x.contains(y)",
+        input: {
+            x: undefined,
+            y: undefined
+        },
+        output: undefined
+    },
+
+    {
+        path: "x.contains(y)",
+        input: {
+            x: "",
+            y: undefined
+        },
+        output: undefined
+    },
+
+    {
+        path: "x.contains(y)",
+        input: {
+            x: undefined,
+            y: ""
+        },
+        output: undefined
+    },
+
+    {
         path: "&contains(x, y)",
         input: {
             x: "?!^*",
@@ -530,6 +611,12 @@ module.exports = [
     },
 
     {
+        path: "join()",
+        input: null,
+        output: undefined
+    },
+
+    {
         path: "split()",
         input: "abc",
         output: ['a', 'b', 'c']
@@ -539,6 +626,12 @@ module.exports = [
         path: "split(', ')",
         input: "a, b, c",
         output: ['a', 'b', 'c']
+    },
+
+    {
+        path: "split()",
+        input: null,
+        output: undefined
     },
 
     {

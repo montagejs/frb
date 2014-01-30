@@ -1042,8 +1042,12 @@ exports.makeStartsWithObserver = makeStartsWithObserver;
 function makeStartsWithObserver(observeHaystack, observeNeedle) {
     return function observeStartsWith(emit, scope) {
         return observeNeedle(function (needle) {
+            if (typeof needle !== "string")
+                return emit();
             var expression = new RegExp("^" + RegExp.escape(needle));
             return observeHaystack(function (haystack) {
+                if (typeof haystack !== "string")
+                    return emit();
                 return emit(expression.test(haystack));
             }, scope);
         }, scope);
@@ -1054,8 +1058,12 @@ exports.makeEndsWithObserver = makeEndsWithObserver;
 function makeEndsWithObserver(observeHaystack, observeNeedle) {
     return function observeEndsWith(emit, scope) {
         return observeNeedle(function (needle) {
+            if (typeof needle !== "string")
+                return emit();
             var expression = new RegExp(RegExp.escape(needle) + "$");
             return observeHaystack(function (haystack) {
+                if (typeof haystack !== "string")
+                    return emit();
                 return emit(expression.test(haystack));
             }, scope);
         }, scope);
@@ -1066,8 +1074,12 @@ exports.makeContainsObserver = makeContainsObserver;
 function makeContainsObserver(observeHaystack, observeNeedle) {
     return function observeContains(emit, scope) {
         return observeNeedle(function (needle) {
+            if (typeof needle !== "string")
+                return emit();
             var expression = new RegExp(RegExp.escape(needle));
             return observeHaystack(function (haystack) {
+                if (typeof haystack !== "string")
+                    return emit();
                 return emit(expression.test(haystack));
             }, scope);
         }, scope);
