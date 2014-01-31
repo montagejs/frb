@@ -2,6 +2,8 @@
 require("collections/shim");
 var grammar = require("./grammar");
 
+var memo = {}; // could be Dict
+
 module.exports = parse;
 function parse(text, options) {
     if (Array.isArray(text)) {
@@ -11,9 +13,13 @@ function parse(text, options) {
                 return parse(text, options);
             })
         };
+    } else if (!options && Object.prototype.hasOwnProperty.call(memo, text)) {
+        return memo[text];
     } else {
         try {
-            return grammar.parse(text, options || Object.empty);
+            var syntax = grammar.parse(text, options || Object.empty);
+            memo[text] = syntax;
+            return syntax;
         } catch (error) {
             error.message = (
                 error.message.replace(/[\s\.]+$/, "") + " " +
