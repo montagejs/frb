@@ -133,7 +133,7 @@ function makeGetObserver(observeCollection, observeKey) {
                 }
             }), scope);
         }), scope);
-    }
+    };
 }
 
 exports.makeHasObserver = makeHasObserver;
@@ -170,7 +170,7 @@ function makeObserversObserver(observers) {
             return observe(function replaceValue(value) {
                 output.set(index, value);
             }, scope);
-        })
+        });
         var cancel = emit(output) || Function.noop;
         return once(function cancelObserversObserver() {
             cancel();
@@ -555,7 +555,7 @@ function makeReplacingReversedObserver(observeArray) {
             function rangeChange(plus, minus, index) {
                 var reflected = output.length - index - minus.length;
                 output.swap(reflected, minus.length, plus.reversed());
-            };
+            }
             var cancelRangeChange = observeRangeChange(input, rangeChange, scope);
             var cancel = emit(output);
             return once(function cancelReversedObserver() {
@@ -1047,7 +1047,7 @@ function makeStartsWithObserver(observeHaystack, observeNeedle) {
                 return emit(expression.test(haystack));
             }, scope);
         }, scope);
-    }
+    };
 }
 
 exports.makeEndsWithObserver = makeEndsWithObserver;
@@ -1059,7 +1059,7 @@ function makeEndsWithObserver(observeHaystack, observeNeedle) {
                 return emit(expression.test(haystack));
             }, scope);
         }, scope);
-    }
+    };
 }
 
 exports.makeContainsObserver = makeContainsObserver;
@@ -1071,7 +1071,7 @@ function makeContainsObserver(observeHaystack, observeNeedle) {
                 return emit(expression.test(haystack));
             }, scope);
         }, scope);
-    }
+    };
 }
 
 exports.makeJoinObserver = makeJoinObserver;
@@ -1359,14 +1359,13 @@ function makeToMapObserver(observeObject) {
                     return observeRangeChange(entries, rangeChange, scope);
                 }), scope.nest(object));
             } else if (object.addMapChangeListener) { // map reflection
-                function mapChange(value, key) {
+                return observeMapChange(object, function mapChange(value, key) {
                     if (value === undefined) {
                         map["delete"](key);
                     } else {
                         map.set(key, value);
                     }
-                }
-                return observeMapChange(object, mapChange, scope);
+                }, scope);
             } else { // object literal
                 var cancelers = Object.keys(object).map(function (key) {
                     return _observeProperty(object, key, autoCancelPrevious(function (value) {
@@ -1492,14 +1491,14 @@ function makeNonReplacing(wrapped) {
         return function observeArrayWithoutReplacing(emit, scope) {
             var output = [];
             var cancelObserver = observe(autoCancelPrevious(function (input) {
+                function rangeChange(plus, minus, index) {
+                    output.swap(index, minus.length, plus);
+                }
                 if (!input) {
                     output.clear();
                 } else {
                     // equivalent to: output.swap(0, output.length, input);
                     merge(output, input);
-                    function rangeChange(plus, minus, index) {
-                        output.swap(index, minus.length, plus);
-                    }
                     // TODO fix problem that this would get called twice on replacement
                     var cancelRangeChange = input.addRangeChangeListener(
                         rangeChange,
@@ -1568,6 +1567,6 @@ function once(callback) {
         done = true;
         //done = new Error("First call:");
         return callback.apply(this, arguments);
-    }
+    };
 }
 
