@@ -1539,6 +1539,7 @@ function autoCancelPrevious(emit) {
         cancelPrevious = emit.apply(this, arguments) || Function.noop;
         return function cancelObserver() {
             cancelPrevious();
+            cancelPrevious = Function.noop;
         };
     };
 }
