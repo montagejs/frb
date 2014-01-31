@@ -469,8 +469,8 @@ function makeSortedBlockObserver(observeCollection, observeRelation) {
             var output = [];
             var sorted = SortedArray(output, entryValueEquals, entryValueCompare);
             function rangeChange(plus, minus) {
-                sorted.addEach(plus);
                 sorted.deleteEach(minus);
+                sorted.addEach(plus);
             }
             var cancelRangeChange = observeRangeChange(input, rangeChange, scope);
             var cancel = emit(output) || Function.noop;
