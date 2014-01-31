@@ -15,18 +15,18 @@ var Operators = require("./operators");
 exports.makeLiteralObserver = makeLiteralObserver;
 function makeLiteralObserver(literal) {
     return function observeLiteral(emit) {
-        return emit(literal) || Function.noop;
+        return emit(literal);
     };
 }
 
 exports.observeValue = observeValue;
 function observeValue(emit, scope) {
-    return emit(scope.value) || Function.noop;
+    return emit(scope.value);
 }
 
 exports.observeParameters = observeParameters;
 function observeParameters(emit, scope) {
-    return emit(scope.parameters) || Function.noop;
+    return emit(scope.parameters);
 }
 
 // This is a concession that in practice FRB may be used in conjunction with a
@@ -34,7 +34,7 @@ function observeParameters(emit, scope) {
 exports.makeElementObserver = makeElementObserver;
 function makeElementObserver(id) {
     return function observeElement(emit, scope) {
-        return emit(scope.document.getElementById(id)) || Function.noop;
+        return emit(scope.document.getElementById(id));
     };
 }
 
@@ -49,15 +49,14 @@ function makeComponentObserver(label, syntax) {
         var method = components.getObjectByLabel || components.getComponentByLabel;
         var component = method.call(components, label);
         syntax.component = component;
-        return emit(component) || Function.noop;
+        return emit(component);
     };
 }
 
 exports.observeProperty = observeProperty;
 var _observeProperty = observeProperty; // to bypass scope shadowing problems below
 function observeProperty(object, key, emit, scope) {
-    if (object == null)
-        return emit();
+    if (object == null) return emit();
     var cancel = Function.noop;
     function propertyChange(value, key, object) {
         cancel();
@@ -221,11 +220,8 @@ function makeOperatorObserverMaker(operator) {
         var observeOperandChanges = makeRangeContentObserver(observeOperands);
         return function observeOperator(emit, scope) {
             return observeOperandChanges(autoCancelPrevious(function (operands) {
-                if (operands.every(Operators.defined)) {
-                    return emit(operator.apply(void 0, operands));
-                } else {
-                    return emit()
-                }
+                if (!operands.every(Operators.defined)) return emit();
+                return emit(operator.apply(void 0, operands));
             }), scope);
         };
     };
@@ -248,15 +244,13 @@ function makeMethodObserverMaker(name) {
         var observeOperandChanges = makeRangeContentObserver(observeOperands);
         return function observeMethod(emit, scope) {
             return observeObject(autoCancelPrevious(function (object) {
-                if (!object)
-                    return emit();
+                if (!object) return emit();
                 if (object[makeObserverName])
                     return object[makeObserverName].apply(object, autoCancelingOperandObservers)(emit, scope);
                 if (object[observeName])
                     return object[observeName](emit, scope);
                 return observeOperandChanges(autoCancelPrevious(function (operands) {
-                    if (!operands.every(Operators.defined))
-                        return emit();
+                    if (!operands.every(Operators.defined)) return emit();
                     if (typeof object[name] === "function") {
                         return emit(object[name].apply(object, operands));
                     } else {
@@ -499,9 +493,9 @@ function entryValueCompare(x, y) {
 
 // Transforms a value into a [value, relation(value)] tuple
 function makeRelationEntryObserver(observeRelation) {
-    return function (emit, scope) {
-        return observeRelation(autoCancelPrevious(function (value) {
-            return emit([scope.value, value]) || Function.noop;
+    return function observeRelationEntry(emit, scope) {
+        return observeRelation(autoCancelPrevious(function replaceRelation(value) {
+            return emit([scope.value, value]);
         }), scope);
     };
 }
@@ -1033,7 +1027,7 @@ function makeRangeObserver(observeLength) {
             } else if (length < output.length) {
                 output.splice(length, output.length);
             }
-        }, scope);
+        }, scope) || Function.noop;
         return function cancelObserveRange() {
             cancel();
             cancelLengthObserver();
@@ -1050,7 +1044,7 @@ function makeStartsWithObserver(observeHaystack, observeNeedle) {
         return observeNeedle(function (needle) {
             var expression = new RegExp("^" + RegExp.escape(needle));
             return observeHaystack(function (haystack) {
-                return emit(expression.test(haystack)) || Function.noop;
+                return emit(expression.test(haystack));
             }, scope);
         }, scope);
     }
@@ -1062,7 +1056,7 @@ function makeEndsWithObserver(observeHaystack, observeNeedle) {
         return observeNeedle(function (needle) {
             var expression = new RegExp(RegExp.escape(needle) + "$");
             return observeHaystack(function (haystack) {
-                return emit(expression.test(haystack)) || Function.noop;
+                return emit(expression.test(haystack));
             }, scope);
         }, scope);
     }
@@ -1074,7 +1068,7 @@ function makeContainsObserver(observeHaystack, observeNeedle) {
         return observeNeedle(function (needle) {
             var expression = new RegExp(RegExp.escape(needle));
             return observeHaystack(function (haystack) {
-                return emit(expression.test(haystack)) || Function.noop;
+                return emit(expression.test(haystack));
             }, scope);
         }, scope);
     }
@@ -1085,11 +1079,9 @@ function makeJoinObserver(observeArray, observeDelimiter) {
     observeDelimiter = observeDelimiter || observeNullString;
     return function observeJoin(emit, scope) {
         return observeArray(autoCancelPrevious(function changeJoinArray(array) {
-            if (!array)
-                return emit() || Function.noop;
+            if (!array) return emit();
             return observeDelimiter(autoCancelPrevious(function changeJoinDelimiter(delimiter) {
-                if (typeof delimiter !== "string")
-                    return emit() || Function.noop;
+                if (typeof delimiter !== "string") return emit();
                 var cancel = Function.noop;
                 function rangeChange() {
                     cancel = emit(array.join(delimiter)) || Function.noop;
@@ -1194,11 +1186,8 @@ function observeOnly(collection, emit, scope) {
     var length = 0;
     function rangeChange(plus, minus, index) {
         length += plus.length - minus.length;
-        if (length === 1) {
-            return emit(collection.only());
-        } else {
-            return emit();
-        }
+        if (length !== 1) return emit();
+        return emit(collection.only());
     }
     return observeRangeChange(collection, rangeChange, scope);
 }
@@ -1217,11 +1206,8 @@ function observeOne(collection, emit, scope) {
     var length = 0;
     function rangeChange(plus, minus, index) {
         length += plus.length - minus.length;
-        if (length > 0) {
-            return emit(collection.one());
-        } else {
-            return emit();
-        }
+        if (length === 0) return emit();
+        return emit(collection.one());
     }
     return observeRangeChange(collection, rangeChange, scope);
 }
@@ -1333,7 +1319,7 @@ function makeKeysObserver(observeCollection) {
 exports.observeEntryKey = observeEntryKey;
 function observeEntryKey(emit, scope) {
     if (!scope.value) return emit();
-    return emit(scope.value[0]) || Function.noop;
+    return emit(scope.value[0]);
 }
 
 exports.makeValuesObserver = makeValuesObserver;
@@ -1345,7 +1331,7 @@ function makeValuesObserver(observeCollection) {
 exports.observeEntryValue = observeEntryValue;
 function observeEntryValue(emit, scope) {
     if (!scope.value) return emit();
-    return emit(scope.value[1]) || Function.noop;
+    return emit(scope.value[1]);
 }
 
 exports.makeToMapObserver = makeToMapObserver;
@@ -1420,7 +1406,11 @@ var observeUniqueEntries = makeMapBlockObserver(
 exports.makeParentObserver = makeParentObserver;
 function makeParentObserver(observeExpression) {
     return function observeParentScope(emit, scope) {
-        return observeExpression(emit, scope.parent || scope.nest());
+        if (!scope.parent) {
+            return emit();
+        } else {
+            return observeExpression(emit, scope.parent);
+        }
     };
 }
 
@@ -1475,7 +1465,9 @@ exports.makeWithObserver = makeWithObserver;
 function makeWithObserver(observeInput, observeExpression) {
     return function observeWith(emit, scope) {
         return observeInput(autoCancelPrevious(function replaceInput(input) {
+            if (input == null) return emit();
             return observeExpression(autoCancelPrevious(function replaceValue(value) {
+                if (value == null) return emit();
                 return emit(value);
             }), scope.nest(input));
         }), scope);

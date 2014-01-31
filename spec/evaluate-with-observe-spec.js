@@ -19,7 +19,7 @@ describe("observe", function () {
                 scope.components = test.components;
                 var cancel = observe(function (initial) {
                     output = initial;
-                }, scope);
+                }, scope) || Function.noop;
                 cancel();
                 if (Array.isArray(output)) {
                     output = output.slice(); // to ditch observable prototype
