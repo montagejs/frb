@@ -460,12 +460,17 @@ function makeReplacingFilterBlockObserver(observeCollection, observePredicate) {
     };
 }
 
+// Schwartzian transform / decorate undecorate pattern
+// entries.sorted{key}
 exports.makeSortedBlockObserver = makeSortedBlockObserver;
 function makeSortedBlockObserver(observeCollection, observeRelation) {
+    // produces: [this, key]
     var observeRelationEntry = makeRelationEntryObserver(observeRelation);
+    // produces: map{[this, key])
     var observeRelationEntries = makeReplacingMapBlockObserver(observeCollection, observeRelationEntry);
     var observeSort = function (emit, scope) {
         return observeRelationEntries(autoCancelPrevious(function (input) {
+            // [[value, relatedValue], ...]
             if (!input) return emit();
             var output = [];
             var sorted = SortedArray(output, entryValueEquals, entryValueCompare);
@@ -662,6 +667,9 @@ function makeEveryBlockObserver(observeCollection, observePredicate) {
     return makeConverterObserver(observeLength, Operators.not);
 }
 
+// JavaScript (with shims from Collections): names.group(function (x) {return x[0]}) ->
+// names.group{.0} -> [[klass, [...values]], [...], [...]]
+// names.groupMap{.0}.entries()
 exports.makeGroupBlockObserver = makeGroupBlockObserver;
 function makeGroupBlockObserver(observeCollection, observeRelation) {
     var observeGroup = makeGroupMapBlockObserver(observeCollection, observeRelation);
@@ -762,6 +770,7 @@ function makeMaxBlockObserver(observeCollection, observeRelation) {
     return makeHeapBlockObserver(observeCollection, observeRelation, 1);
 }
 
+// values.min{x}
 exports.makeMinBlockObserver = makeMinBlockObserver;
 function makeMinBlockObserver(observeCollection, observeRelation) {
     return makeHeapBlockObserver(observeCollection, observeRelation, -1);
@@ -824,6 +833,7 @@ function isNumber(value) {
     return typeof value === "number" && !isNaN(value);
 }
 
+// contacts.view{start, length}
 exports.makeViewObserver = makeNonReplacing(makeReplacingViewObserver);
 function makeReplacingViewObserver(observeInput, observeStart, observeLength) {
     if (!observeLength) {
@@ -1002,6 +1012,7 @@ function makeReplacingEnumerateObserver(observeArray) {
     };
 }
 
+// length.range() -> [0, 1, 2, ...length]
 exports.makeRangeObserver = makeRangeObserver;
 function makeRangeObserver(observeLength) {
     return function observeRange(emit, scope) {
@@ -1124,6 +1135,8 @@ function observeRangeChange(collection, emit, scope) {
     };
 }
 
+// array[array.length - 1]
+// array.last()
 exports.makeLastObserver = makeLastObserver;
 function makeLastObserver(observeCollection) {
     return function observeLast(emit, scope) {
@@ -1174,6 +1187,8 @@ function makeOnlyObserver(observeCollection) {
     };
 }
 
+// selectedValues <-> selection.map{value}
+// selectedValue <-> selectedValues.only()
 exports.observeOnly = observeOnly;
 function observeOnly(collection, emit, scope) {
     var length = 0;
@@ -1211,6 +1226,9 @@ function observeOne(collection, emit, scope) {
     return observeRangeChange(collection, rangeChange, scope);
 }
 
+// this.values = [];
+// this.values.addRangeChangeListener(this, "values") // dispatches handleValuesRangeChange
+// this.defineBinding("values.rangeContent()", {"<-": "otherValues"});
 exports.makeRangeContentObserver = makeRangeContentObserver;
 function makeRangeContentObserver(observeCollection) {
     return function observeContent(emit, scope) {
@@ -1450,6 +1468,9 @@ function makeExpressionObserver(observeInput, observeExpression) {
     };
 }
 
+// Suppose you have input: {object: {a: 10, b: 20}}
+// This FRB expression: object.(a + b)
+// Uses this combinator:
 exports.makeWithObserver = makeWithObserver;
 function makeWithObserver(observeInput, observeExpression) {
     return function observeWith(emit, scope) {
