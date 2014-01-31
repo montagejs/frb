@@ -45,6 +45,7 @@ var semantics = compile.semantics = {
         flatten: Observers.makeFlattenObserver,
         concat: Observers.makeConcatObserver,
         view: Observers.makeViewObserver,
+        slice: Observers.makeSliceObserver,
         sum: Observers.makeSumObserver,
         average: Observers.makeAverageObserver,
         last: Observers.makeLastObserver,

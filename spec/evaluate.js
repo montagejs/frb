@@ -305,6 +305,26 @@ module.exports = [
     },
 
     {
+        path: "source.slice(start, end)",
+        input: {
+            source: [1, 2, 3, 4, 5],
+            start: 1,
+            end: 3
+        },
+        output: [2, 3]
+    },
+
+    {
+        path: "source.slice(start, end)",
+        input: {
+            source: "abcdefg",
+            start: 1,
+            end: 3
+        },
+        output: "bc"
+    },
+
+    {
         path: "a && b",
         input: {a: true, b: true},
         output: true

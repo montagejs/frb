@@ -470,6 +470,40 @@ describe("Tutorial", function () {
         expect(controller.view).toEqual([5, 6, 7]);
     });
 
+    it("Slice", function () {
+        var object = Bindings.defineBindings({
+            start: 2,
+            end: 4
+        }, {
+            slice: {"<-": "cake.slice(start, end)"}
+        });
+
+        object.cake = "abcdefg";
+        expect(object.slice).toBe("cd");
+
+        object.cake = [1, 2, 3, 4, 5, 6, 7];
+        expect(object.slice).toEqual([3, 4]);
+
+        // Continued from above...
+        var original = object.slice;
+        object.cake.shift();
+        expect(object.slice).toEqual([4, 5]);
+        expect(object.slice).toBe(original);
+
+        // Continued from above...
+        object.start--;
+        object.end++;
+        expect(object.cake).toEqual([2, 3, 4, 5, 6, 7]);
+        expect(object.slice).toEqual([3, 4, 5, 6]);
+        expect(object.slice).toBe(original);
+
+        // Continued from above...
+        object.cake = [7, 6, 5, 4, 3, 2, 1, 0];
+        expect(object.slice).toEqual([6, 5, 4, 3]);
+        expect(object.slice).not.toBe(original);
+
+    });
+
     it("Enumerate", function () {
         var object = {letters: ['a', 'b', 'c', 'd']};
         bind(object, "lettersAtEvenIndexes", {

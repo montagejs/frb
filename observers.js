@@ -971,6 +971,27 @@ function makeReplacingViewObserver(observeInput, observeStart, observeLength) {
     };
 }
 
+exports.makeSliceObserver = makeSliceObserver;
+function makeSliceObserver(observeInput, observeStart, observeEnd) {
+    var observeLength = makeSubObserver(observeEnd, observeStart);
+    var observeArrayView = makeReplacingViewObserver(observeValue, makeParentObserver(observeStart), makeParentObserver(observeLength));
+    var observeStringSlice = makeStringSliceObserver(observeValue, makeParentObserver(observeStart), makeParentObserver(observeEnd));
+    return function (emit, scope) {
+        return observeInput(function (input) {
+            if (typeof input === "string") {
+                return observeStringSlice(emit, scope.nest(input));
+            } else if (Array.isArray(input)) {
+                return observeArrayView(emit, scope.nest(input));
+            } else {
+                return emit();
+            }
+        }, scope)
+    };
+}
+
+var makeStringSliceObserver = makeMethodObserverMaker("slice");
+var makeSubObserver = makeOperatorObserverMaker(Operators.sub);
+
 var observeZero = makeLiteralObserver(0);
 
 exports.makeEnumerateObserver = makeNonReplacing(makeReplacingEnumerateObserver);
