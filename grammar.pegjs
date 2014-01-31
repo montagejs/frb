@@ -55,7 +55,7 @@
 expression "expression" = if
 
 expressions
-    = head:expression tail:("," _ expression)* {
+    = head:expression tail:("," _ expression)* _ {
         var result = [head];
         for (var i = 0; i < tail.length; i++) {
             result.push(tail[i][2]);
@@ -215,7 +215,7 @@ chain
     }
 
 tail
-    = name:$(word) "{" expression:expression "}" {
+    = name:$(word) "{" _ expression:expression _ "}" {
         if (BLOCKS[name]) {
             return function (previous) {
                 return {
@@ -385,7 +385,7 @@ array
     = "[" _ "]" {
         return {type: "tuple", args: []};
     }
-    / "[" expressions:expressions "]" {
+    / "[" _ expressions:expressions _ "]" {
         return {type: "tuple", args: expressions};
     }
 
@@ -457,8 +457,11 @@ lineTerminator "line terminator"
     = [\n\r\u2028\u2029]
 
 comment
-    = "/*" comment:$(!"*/" . )* "*/" {
+    = _ "/*" comment:$(!"*/" . )* "*/" _ {
         return comment;
+    }
+    / _ {
+        return null;
     }
 
 // MCS extensions
