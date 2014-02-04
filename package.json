@@ -33,7 +33,8 @@
   },
   "devDependencies": {
     "jasmine-node": "1.x.x",
-    "pegjs": "git://github.com/dmajda/pegjs.git"
+    "pegjs": "git://github.com/dmajda/pegjs.git",
+    "memwatch": "*"
   },
   "scripts": {
     "test": "jasmine-node spec",
