@@ -111,7 +111,9 @@ exports.or = function (a, b) {
 };
 
 exports.defined = function (value) {
-    return value != null;
+    // value != null eliminates null and undefined
+    // value === value eliminates NaN
+    return value != null && value === value;
 };
 
 // "startsWith", "endsWith", and "contains"  are overridden in

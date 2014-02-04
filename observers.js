@@ -326,7 +326,7 @@ exports.makeDefinedObserver = makeDefinedObserver;
 function makeDefinedObserver(observeValue) {
     return function observeDefault(emit, scope) {
         return observeValue(autoCancelPrevious(function replaceValue(value) {
-            return emit(value != null);
+            return emit(Operators.defined(value));
         }), scope);
     };
 }
