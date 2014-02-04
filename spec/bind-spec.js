@@ -8,12 +8,18 @@ Error.stackTraceLimit = 100;
 describe("bind", function () {
 
     describe("<-", function () {
-        var source = {foo: {bar: {baz: 10}}};
-        var target = {foo: {bar: {baz: undefined}}};
 
-        var cancel = bind(target, "foo.bar.baz", {
-            "<-": "foo.bar.baz",
-            "source": source
+        var source, target, cancel;
+
+        it("set up", function () {
+            source = {foo: {bar: {baz: 10}}};
+            target = {foo: {bar: {baz: undefined}}};
+
+            cancel = bind(target, "foo.bar.baz", {
+                "<-": "foo.bar.baz",
+                "source": source
+            });
+
         });
 
         it("initial", function () {
@@ -25,10 +31,13 @@ describe("bind", function () {
 
     describe("<->", function () {
 
-        var object = {bar: 10};
-        object.self = object;
+        var object, cancel;
 
-        var cancel = bind(object, "self.foo", {"<->": "self.bar"});
+        it("set up", function () {
+            object = {bar: 10};
+            object.self = object;
+            cancel = bind(object, "self.foo", {"<->": "self.bar"});
+        });
 
         it("initial", function () {
             expect(object.foo).toBe(10);
@@ -60,7 +69,7 @@ describe("bind", function () {
 
     });
 
-    describe("sum", function () {
+    it("sum", function () {
         var object = {values: [1,2,3]};
         var cancel = bind(object, "sum", {"<-": "values.sum{}"});
         expect(object.sum).toBe(6);
@@ -71,7 +80,7 @@ describe("bind", function () {
         expect(object.sum).toBe(10);
     });
 
-    describe("average", function () {
+    it("average", function () {
         var object = {values: [1,2,3]};
         var cancel = bind(object, "average", {"<-": "values.average{}"});
         expect(object.average).toBe(2);
@@ -82,7 +91,7 @@ describe("bind", function () {
         expect(object.average).toBe(2.5);
     });
 
-    describe("content", function () {
+    it("content", function () {
         var foo = [1, 2, 3];
         var bar = [];
         var object = {foo: foo, bar: bar};
@@ -96,7 +105,7 @@ describe("bind", function () {
         expect(object.bar).toBe(bar);
     });
 
-    describe("reversed", function () {
+    it("reversed", function () {
         var object = {foo: [1,2,3]};
         var cancel = bind(object, "bar", {"<-": "foo.reversed{}"});
         expect(object.bar).toEqual([3, 2, 1]);
@@ -109,7 +118,7 @@ describe("bind", function () {
         expect(object.bar).toEqual([4, 3, 'c', 'b', 'a', 2, 1]);
     });
 
-    describe("reversed left hand side", function () {
+    it("reversed left hand side", function () {
         var object = {foo: [1,2,3]};
         var cancel = bind(object, "bar", {"<->": "foo.reversed()"});
         // object.bar has to be sliced since observable arrays are not
@@ -128,7 +137,7 @@ describe("bind", function () {
         expect(object.bar.slice()).toEqual([4, 3, 'c', 'b', 'a', 2]);
     });
 
-    describe("tuple", function () {
+    it("tuple", function () {
         var object = {a: 10, b: 20, c: 30};
         var cancel = bind(object, "d", {"<-": "[a, b, c]"});
         expect(object.d).toEqual([10, 20, 30]);
@@ -137,7 +146,7 @@ describe("bind", function () {
         expect(object.d).toEqual([10, 20, 30]);
     });
 
-    describe("record", function () {
+    it("record", function () {
         var object = {foo: 10, bar: 20};
         var cancel = bind(object, "record", {"<-": "{a: foo, b: bar}"});
         expect(object.record).toEqual({a: 10, b: 20});
@@ -148,7 +157,7 @@ describe("bind", function () {
         expect(object.record).toEqual({a: 20, b: 20});
     });
 
-    describe("record map", function () {
+    it("record map", function () {
         var object = {arrays: [[1, 2, 3], [4, 5, 6]]};
         var cancel = bind(object, "summaries", {
             "<-": "arrays.map{{length: length, sum: sum()}}"
@@ -167,13 +176,13 @@ describe("bind", function () {
         ]);
     });
 
-    describe("literals", function () {
+    it("literals", function () {
         var object = {};
         var cancel = bind(object, "literals", {"<-": "[0, 'foo bar']"});
         expect(object.literals).toEqual([0, "foo bar"]);
     });
 
-    describe("has", function () {
+    it("has", function () {
         var object = {set: [1, 2, 3], sought: 2};
         var cancel = bind(object, "has", {"<-": "set.has(sought)"});
 
@@ -198,7 +207,7 @@ describe("bind", function () {
         expect(object.set.slice()).toEqual([1, 2, 3, 4]);
     });
 
-    describe("has <-", function () {
+    it("has <-", function () {
         var object = {set: [1, 2, 3], sought: 2};
         var cancel = bind(object, "has", {"<->": "set.has(sought)"});
 
@@ -211,7 +220,7 @@ describe("bind", function () {
 
     });
 
-    describe("map", function () {
+    it("map", function () {
         var object = {
             foo: [{bar: 10}, {bar: 20}, {bar: 30}]
         };
@@ -223,7 +232,7 @@ describe("bind", function () {
         expect(object.baz).toEqual([10, 20, 30, 40]);
     });
 
-    describe("filter", function () {
+    it("filter", function () {
         var object = {
             foo: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         };
@@ -233,7 +242,7 @@ describe("bind", function () {
         expect(object.bar).toEqual([2, 4, 6, 8, 10]);
     });
 
-    describe("flatten", function () {
+    it("flatten", function () {
         var object = {
             foo: [[1], [2, 3], [4]]
         };
@@ -260,7 +269,7 @@ describe("bind", function () {
         expect(object.baz).toEqual([0, 1, 4, 5, 6]);
     });
 
-    describe("flatten map", function () {
+    it("flatten map", function () {
         var object = {
             foo: [{bar: [1]}, {bar: [2, 3]}, {bar: [4]}]
         };
@@ -287,7 +296,7 @@ describe("bind", function () {
         expect(object.baz).toEqual([0, 1, 4, 5, 6]);
     });
 
-    describe("tree replacement", function () {
+    it("tree replacement", function () {
         var object = {qux: 10, foo: {bar: {baz: null}}};
         var cancel = bind(object, "foo.bar.baz", {"<->": "qux"});
         expect(object.foo.bar.baz).toEqual(10);
@@ -300,7 +309,7 @@ describe("bind", function () {
         expect(object.qux).toEqual(30);
     });
 
-    describe("parameters", function () {
+    it("parameters", function () {
         var object = {};
         var parameters = {a: 10, b: 20, c: 30};
         var source = [1, 2, 3];
@@ -316,22 +325,27 @@ describe("bind", function () {
         expect(object.foo).toEqual([0, 20, [30, 30, 30, 30]]);
     });
 
-    describe("equality and addition", function () {
+    it("equality and addition", function () {
         var object = {a: 2, b: 1, c: 1};
         var cancel = bind(object, "d", {"<->": "a == b + c"});
+        // 2 == 1 + 1
         expect(object.d).toEqual(true);
         object.a = 3;
+        // 3 == 1 + 1
         expect(object.d).toEqual(false);
         object.b = 2;
+        // 3 == 2 + 1
         expect(object.d).toEqual(true);
         object.c = 2;
+        // 3 == 2 + 2
         expect(object.d).toEqual(false);
-        expect(object.a).toEqual(4);
+        expect(object.a).toEqual(3);
         object.d = true;
+        // 4 == 2 + 2
         expect(object.a).toEqual(4);
     });
 
-    describe("two-way negation", function () {
+    it("two-way negation", function () {
         var object = {};
 
         bind(object, "a", {"<->": "!b"});
@@ -351,25 +365,29 @@ describe("bind", function () {
         expect(object.b).toBe(false);
     });
 
-    describe("equality and assignment", function () {
+    it("equality and assignment", function () {
         var object = {choice: 2, a: 2, b: 3};
         bind(object, "isA", {"<->": "!isB"});
         bind(object, "choice == a", {"<->": "isA"});
         bind(object, "choice == b", {"<->": "isB"});
 
+        // choice: 2, a: 2, b: 3, isA: true, isB: false
         expect(object.choice).toBe(2);
 
         object.isB = true;
+        // choice: 3, a: 2, b: 3, isA: false, isB: true
         expect(object.isB).toBe(true);
         expect(object.isA).toBe(false);
         expect(object.choice).toBe(3);
 
         object.b = 4;
-        expect(object.isB).toBe(true);
-        expect(object.isA).toBe(false);
-        expect(object.choice).toBe(4);
+        // choice: 2, a: 2, b: 3, isA: true, isB: false
+        expect(object.isB).toBe(false);
+        expect(object.isA).toBe(true);
+        expect(object.choice).toBe(2);
 
         object.isB = true;
+        // isB: true, isA: false, choice: 4
         expect(object.choice).toBe(4);
 
         object.isA = true;
@@ -380,7 +398,7 @@ describe("bind", function () {
         expect(object.choice).toBe(4);
     });
 
-    describe("gt", function () {
+    it("gt", function () {
         var object = {a: 1, b: 2};
         bind(object, "gt", {"<-": "a > b"});
         expect(object.gt).toBe(false);
@@ -388,13 +406,13 @@ describe("bind", function () {
         expect(object.gt).toBe(true);
     });
 
-    describe("algebra", function () {
+    it("algebra", function () {
         var object = {};
         bind(object, "result", {"<-": "2 ** 3 * 3 + 7"});
         expect(object.result).toBe(Math.pow(2, 3) * 3 + 7);
     });
 
-    describe("logic", function () {
+    it("logic", function () {
         var object = {a: false, b: false};
         bind(object, "result", {"<-": "a || b"});
         expect(object.result).toBe(false);
@@ -407,7 +425,7 @@ describe("bind", function () {
         expect(object.result).toBe(false);
     });
 
-    describe("convert, revert", function () {
+    it("convert, revert", function () {
         var object = {a: 10};
         var cancel = bind(object, "b", {
             "<->": "a",
@@ -426,7 +444,7 @@ describe("bind", function () {
         expect(object.b).toEqual(12);
     });
 
-    describe("add <-> sub", function () {
+    it("add <-> sub", function () {
         var object = {a: 10};
         var cancel = bind(object, "b", {
             "<->": "a + 1"
@@ -439,7 +457,7 @@ describe("bind", function () {
         expect(object.b).toEqual(12);
     });
 
-    describe("pow <-> log", function () {
+    it("pow <-> log", function () {
         var object = {a: 2, b: 3};
         var cancel = bind(object, "c", {
             "<->": "a ** b"
@@ -451,7 +469,7 @@ describe("bind", function () {
         expect(object.c).toEqual(9);
     });
 
-    describe("converter", function () {
+    it("converter", function () {
         var object = {a: 10};
         var cancel = bind(object, "b", {
             "<->": "a",
@@ -472,7 +490,7 @@ describe("bind", function () {
         expect(object.b).toEqual(12);
     });
 
-    describe("content binding from sorted set", function () {
+    it("content binding from sorted set", function () {
         var array = ['a', 'c', 'b'];
         var set = SortedSet([4, 5, 1, 3, 45, 1, 8]);
         var cancel = bind(array, "rangeContent()", {"<-": "", source: set});
@@ -483,7 +501,7 @@ describe("bind", function () {
         expect(array.slice()).toEqual([1, 2, 3, 4, 5, 8]);
     });
 
-    describe("view of a array", function () {
+    it("view of a array", function () {
         var source = {
             content: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
             index: 2,
@@ -505,7 +523,7 @@ describe("bind", function () {
         expect(target.slice()).toEqual([3, 4]);
     });
 
-    describe("view of a sorted set", function () {
+    it("view of a sorted set", function () {
         var array = ['a', 'c', 'b'];
         var set = SortedSet([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
         var source = {
