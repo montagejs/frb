@@ -87,6 +87,12 @@ describe("Tutorial", function () {
         expect(a.b).toBe(30); // from before it was orphaned
     });
 
+    it("Strings", function () {
+        var object = {name: "world"};
+        bind(object, "greeting", {"<-": "'hello ' + name + '!'"});
+        expect(object.greeting).toBe("hello world!");
+    });
+
     it("Sum", function () {
         var object = {array: [1, 2, 3]};
         bind(object, "sum", {"<-": "array.sum()"});
