@@ -166,10 +166,9 @@ expect(a.b).toBe(30); // from before it was orphaned
 String concatenation is straightforward.
 
 ```javascript
-var object = {greeting: ""};
-var name = "world";
+var object = {name: "world"};
 bind(object, "greeting", {"<-": "'hello ' + name + '!'"});
-expect(object.greeting).toBe("hello world");
+expect(object.greeting).toBe("hello world!");
 ```
 
 ### Sum
