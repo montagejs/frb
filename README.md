@@ -161,6 +161,16 @@ expect(foo.a.b).toBe(50); // new one updated
 expect(a.b).toBe(30); // from before it was orphaned
 ```
 
+### Strings
+
+String concatenation is straightforward.
+
+```javascript
+var object = {name: "world"};
+bind(object, "greeting", {"<-": "'hello ' + name + '!'"});
+expect(object.greeting).toBe("hello world!");
+```
+
 ### Sum
 
 Some advanced queries are possible with one-way bindings from
