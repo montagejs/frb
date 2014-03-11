@@ -12,6 +12,12 @@ function changeValue(event) {
     PropertyChanges.dispatchOwnPropertyChange(event.target, "value", event.target.value);
 }
 
+function changeInnerHTML(event) {
+    PropertyChanges.dispatchOwnPropertyChange(event.target, "innerHTML", event.target.innerHTML);
+    PropertyChanges.dispatchOwnPropertyChange(event.target, "innerText", event.target.innerText);
+    PropertyChanges.dispatchOwnPropertyChange(event.target, "value", event.target.innerText);
+}
+
 function makeObservable(key) {
     if (key === "checked") {
         this.addEventListener("change", changeChecked);
@@ -19,6 +25,9 @@ function makeObservable(key) {
         this.addEventListener("change", changeValue);
         if (this.type === "text" || this.nodeName === "TEXTAREA") {
             this.addEventListener("keyup", changeValue);
+        } else if (this.contentEditable) {
+            this.innerText = this.innerText ? this.innerText : this.value;
+            this.addEventListener("keyup", changeInnerHTML);
         }
     }
 }
@@ -30,6 +39,8 @@ function makeUnobservable(key) {
         this.removeEventListener("change", changeValue);
         if (this.type === "text" || this.nodeName === "TEXTAREA") {
             this.removeEventListener("keyup", changeValue);
+        } else if (this.contentEditable) {
+            this.removeEventListener("keyup", changeInnerHTML);
         }
     }
 }
@@ -41,6 +52,10 @@ HTMLInputElement.makePropertyUnobservable = makeUnobservable;
 var HTMLTextAreaElement = Object.getPrototypeOf(document.createElement("textarea"));
 HTMLTextAreaElement.makePropertyObservable = makeObservable;
 HTMLTextAreaElement.makePropertyUnobservable = makeUnobservable;
+
+var HTMLSpanElement = Object.getPrototypeOf(document.createElement("span"));
+HTMLSpanElement.makePropertyObservable = makeObservable;
+HTMLSpanElement.makePropertyUnobservable = makeUnobservable;
 
 // TODO make window.history state observable
 
