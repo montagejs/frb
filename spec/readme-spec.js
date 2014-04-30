@@ -563,6 +563,14 @@ describe("Tutorial", function () {
         var Set = require("collections/set");
         object.haystack = new Set([1, 2, 3]);
         expect(object.hasNeedle).toBe(true);
+
+        // Continued from above...
+        var Map = require("collections/map");
+        object.haystack = new Map([[1, "a"], [2, "b"]]);
+        object.needle = 2;
+        expect(object.hasNeedle).toBe(true);
+        object.needle = 3;
+        expect(object.hasNeedle).toBe(false);
     });
 
     it("Has (DOM)", function () {
