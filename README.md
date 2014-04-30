@@ -858,7 +858,7 @@ expect(object.hasNeedle).toBe(true);
 
 `has` bindings are not incremental, but with the right data-structure,
 updates are cheap.  The [Collections][] package contains Lists, Sets,
-and OrderedSets that all can send content change notifications and thus
+and OrderedSets that all can send ranged content change notifications and thus
 can be bound.
 
 ```javascript
@@ -866,6 +866,19 @@ can be bound.
 var Set = require("collections/set");
 object.haystack = new Set([1, 2, 3]);
 expect(object.hasNeedle).toBe(true);
+```
+
+Likewise, Maps implement `addMapChangeListener`, so you can use a `has` binding
+to observe whether an entry exists with the given key.
+
+```javascript
+// Continued from above...
+var Map = require("collections/map");
+object.haystack = new Map([[1, "a"], [2, "b"]]);
+object.needle = 2;
+expect(object.hasNeedle).toBe(true);
+object.needle = 3;
+expect(object.hasNeedle).toBe(false);
 ```
 
 `has` bindings can also be left-to-right and bi-directional.
