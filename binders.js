@@ -140,6 +140,7 @@ function makeEveryBlockBinder(observeCollection, bindCondition, observeValue) {
                 if (!collection) return;
                 var cancelers = [];
                 function rangeChange(plus, minus, index) {
+                    cancelEach(cancelers.slice(index, index + minus.length));
                     cancelers.swap(index, minus.length, plus.map(function (value, offset) {
                         var scope = target.nest(value);
                         return bindCondition(observeValue, scope, scope, descriptor, trace);

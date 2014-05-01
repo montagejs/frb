@@ -563,6 +563,14 @@ describe("Tutorial", function () {
         var Set = require("collections/set");
         object.haystack = new Set([1, 2, 3]);
         expect(object.hasNeedle).toBe(true);
+
+        // Continued from above...
+        var Map = require("collections/map");
+        object.haystack = new Map([[1, "a"], [2, "b"]]);
+        object.needle = 2;
+        expect(object.hasNeedle).toBe(true);
+        object.needle = 3;
+        expect(object.hasNeedle).toBe(false);
     });
 
     it("Has (DOM)", function () {
@@ -659,18 +667,18 @@ describe("Tutorial", function () {
         var object = Bindings.defineBindings({}, {
             keys: {"<-": "map.keys()"},
             values: {"<-": "map.values()"},
-            items: {"<-": "map.items()"}
+            entries: {"<-": "map.entries()"}
         });
         object.map = Map({a: 10, b: 20, c: 30});
         expect(object.keys).toEqual(['a', 'b', 'c']);
         expect(object.values).toEqual([10, 20, 30]);
-        expect(object.items).toEqual([['a', 10], ['b', 20], ['c', 30]]);
+        expect(object.entries).toEqual([['a', 10], ['b', 20], ['c', 30]]);
 
         object.map.set('d', 40);
         object.map.delete('a');
         expect(object.keys).toEqual(['b', 'c', 'd']);
         expect(object.values).toEqual([20, 30, 40]);
-        expect(object.items).toEqual([['b', 20], ['c', 30], ['d', 40]]);
+        expect(object.entries).toEqual([['b', 20], ['c', 30], ['d', 40]]);
     });
 
     it("Coerce to Map", function () {

@@ -141,19 +141,29 @@ function makeHasObserver(observeSet, observeValue) {
     return function observeHas(emit, scope) {
         emit = makeUniq(emit);
         return observeValue(function replaceValue(sought) {
-            return observeSet(function replaceSet(set) {
-                if (!set) return emit();
-                return observeRangeChange(set, function rangeChange() {
-                    // this could be done incrementally if there were guarantees of
-                    // uniqueness, but if there are guarantees of uniqueness, the
-                    // data structure can probably efficiently check
-                    return emit((set.has || set.contains).call(set, sought));
-                }, scope);
+            return observeSet(function replaceSet(collection) {
+                if (!collection) {
+                    return emit();
+                } else if (collection.addRangeChangeListener) {
+                    return observeRangeChange(collection, function rangeChange() {
+                        // This could be done incrementally if there were
+                        // guarantees of uniqueness, but if there are
+                        // guarantees of uniqueness, the data structure can
+                        // probably efficiently check
+                        return emit((collection.has || collection.contains)
+                            .call(collection, sought));
+                    }, scope);
+                } else if (collection.addMapChangeListener) {
+                    return observeMapChange(collection, function mapChange() {
+                        return emit(collection.has(sought));
+                    }, scope);
+                } else {
+                    return emit();
+                }
             }, scope);
         }, scope);
     };
 }
-
 
 // Compound Observers
 
@@ -190,9 +200,12 @@ function makeObjectObserver(observers) {
         var output = {};
         for (var name in observers) {
             (function (name, observe) {
+                // To ensure that the property exists, even if the observer
+                // fails to emit:
+                output[name] = void 0;
                 cancelers[name] = observe(function (value) {
                     output[name] = value;
-                }, scope);
+                }, scope) || Function.noop;
             })(name, observers[name]);
         }
         var cancel = emit(output) || Function.noop;
