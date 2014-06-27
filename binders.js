@@ -89,6 +89,7 @@ function makeHasBinder(observeSet, observeValue) {
     return function bindHas(observeHas, source, target, descriptor, trace) {
         return observeSet(function replaceHasBindingSet(set) {
             if (!set) return;
+            var equals = set.contentEquals || Object.equals;
             return observeValue(function replaceHasBindingValue(value) {
                 if (value == null) return;
                 return observeHas(function changeWhetherSetHas(has) {
@@ -100,7 +101,30 @@ function makeHasBinder(observeSet, observeValue) {
                             set.add(value);
                         }
                     } else { // should not be in set
-                        while ((set.has || set.contains).call(set, value)) {
+                        // Not all collections are sets.
+                        // To enforce the rule that the collection does not
+                        // contain the value, we must remove all of the
+                        // equivalent values.
+                        // However, we cannot use a simple while loop because
+                        // certain collections refuse to effect the requested
+                        // change, notably the MontageJS range controller
+                        // content.
+                        // So instead we count the values and remove that many,
+                        // regardless of whether the changes take effect.
+                        var count;
+                        if (set.filter) {
+                            // But not all collections implement filter,
+                            // either.
+                            count = set.filter(function (other) {
+                                return equals(value, other);
+                            }).length;
+                        } else {
+                            // But all collections must either implement has or
+                            // contains, so we coerce the boolean to 0 or 1
+                            // count.
+                            count = +(set.has || set.contains).call(set, value);
+                        }
+                        for (var index = 0; index < count; index++) {
                             trace && console.log("REMOVE", value, "FROM", trace.targetPath, "BECAUSE", trace.sourcePath, getStackTrace());
                             (set.remove || set['delete']).call(set, value);
                         }
