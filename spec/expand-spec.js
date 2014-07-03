@@ -73,36 +73,5 @@ describe("expand", function () {
         });
     });
 
-
-    it("should expand component labels from a serializer", function () {
-
-        var syntax = parse("@a");
-        var a = {};
-        var observe = compileObserver(syntax);
-        var scope = new Scope();
-        scope.components = {
-            getObjectByLabel: function (label) {
-                expect(label).toBe("a");
-                return a;
-            }
-        };
-        var cancel = observe(function (_a) {
-            expect(_a).toBe(a);
-        }, scope);
-
-        expect(syntax.component).toBe(a);
-
-        var scope = new Scope();
-        scope.components = {
-            getObjectLabel: function (_a) {
-                expect(_a).toBe(a);
-                return "b";
-            },
-        };
-        var syntax = expand(syntax, scope);
-        expect(stringify(syntax)).toBe("@b");
-
-    });
-
 });
 

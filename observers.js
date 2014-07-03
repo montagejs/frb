@@ -43,13 +43,14 @@ function makeElementObserver(id) {
 exports.makeComponentObserver = makeComponentObserver;
 function makeComponentObserver(label, syntax) {
     return function observeComponent(emit, scope) {
-        // TODO error if scope.components does not exist or components for
-        // label does not exist
         var components = scope.components;
-        var method = components.getObjectByLabel || components.getComponentByLabel;
-        var component = method.call(components, label);
-        syntax.component = component;
-        return emit(component);
+        if (components && typeof components.observeObjectByLabel === "function") {
+            return components.observeObjectByLabel(label, emit, scope);
+        } else if (components && typeof components.getObjectByLabel === "function") {
+            return emit(components.getObjectByLabel(label));
+        } else {
+            return emit();
+        }
     };
 }
 
