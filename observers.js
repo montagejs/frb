@@ -48,7 +48,6 @@ function makeComponentObserver(label, syntax) {
         var components = scope.components;
         var method = components.getObjectByLabel || components.getComponentByLabel;
         var component = method.call(components, label);
-        syntax.component = component;
         return emit(component);
     };
 }
