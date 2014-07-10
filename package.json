@@ -32,8 +32,9 @@
     "collections": "~0.2.2"
   },
   "devDependencies": {
-    "jasmine-node": "1.x.x",
-    "pegjs": "git://github.com/dmajda/pegjs.git"
+    "jasmine-node": ">=1.13.1 <1.14.0",
+    "pegjs": "git://github.com/dmajda/pegjs.git",
+    "memwatch": "*"
   },
   "scripts": {
     "test": "jasmine-node spec",
