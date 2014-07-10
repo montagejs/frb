@@ -1514,18 +1514,16 @@ function makeNonReplacing(wrapped) {
                 function rangeChange(plus, minus, index) {
                     output.swap(index, minus.length, plus);
                 }
-                if (!input) {
+                if (!input || !input.addRangeChangeListener) {
                     output.clear();
                 } else {
                     // equivalent to: output.swap(0, output.length, input);
                     merge(output, input);
                     // TODO fix problem that this would get called twice on replacement
-                    var cancelRangeChange = input.addRangeChangeListener(
-                        rangeChange,
-                        null,
-                        scope.beforeChange
-                    );
-                    return cancelRangeChange;
+                    input.addRangeChangeListener(rangeChange, null, scope.beforeChange);
+                    return function cancelRangeChange() {
+                        input.removeRangeChangeListener(rangeChange, null, scope.beforeChange);
+                    };
                 }
             }, scope);
             var cancel = emit(output) || Function.noop;
