@@ -14,11 +14,13 @@ function parse(text, options) {
             })
         };
     } else if (!options && Object.prototype.hasOwnProperty.call(memo, text)) {
-        return memo[text];
+        return Object.clone(memo[text]);
     } else {
         try {
             var syntax = grammar.parse(text, options || Object.empty);
-            memo[text] = syntax;
+            if (!options) {
+                memo[text] = Object.clone(syntax);
+            }
             return syntax;
         } catch (error) {
             error.message = (
