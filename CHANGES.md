@@ -1,4 +1,23 @@
 
+# v0.2.18
+
+-   Allow white space in more positions in FRB expressions, particularly within
+    and around records.
+-   Fixes the cases for null, undefined, and NaN on string operators,
+    particularly startsWith and endsWith which would previously throw an
+    exception.
+-   Various speculative performance related changes, particularly unrolling
+    swap loops, using undefined instead of noop for default cancelers,
+    eliminating most uses of `autoCancelPrevious` and all uses of `once`.
+-   Memoize parse results and require that they be treated as immutable.
+    This is a break from previous versions because MontageJS previously
+    modified the syntax tree for reserializing expressions with different
+    component names.
+-   Update Collections to v2.1.1, mostly for speculative performance related
+    changes.
+-   Fix the `has` operator for map collections.
+-   Support for contenteditable in the DOM shim (@cesine)
+
 # v0.2.17
 
 -   Fix evaluator for ternary conditional operator to match the behavior of the
