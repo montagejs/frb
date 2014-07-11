@@ -90,8 +90,6 @@ describe("expand", function () {
             expect(_a).toBe(a);
         }, scope);
 
-        expect(syntax.component).toBe(a);
-
         var scope = new Scope();
         scope.components = {
             getObjectLabel: function (_a) {
@@ -99,6 +97,7 @@ describe("expand", function () {
                 return "b";
             },
         };
+        syntax.component = a;
         var syntax = expand(syntax, scope);
         expect(stringify(syntax)).toBe("@b");
 
