@@ -1554,8 +1554,8 @@ var merge = require("./merge").merge;
 // the output array whenever the input array is replaced.  instead, this
 // wrapper receives the replacement array and mirrors it on an output array
 // that only gets emitted once.
-function makeNonReplacing(wrapped) {
-    return function () {
+function makeNonReplacing(wrapped) { // alt makeNonReplacingObserverMaker
+    return function makeNonReplacingObserver() {
         var observe = wrapped.apply(this, arguments);
         return function observeArrayWithoutReplacing(emit, scope) {
             var output = [];
@@ -1577,7 +1577,7 @@ function makeNonReplacing(wrapped) {
             }, scope);
             var cancel = emit(output);
             return function cancelNonReplacingObserver() {
-                cancelObserver();
+                if (cancelObserver) cancelObserver();
                 if (cancel) cancel();
             };
         };
