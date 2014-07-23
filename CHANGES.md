@@ -1,4 +1,8 @@
 
+# v0.2.19
+
+-   Small bug fix in cancelling non replacing array observers
+
 # v0.2.18
 
 -   Allow white space in more positions in FRB expressions, particularly within
