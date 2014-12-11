@@ -20,23 +20,17 @@ function bind(target, targetPath, descriptor) {
     var sourcePath = descriptor["<-"] || descriptor["<->"] || "";
     var twoWay = descriptor.twoWay = "<->" in descriptor;
     descriptor.sourcePath = sourcePath;
-    var value = descriptor.value;
-    var parameters = descriptor.parameters = descriptor.parameters || source;
-    var document = descriptor.document;
-    var components = descriptor.components;
     var trace = descriptor.trace;
 
     // TODO: consider the possibility that source and target have intrinsic
     // scope properties
 
     var sourceScope = descriptor.sourceScope = new Scope(source);
-    sourceScope.parameters = parameters;
-    sourceScope.document = document;
-    sourceScope.components = components;
     var targetScope = descriptor.targetScope = new Scope(target);
-    targetScope.parameters = parameters;
-    targetScope.document = document;
-    targetScope.components = components;
+
+    sourceScope.parameters = targetScope.parameters = (descriptor.parameters = descriptor.parameters || source);
+    sourceScope.document = targetScope.document = descriptor.document;
+    sourceScope.components = targetScope.components = descriptor.components;
 
     // promote convert and revert from a converter object up to the descriptor
     if (descriptor.converter) {
@@ -121,7 +115,6 @@ function bind(target, targetPath, descriptor) {
         cancelSourceToTarget();
         cancelTargetToSource();
     };
-
 }
 
 function bindOneWay(
