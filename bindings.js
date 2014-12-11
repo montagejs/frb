@@ -1,11 +1,10 @@
 
-var Map = require("collections/map");
 var bind = require("./bind");
 var compute = require("./compute");
 var observe = require("./observe");
 var stringify = require("./stringify");
 
-var bindingsForObject = new Map();
+var bindingsForObject = {};
 var owns = Object.prototype.hasOwnProperty;
 
 exports.count = 0;
@@ -57,10 +56,7 @@ function defineBinding(object, name, descriptor, commonDescriptor) {
 
 exports.getBindings = getBindings;
 function getBindings(object) {
-    if (!bindingsForObject.has(object)) {
-        bindingsForObject.set(object, {});
-    }
-    return bindingsForObject.get(object);
+    return object.__bindingDescriptors__ || (object.__bindingDescriptors__ = {});
 }
 
 exports.getBinding = getBinding;
@@ -91,7 +87,6 @@ function cancelBinding(object, name) {
         for (var name in bindings) {
             return; // if there are any remaining bindings, short-circuit
         }
-        bindingsForObject["delete"](object);
     }
 }
 
