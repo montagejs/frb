@@ -2,7 +2,7 @@
 require("collections/shim");
 var grammar = require("./grammar");
 
-var memo = {}; // could be Dict
+var memo = Object.create(null); // could be Dict
 
 module.exports = parse;
 function parse(text, options) {
@@ -13,7 +13,7 @@ function parse(text, options) {
                 return parse(text, options);
             })
         };
-    } else if (!options && Object.prototype.hasOwnProperty.call(memo, text)) {
+    } else if (!options && (text in memo)) {
         return memo[text];
     } else {
         try {
