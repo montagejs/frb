@@ -5,6 +5,18 @@ function Scope(value) {
     this.value = value;
 }
 
+Object.defineProperties(Scope.prototype, {
+	parent: {
+		value:null,
+		writable: true
+	},
+	value: {
+		value:null,
+		writable: true
+	}
+});
+
+
 Scope.prototype.nest = function (value) {
     var child = Object.create(this);
     child.value = value;

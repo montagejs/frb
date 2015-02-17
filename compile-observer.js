@@ -93,11 +93,12 @@ var semantics = compile.semantics = {
 };
 
 var compilers = semantics.compilers;
-Object.keys(Operators).forEach(function (name) {
+var operators = Object.keys(Operators);
+for(var i=0, name;(name = operators[i]); i++) {
     if (!compilers[name]) {
         compilers[name] = Observers.makeOperatorObserverMaker(Operators[name]);
     }
-});
+}
 
 // a special Hell for non-enumerable inheritance
 compilers.toString = Observers.makeOperatorObserverMaker(Operators.toString);
