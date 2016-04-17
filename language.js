@@ -1,8 +1,8 @@
 
 var Set = require("collections/set");
-var Dict = require("collections/dict");
+var Map = require("collections/map");
 
-var precedence = exports.precedence = Dict();
+var precedence = exports.precedence = new Map();
 var levels = exports.precedenceLevels = [
     ["tuple", "record"],
     [
@@ -31,14 +31,15 @@ var levels = exports.precedenceLevels = [
     ["if"]
 ];
 
-levels.forEach(function (level) {
-    var predecessors = Set(precedence.keys());
-    level.forEach(function (operator) {
-        precedence.set(operator, predecessors);
-    });
-});
+for(var i=0, countI = levels.length, predecessors, level, j, countJ; i<countI; i++) {
+    level = levels[i];
+    predecessors = new Set(precedence.keysArray());
+    for(j=0, countJ = level.length; j<countJ; j++) {
+        precedence.set(level[j], predecessors);
+    }
+}
 
-var operatorTokens = exports.operatorTokens = Dict({
+var operatorTokens = exports.operatorTokens = Map.from({
     "**": "pow",
     "//": "root",
     "%%": "log",
@@ -62,7 +63,6 @@ var operatorTokens = exports.operatorTokens = Dict({
     ":": "else"
 });
 
-exports.operatorTypes = Dict(operatorTokens.map(function (type, token) {
+exports.operatorTypes = new Map(operatorTokens.map(function (type, token) {
     return [type, token];
 }));
-

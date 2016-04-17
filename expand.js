@@ -2,7 +2,6 @@
 var Set = require("collections/set");
 var Map = require("collections/map");
 var Operators = require("./operators");
-
 module.exports = expand;
 function expand(syntax, scope) {
     var bound = expand.semantics.expand.bind(expand.semantics);
@@ -11,14 +10,14 @@ function expand(syntax, scope) {
 
 expand.semantics = {
 
-    reflexive: Set([
+    reflexive: new Set([
         "literal",
         "element",
         "rangeContent",
         "mapContent"
     ]),
 
-    traverseLeft: Set([
+    traverseLeft: new Set([
         "with",
         "mapBlock",
         "filterBlock",
@@ -29,21 +28,21 @@ expand.semantics = {
         "groupMapBlock"
     ]),
 
-    expanders: Map({
-        value: function (syntax, scope) {
+    expanders: new Map([[
+        "value", function (syntax, scope) {
             return scope.value || {"type": "value"};
-        },
-        parameters: function (syntax, scope) {
+        }],[
+        "parameters", function (syntax, scope) {
             return scope.parameters || {"type": "parameters"};
-        },
-        record: function (syntax, scope, expand) {
+        }],[
+        "record", function (syntax, scope, expand) {
             var expanded = {type: "record", args: []};
             for (var name in syntax.args) {
                 expanded.args[name] = expand(syntax.args[name], scope, expand);
             }
             return expanded;
-        },
-        component: function (syntax, scope, expand) {
+        }],[
+        "component", function (syntax, scope, expand) {
             if (scope.components && syntax.component) {
                 return {
                     type: "component",
@@ -52,8 +51,7 @@ expand.semantics = {
             } else {
                 return syntax;
             }
-        }
-    }),
+        }]]),
 
     expand: function (syntax, scope, expand) {
         if (this.expanders.has(syntax.type)) {
@@ -72,4 +70,3 @@ expand.semantics = {
     }
 
 };
-

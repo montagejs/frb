@@ -54,7 +54,16 @@ compile.semantics = {
             };
         } else if (compilers.hasOwnProperty(syntax.type)) {
             var argEvaluators = syntax.args.map(this.compileEvaluator, this.compileEvaluator.semantics);
-            return compilers[syntax.type].apply(null, argEvaluators);
+            if(argEvaluators.length === 1) {
+                return compilers[syntax.type].call(null, argEvaluators[0]);
+            }
+            else if(argEvaluators.length === 2) {
+                return compilers[syntax.type].call(null, argEvaluators[0], argEvaluators[1]);
+            }
+            else {
+                return compilers[syntax.type].apply(null, argEvaluators);
+            }
+
         } else {
             throw new Error("Can't compile assigner for " + JSON.stringify(syntax.type));
         }
@@ -196,4 +205,3 @@ compile.semantics = {
     }
 
 }
-

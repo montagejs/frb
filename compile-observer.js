@@ -24,9 +24,12 @@ var semantics = compile.semantics = {
         rangeContent: Function.identity,
         mapContent: Function.identity,
         keys: Observers.makeKeysObserver,
+        keysArray: Observers.makeKeysObserver,
         values: Observers.makeValuesObserver,
+        valuesArray: Observers.makeValuesObserver,
         items: Observers.makeEntriesObserver, // XXX deprecated
         entries: Observers.makeEntriesObserver,
+        entriesArray: Observers.makeEntriesObserver,
         toMap: Observers.makeToMapObserver,
         mapBlock: Observers.makeMapBlockObserver,
         filterBlock: Observers.makeFilterBlockObserver,
@@ -75,9 +78,10 @@ var semantics = compile.semantics = {
         } else if (syntax.type === "component") {
             return Observers.makeComponentObserver(syntax.label, syntax);
         } else if (syntax.type === "record") {
-            var observers = {};
-            var args = syntax.args;
-            for (var name in args) {
+            var observers = {},
+                args = syntax.args,
+                names = Object.keys(args);
+            for (var i=0;(name = names[i]);i++) {
                 observers[name] = this.compile(args[name]);
             }
             return Observers.makeObjectObserver(observers);
@@ -86,19 +90,30 @@ var semantics = compile.semantics = {
                 compilers[syntax.type] = Observers.makeMethodObserverMaker(syntax.type);
             }
             var argObservers = syntax.args.map(this.compile, this);
-            return compilers[syntax.type].apply(null, argObservers);
+
+            if(argObservers.length === 1) {
+                return compilers[syntax.type].call(null, argObservers[0]);
+            }
+            else if(argObservers.length === 2) {
+                return compilers[syntax.type].call(null, argObservers[0], argObservers[1]);
+            }
+            else {
+                return compilers[syntax.type].apply(null, argObservers);
+            }
+
         }
     }
 
 };
 
 var compilers = semantics.compilers;
-Object.keys(Operators).forEach(function (name) {
+var operatorsKeys = Object.keys(Operators);
+
+for(var i=0, name;(name = operatorsKeys[i]); i++) {
     if (!compilers[name]) {
         compilers[name] = Observers.makeOperatorObserverMaker(Operators[name]);
     }
-});
+}
 
 // a special Hell for non-enumerable inheritance
 compilers.toString = Observers.makeOperatorObserverMaker(Operators.toString);
-

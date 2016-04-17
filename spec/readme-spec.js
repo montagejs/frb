@@ -612,7 +612,7 @@ describe("Tutorial", function () {
         var Map = require("collections/map");
         var a = {id: 0}, b = {id: 1};
         var object = {
-            source: Map([[a, 10], [b, 20]]),
+            source: new Map([[a, 10], [b, 20]]),
             key: null,
             selected: null
         };
@@ -646,8 +646,8 @@ describe("Tutorial", function () {
     it("Get (all content)", function () {
         var Map = require("collections/map");
         var object = {
-            a: Map({a: 10}),
-            b: Map()
+            a: Map.from({a: 10}),
+            b: new Map()
         };
         var cancel = bind(object, "a.mapContent()", {"<->": "b.mapContent()"});
         expect(object.a.toObject()).toEqual({});
@@ -665,11 +665,11 @@ describe("Tutorial", function () {
     it("Keys, Values, Entries", function () {
         var Map = require("collections/map");
         var object = Bindings.defineBindings({}, {
-            keys: {"<-": "map.keys()"},
-            values: {"<-": "map.values()"},
-            entries: {"<-": "map.entries()"}
+            keys: {"<-": "map.keysArray()"},
+            values: {"<-": "map.valuesArray()"},
+            entries: {"<-": "map.entriesArray()"}
         });
-        object.map = Map({a: 10, b: 20, c: 30});
+        object.map = Map.from({a: 10, b: 20, c: 30});
         expect(object.keys).toEqual(['a', 'b', 'c']);
         expect(object.values).toEqual([10, 20, 30]);
         expect(object.entries).toEqual([['a', 10], ['b', 20], ['c', 30]]);
@@ -691,16 +691,16 @@ describe("Tutorial", function () {
         expect(map).not.toBe(null);
 
         object.entries = {a: 10};
-        expect(map.keys()).toEqual(['a']);
+        expect(map.keysArray()).toEqual(['a']);
         expect(map.has('a')).toBe(true);
         expect(map.get('a')).toBe(10);
 
         // Continued...
         object.entries = [['b', 20], ['c', 30]];
-        expect(map.keys()).toEqual(['b', 'c']);
+        expect(map.keysArray()).toEqual(['b', 'c']);
 
         object.entries.push(object.entries.shift());
-        expect(map.keys()).toEqual(['c', 'b']);
+        expect(map.keysArray()).toEqual(['c', 'b']);
 
         // Continued...
         object.entries = [['a', 10], ['a', 20]];
@@ -709,8 +709,8 @@ describe("Tutorial", function () {
         expect(map.get('a')).toEqual(10);
 
         // Continued...
-        object.entries = new Map({a: 10});
-        expect(map.keys()).toEqual(['a']);
+        object.entries = Map.from({a: 10});
+        expect(map.keysArray()).toEqual(['a']);
 
     });
 
@@ -769,7 +769,7 @@ describe("Tutorial", function () {
         // ... continued
         var Map = require("collections/map");
         var object = {
-            map: Map(),
+            map: new Map(),
             array: []
         };
         Bindings.defineBinding(object, "map.mapContent()", {
@@ -1651,4 +1651,3 @@ describe("Reference", function () {
     });
 
 });
-

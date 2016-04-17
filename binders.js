@@ -296,8 +296,15 @@ function makeRangeContentBinder(observeTarget, bindTarget) {
                     if (target.swap) {
                         target.swap(index, minus.length, plus);
                     } else if (target.add && (target.remove || target["delete"])) {
-                        plus.forEach(target.add, target);
-                        minus.forEach(target.remove || target["delete"], target);
+                        var i, countI, item, deleteMethod;
+                        for(i=0, countI = plus.length, item;(item = plus[i]); i++) {
+                            target.add(item);
+                        }
+                        
+                        deleteMethod = target.remove || target["delete"];
+                        for(i=0, countI = minus.length, item;(item = minus[i]); i++) {
+                            target.deleteMethod(item);
+                        }
                     }
                 }
 
@@ -436,4 +443,3 @@ function isActive(target) {
         target.getRangeChangeDescriptor().isActive
     );
 }
-

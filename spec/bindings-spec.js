@@ -287,7 +287,7 @@ describe("bindings", function () {
 
     it("should bind to a key in a map", function () {
         var object = {one: 1, two: 2};
-        var map = Map();
+        var map = new Map();
 
         Bindings.defineBinding(map, "get('one')", {
             "<-": "one",
@@ -517,4 +517,3 @@ describe("bindings", function () {
     });
 
 });
-

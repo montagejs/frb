@@ -1,6 +1,6 @@
 {
   "name": "frb",
-  "version": "0.2.19",
+  "version": "3.0.0",
   "description": "Functional reactive bindings",
   "keywords": [
     "functional",
@@ -11,30 +11,31 @@
   ],
   "author": "Kris Kowal <kris@cixar.com> (http://github.com/kriskowal/)",
   "contributors": [
-    "Kris Kowal <kris@cixar.com> (http://github.com/kriskowal/)"
+      "Kris Kowal <kris@cixar.com> (http://github.com/kriskowal/)",
+      "Benoit Marchant <benoit@montagestudio.com> (http://github.com/marchant/)"
   ],
   "bugs": {
-    "mail": "kris@cixar.com",
-    "url": "http://github.com/kriskowal/frb/issues"
+    "mail": "benoit@montagestudio.com",
+    "url": "http://github.com/montagejs/frb/issues"
   },
   "licenses": [
     {
       "type": "MIT",
-      "url": "http://github.com/kriskowal/frb/raw/master/LICENSE.md"
+      "url": "http://github.com/montagejs/frb/raw/master/LICENSE.md"
     }
   ],
   "repository": {
     "type": "git",
-    "url": "http://github.com/kriskowal/frb.git"
+    "url": "http://github.com/montagejs/frb.git"
   },
   "main": "bindings",
   "dependencies": {
-    "collections": "^1.2.1"
+    "collections": "~5.0.x"
   },
   "devDependencies": {
-    "jasmine-node": ">=1.13.1 <1.14.0",
+    "jasmine-node": "montagestudio/jasmine-node#master",
     "pegjs": "git://github.com/dmajda/pegjs.git",
-    "memwatch": "*"
+    "memwatch-next": "*"
   },
   "scripts": {
     "test": "jasmine-node spec",

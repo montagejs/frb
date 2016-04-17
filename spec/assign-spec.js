@@ -12,7 +12,7 @@ describe("assign", function () {
     });
 
     it("should be able to assign to a key of a map", function () {
-        var object = {map: Map()};
+        var object = {map: new Map()};
         assign(object, "map.get($key)", 10, {key: 'key'});
         expect(object.map.get('key')).toBe(10);
     });
@@ -104,10 +104,10 @@ describe("assign", function () {
 
     it("should be able to assign into the content of a map", function () {
         var object = {};
-        assign(object, "map.mapContent()", Map({a: 10}));
+        assign(object, "map.mapContent()", Map.from({a: 10}));
         expect(object).toEqual({});
-        object.map = Map();
-        assign(object, "map.mapContent()", Map({a: 10, b: 20}));
+        object.map = new Map();
+        assign(object, "map.mapContent()", Map.from({a: 10, b: 20}));
         expect(object.map.toObject()).toEqual({a: 10, b: 20});
     });
 
@@ -130,4 +130,3 @@ describe("assign", function () {
     });
 
 });
-

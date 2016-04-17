@@ -563,7 +563,7 @@ describe("bind", function () {
 
     it("should bind map content to array content", function () {
         var array = [];
-        var map = Map([[0, 1]]);
+        var map = new Map([[0, 1]]);
         var cancel = bind(array, "mapContent()", {"<-": "", source: map});
         expect(array).toEqual([1]);
         map.set(1, 2);
@@ -577,7 +577,7 @@ describe("bind", function () {
 
     it("should bind map content to array content", function () {
         var array = [];
-        var map = Map([[0, 1]]);
+        var map = new Map([[0, 1]]);
         var cancel = bind(array, "mapContent()", {"<-": "", source: map});
         expect(array).toEqual([1]);
         map.set(1, 2);
@@ -590,7 +590,7 @@ describe("bind", function () {
     });
 
     it("should bind array to map content", function () {
-        var map = Map();
+        var map = new Map();
         var array = [1];
         var cancel = bind(map, "mapContent()", {"<-": "", source: array});
         expect(map.toObject()).toEqual({0: 1});
@@ -604,4 +604,3 @@ describe("bind", function () {
     });
 
 });
-

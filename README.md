@@ -35,7 +35,7 @@ maintain.
 ## Getting Started
 
 `frb` is a CommonJS package, with JavaScript modules suitable for use
-with [Node.js][] on the server side or [Mr][] on the client side. 
+with [Node.js][] on the server side or [Mr][] on the client side.
 
 ```
 ❯ npm install frb
@@ -956,7 +956,7 @@ also be a variable.
 var Map = require("collections/map");
 var a = {id: 0}, b = {id: 1};
 var object = {
-    source: Map([[a, 10], [b, 20]]),
+    source: new Map([[a, 10], [b, 20]]),
     key: null,
     selected: null
 };
@@ -994,8 +994,8 @@ replaces the content of the target initially.
 ```javascript
 var Map = require("collections/map");
 var object = {
-    a: Map({a: 10}),
-    b: Map()
+    a: new Map({a: 10}),
+    b: new Map()
 };
 var cancel = bind(object, "a.mapContent()", {"<->": "b.mapContent()"});
 expect(object.a.toObject()).toEqual({});
@@ -1023,11 +1023,11 @@ key-value-mappings onto an array.
 ```javascript
 var Map = require("collections/map");
 var object = Bindings.defineBindings({}, {
-    keys: {"<-": "map.keys()"},
-    values: {"<-": "map.values()"},
-    entries: {"<-": "map.entries()"}
+    keys: {"<-": "map.keysArray()"},
+    values: {"<-": "map.valuesArray()"},
+    entries: {"<-": "map.entriesArray()"}
 });
-object.map = Map({a: 10, b: 20, c: 30});
+object.map = new Map({a: 10, b: 20, c: 30});
 expect(object.keys).toEqual(['a', 'b', 'c']);
 expect(object.values).toEqual([10, 20, 30]);
 expect(object.entries).toEqual([['a', 10], ['b', 20], ['c', 30]]);
@@ -1055,7 +1055,7 @@ var map = object.map;
 expect(map).not.toBe(null);
 
 object.entries = {a: 10};
-expect(map.keys()).toEqual(['a']);
+expect(map.keysArray()).toEqual(['a']);
 expect(map.has('a')).toBe(true);
 expect(map.get('a')).toBe(10);
 ```
@@ -1065,10 +1065,10 @@ The `toMap` observer maintains the insertion order of the keys.
 ```javascript
 // Continued...
 object.entries = [['b', 20], ['c', 30]];
-expect(map.keys()).toEqual(['b', 'c']);
+expect(map.keysArray()).toEqual(['b', 'c']);
 
 object.entries.push(object.entries.shift());
-expect(map.keys()).toEqual(['c', 'b']);
+expect(map.keysArray()).toEqual(['c', 'b']);
 ```
 
 If the entries do not have unique keys, the last entry wins.  This is
@@ -1089,7 +1089,7 @@ replaced.
 ```
 // Continued...
 object.entries = new Map({a: 10});
-expect(map.keys()).toEqual(['a']);
+expect(map.keysArray()).toEqual(['a']);
 ```
 
 ### Equals
@@ -1220,7 +1220,7 @@ arrays or map collections.
 ```javascript
 var Map = require("collections/map");
 var object = {
-    map: Map(),
+    map: new Map(),
     array: []
 };
 Bindings.defineBinding(object, "map.mapContent()", {
@@ -3016,9 +3016,9 @@ For all function calls, the right hand side is a tuple of arguments.
 -   `split(delimiter)`
 -   `concat(...arrays)`
 -   `range()`
--   `keys()`
--   `values()`
--   `entries()`
+-   `keysArray()`
+-   `valuesArray()`
+-   `entriesArray()`
 -   `defined()`
 -   `round()`
 -   `floor()`
@@ -3107,4 +3107,3 @@ exhaustive.
 [Mr]: https://github.com/montagejs/mr
 [Mutation Observers]: https://developer.mozilla.org/en-US/docs/DOM/DOM_Mutation_Observers
 [Node.js]: http://nodejs.org/
-

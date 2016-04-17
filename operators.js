@@ -3,7 +3,6 @@ require("collections/shim-object"); // equals, compare
 require("collections/shim-regexp"); // escape
 var Map = require("collections/map");
 var Set = require("collections/set");
-
 // from highest to lowest precedence
 
 exports.toNumber = function (s) {
@@ -22,9 +21,9 @@ exports.toString = function (value) {
 
 exports.toArray = Array.from;
 
-exports.toMap = Map;
+exports.toMap = Map.from.bind(Map);
 
-exports.toSet = Set;
+exports.toSet = Set.from.bind(Set);
 
 exports.not = function (b) {
     return !b;
@@ -152,4 +151,3 @@ exports.range = function (stop) {
 exports.last = function (collection) {
     return collection.get(collection.length - 1);
 };
-

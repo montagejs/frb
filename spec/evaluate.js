@@ -659,19 +659,19 @@ module.exports = [
     },
 
     {
-        path: "toMap().entries()",
+        path: "toMap().entriesArray()",
         input: {a: 10, b: 20},
         output: [['a', 10], ['b', 20]]
     },
 
     {
-        path: "toMap().entries()",
+        path: "toMap().entriesArray()",
         input: [['a', 10], ['b', 20]],
         output: [['a', 10], ['b', 20]]
     },
 
     {
-        path: "toMap().toMap().entries()",
+        path: "toMap().toMap().entriesArray()",
         input: {a: 10, b: 20},
         output: [['a', 10], ['b', 20]]
     },
