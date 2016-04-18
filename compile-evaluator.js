@@ -52,14 +52,17 @@ var compilers = {
     },
 
     record: function (syntax) {
-        var args = syntax.args;
-        var argEvaluators = {};
-        for (var name in args) {
+        var args = syntax.args,
+            argEvaluators = {},
+            names = Object.keys(args),
+            name, i;
+        for (i=0;(name=names[i]);i++) {
             argEvaluators[name] = this.compile(args[name]);
         }
         return function (scope) {
-            var object = {};
-            for (var name in argEvaluators) {
+            var object = {},
+                names = Object.keys(argEvaluators);
+                for (i=0;(name=names[i]);i++) {
                 object[name] = argEvaluators[name](scope);
             }
             return object;
@@ -282,14 +285,34 @@ var semantics = compile.semantics = {
             return compilers[syntax.type].call(this, syntax);
         } else if (argCompilers.hasOwnProperty(syntax.type)) {
             var argEvaluators = syntax.args.map(this.compile, this);
-            return argCompilers[syntax.type].apply(null, argEvaluators);
+
+            if(argEvaluators.length === 1) {
+                return argCompilers[syntax.type].call(null, argEvaluators[0]);
+            }
+            else if(argEvaluators.length === 2) {
+                return argCompilers[syntax.type].call(null, argEvaluators[0], argEvaluators[1]);
+            }
+            else {
+                return argCompilers[syntax.type].apply(null, argEvaluators);
+            }
+
         } else {
             if (!operators.hasOwnProperty(syntax.type)) {
                 operators[syntax.type] = function (object) {
                     var args = Array.prototype.slice.call(arguments, 1);
                     if (!object[syntax.type])
                         throw new TypeError("Can't call " + JSON.stringify(syntax.type) + " of " + object);
-                    return object[syntax.type].apply(object, args);
+
+                    if(args.length === 1) {
+                        return object[syntax.type].call(object, args[0]);
+                    }
+                    else if(args.length === 2) {
+                        return object[syntax.type].call(object, args[0], args[1]);
+                    }
+                    else {
+                        return object[syntax.type].apply(object, args);
+                    }
+
                 };
             }
             var operator = operators[syntax.type];
@@ -300,11 +323,20 @@ var semantics = compile.semantics = {
                 });
                 if (!args.every(Operators.defined))
                     return;
-                return operator.apply(null, args);
+
+                if(args.length === 1) {
+                    return operator.call(null, args[0]);
+                }
+                else if(args.length === 2) {
+                    return operator.call(null, args[0], args[1]);
+                }
+                else {
+                    return operator.apply(null, args);
+                }
+
             };
         }
 
     }
 
 };
-

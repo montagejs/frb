@@ -27,26 +27,27 @@ compile.semantics = {
         or: Binders.makeOrBinder
     },
 
-    compile: function (syntax) {
-        var compilers = this.compilers;
-        if (syntax.type === "default") {
+    syntaxTypeCompile: {
+        "default": function (syntax) {
             return this.compile(syntax.args[0]);
-        } else if (syntax.type === "literal") {
+        },
+        "literal": function (syntax) {
             if (syntax.value == null) {
                 return Function.noop;
             } else {
                 throw new Error("Can't bind to literal: " + syntax.value);
             }
-        } else if (syntax.type === "equals") {
-            var bindLeft = this.compile(syntax.args[0]);
-            var observeRight = compileObserver(syntax.args[1]);
-            return Binders.makeEqualityBinder(bindLeft, observeRight);
-        } else if (syntax.type === "if") {
-            var observeCondition = compileObserver(syntax.args[0]);
-            var bindConsequent = this.compile(syntax.args[1]);
-            var bindAlternate = this.compile(syntax.args[2]);
-            return Binders.makeConditionalBinder(observeCondition, bindConsequent, bindAlternate);
-        } else if (syntax.type === "and" || syntax.type === "or") {
+        },
+        "equals": function (syntax) {
+            return Binders.makeEqualityBinder(/*bindLeft*/ this.compile(syntax.args[0]), /*observeRight*/ compileObserver(syntax.args[1]));
+        },
+        "if": function (syntax) {
+            return Binders.makeConditionalBinder(
+                /*observeCondition*/compileObserver(syntax.args[0]),
+                /*bindConsequent*/this.compile(syntax.args[1]),
+            /*bindAlternate*/this.compile(syntax.args[2]));
+        },
+        "and_or": function (syntax) {
             var leftArgs = solve(syntax.args[0], valueSyntax);
             var rightArgs = solve(syntax.args[1], valueSyntax);
             var bindLeft = this.compile(leftArgs[0]);
@@ -63,13 +64,15 @@ compile.semantics = {
                 observeLeftBind,
                 observeRightBind
             );
-        } else if (syntax.type === "everyBlock") {
+        },
+        "everyBlock": function (syntax) {
             var observeCollection = compileObserver(syntax.args[0]);
             var args = solve(syntax.args[1], trueSyntax);
             var bindCondition = this.compile(args[0]);
             var observeValue = compileObserver(args[1]);
             return Binders.makeEveryBlockBinder(observeCollection, bindCondition, observeValue);
-        } else if (syntax.type === "rangeContent") {
+        },
+        "rangeContent": function (syntax) {
             var observeTarget = compileObserver(syntax.args[0]);
             var bindTarget;
             try {
@@ -78,23 +81,46 @@ compile.semantics = {
                 bindTarget = Function.noop;
             }
             return Binders.makeRangeContentBinder(observeTarget, bindTarget);
-        } else if (syntax.type === "defined") {
+        },
+        "defined": function (syntax) {
             var bindTarget = this.compile(syntax.args[0]);
             return Binders.makeDefinedBinder(bindTarget);
-        } else if (syntax.type === "parent") {
+        },
+        "parent": function (syntax) {
             var bindTarget = this.compile(syntax.args[0]);
             return Binders.makeParentBinder(bindTarget);
-        } else if (syntax.type === "with") {
+        },
+        "with": function (syntax) {
             var observeTarget = compileObserver(syntax.args[0]);
             var bindTarget = this.compile(syntax.args[1]);
             return Binders.makeWithBinder(observeTarget, bindTarget);
-        } else if (compilers.hasOwnProperty(syntax.type)) {
+        }
+    },
+
+    compile: function compile(syntax) {
+        var compilers = this.compilers,
+            syntaxTypeCompile;
+        if(syntaxTypeCompile = this.syntaxTypeCompile[syntax.type]) {
+            return syntaxTypeCompile.call(this,syntax);
+        }
+        else if (compilers.hasOwnProperty(syntax.type)) {
             var argObservers = syntax.args.map(compileObserver, compileObserver.semantics);
-            return compilers[syntax.type].apply(null, argObservers);
-        } else {
+
+            if(argObservers.length === 1) {
+                return compilers[syntax.type].call(null, argObservers[0]);
+            }
+            else if(argObservers.length === 2) {
+                return compilers[syntax.type].call(null, argObservers[0], argObservers[1]);
+            }
+            else {
+                return compilers[syntax.type].apply(null, argObservers);
+            }
+        }
+        else {
             throw new Error("Can't compile binder for " + JSON.stringify(syntax.type));
         }
     }
 
 };
 
+compile.semantics.syntaxTypeCompile.and = compile.semantics.syntaxTypeCompile.or = compile.semantics.syntaxTypeCompile.and_or;

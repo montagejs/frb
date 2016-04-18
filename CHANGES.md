@@ -1,4 +1,9 @@
 
+# v3.0.0
+
+-   Performance improvements from removing forEach, leveraging Collection 5 usr of native Map/Set when available
+-   Updates to run with Collections 5.x
+
 # v0.2.19
 
 -   Small bug fix in cancelling non replacing array observers
@@ -249,4 +254,3 @@ syntax tree.
 
 `Observers.observeGet` now delegates to `observeGet` method instead of
 `observeKey`.
-

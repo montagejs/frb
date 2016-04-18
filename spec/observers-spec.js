@@ -1,6 +1,6 @@
 
 require("collections/shim");
-var Dict = require("collections/dict");
+var Map = require("collections/map");
 var Observers = require("../observers");
 var Operators = require("../operators");
 var Scope = require("../scope");
@@ -117,7 +117,7 @@ describe("makePropertyObserver", function () {
 describe("observeGet", function () {
 
     it("should work", function () {
-        var map = new Dict();
+        var map = new Map();
         var spy = jasmine.createSpy();
         var cancel = Observers.observeGet(map, "a", spy, new Scope());
         expect(spy).toHaveBeenCalledWith(undefined, "a", map);
@@ -128,7 +128,7 @@ describe("observeGet", function () {
     });
 
     it("should be cancelable", function () {
-        var map = new Dict();
+        var map = new Map();
         var spy = jasmine.createSpy();
         var cancel = Observers.observeGet(map, "a", spy, new Scope());
         map.set("a", 10);
@@ -141,7 +141,7 @@ describe("observeGet", function () {
     });
 
     it("should observe deletion", function () {
-        var map = new Dict({a: 10});
+        var map = Map.from({a: 10});
         var spy = jasmine.createSpy();
         var cancel = Observers.observeGet(map, "a", spy, new Scope());
         map.delete("a");
@@ -694,4 +694,3 @@ describe("autoCancelPrevious", function () {
 describe("once", function () {
     // TODO
 });
-

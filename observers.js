@@ -199,9 +199,12 @@ exports.makeRecordObserver = makeObjectObserver; // deprecated
 exports.makeObjectObserver = makeObjectObserver;
 function makeObjectObserver(observers) {
     return function observeObject(emit, scope) {
-        var cancelers = {};
-        var output = {};
-        for (var name in observers) {
+        var cancelers = {},
+            output = {},
+            names = Object.keys(observers),
+            i;
+
+        for (i=0;(name=names[i]);i++) {
             (function (name, observe) {
                 // To ensure that the property exists, even if the observer
                 // fails to emit:
@@ -214,7 +217,9 @@ function makeObjectObserver(observers) {
         var cancel = emit(output);
         return function cancelRecordObserver() {
             if (cancel) cancel();
-            for (var name in cancelers) {
+            var names = Object.keys(cancelers),i;
+
+            for (i=0;(name=names[i]);i++) {
                 cancel = cancelers[name];
                 if (cancel) cancel();
             }
@@ -250,7 +255,15 @@ function makeOperatorObserverMaker(operator) {
         return function observeOperator(emit, scope) {
             return observeOperandChanges(function (operands) {
                 if (!operands.every(Operators.defined)) return emit();
-                return emit(operator.apply(void 0, operands));
+                if(operands.length === 1) {
+                    return emit(operator.call(void 0, operands[0]));
+                }
+                else if(operands.length === 2) {
+                    return emit(operator.call(void 0, operands[0], operands[1]));
+                }
+                else {
+                    return emit(operator.apply(void 0, operands));
+                }
             }, scope);
         };
     };
@@ -258,9 +271,13 @@ function makeOperatorObserverMaker(operator) {
 
 exports.makeMethodObserverMaker = makeMethodObserverMaker;
 function makeMethodObserverMaker(name) {
-    var capitalName = name.slice(0, 1).toUpperCase() + name.slice(1);
-    var makeObserverName = 'make' + capitalName + 'Observer';
-    var observeName = 'observe' + capitalName;
+    var capitalName = name.slice(0, 1).toUpperCase();
+        capitalName += name.slice(1);
+    var makeObserverName = 'make';
+        makeObserverName += capitalName;
+        makeObserverName += 'Observer';
+    var observeName = 'observe';
+        observeName += capitalName;
     return function makeMethodObserver(/*...observers*/) {
         var observeObject = arguments[0];
         var operandObservers = Array.prototype.slice.call(arguments, 1);
@@ -269,14 +286,31 @@ function makeMethodObserverMaker(name) {
         return function observeMethod(emit, scope) {
             return observeObject(function (object) {
                 if (!object) return emit();
-                if (object[makeObserverName])
-                    return object[makeObserverName].apply(object, operandObservers)(emit, scope);
+                if (object[makeObserverName]) {
+                    if(operandObservers.length === 1) {
+                        return object[makeObserverName].call(object, operandObservers[0])(emit, scope);
+                    }
+                    else if(operandObservers.length === 2) {
+                        return object[makeObserverName].call(object, operandObservers[0], operandObservers[1])(emit, scope);
+                    }
+                    else {
+                        return object[makeObserverName].apply(object, operandObservers)(emit, scope);
+                    }
+                }
                 if (object[observeName])
                     return object[observeName](emit, scope);
                 return observeOperandChanges(function (operands) {
                     if (!operands.every(Operators.defined)) return emit();
                     if (typeof object[name] === "function") {
-                        return emit(object[name].apply(object, operands));
+                        if(operands.length === 1) {
+                            return emit(object[name].call(object, operands[0]));
+                        }
+                        else if(operands.length === 2) {
+                            return emit(object[name].call(object, operands[0], operands[1]));
+                        }
+                        else {
+                            return emit(object[name].apply(object, operands));
+                        }
                     } else {
                         return emit();
                     }
@@ -386,8 +420,8 @@ function makeReplacingMapBlockObserver(observeCollection, observeRelation) {
             var cancelers = [];
 
             function update(index) {
-                for (; index < input.length; index++) {
-                    indexRefs[index].index = index;
+                for (var i=0, countI = input.length; i < countI; i++) {
+                    indexRefs[i].index = i;
                 }
             }
 
@@ -559,14 +593,17 @@ function makeSortedSetBlockObserver(observeCollection, observeRelation) {
         var sortedSet = new SortedSet(null, equals, compare);
         var cancel = emit(sortedSet);
         function rangeChange(plus, minus) {
-            minus.forEach(function (entry) {
+            var i, countI, entry;
+            for(i=0, countI = minus.length; i<countI; i++) {
+                entry = minus[i];
                 sortedSet["delete"](entry[0]);
                 order["delete"](entry[0]);
-            });
-            plus.forEach(function (entry) {
+            }
+            for(i=0, countI = plus.length; i<countI; i++) {
+                entry = plus[i];
                 order.set(entry[0], entry[1]);
                 sortedSet.add(entry[0]);
-            });
+            }
         }
         function entriesChange(entries) {
             sortedSet.clear();
@@ -728,21 +765,22 @@ function makeGroupMapBlockObserver(observeCollection, observeRelation) {
         return observeRelationEntries(function (input, original) {
             if (!input) return emit();
 
-            var groups = Map();
+            var groups = new Map();
 
             function rangeChange(plus, minus, index) {
-                minus.forEach(function (item) {
-                    // ASSERT groups.has(item[1]);
-                    var group = groups.get(item[1]);
+                var i, countI, item, group, create;
+                for(i=0, countI = minus.length; i<countI; i++) {
+                    item = minus[i];
+                    group = groups.get(item[1]);
                     if (group.length === 1) {
                         groups["delete"](item[1]);
                     } else {
                         group["delete"](item[0]);
                     }
-                });
-                plus.forEach(function (item) {
-                    var create = !groups.has(item[1]);
-                    var group;
+                }
+                for(i=0, countI = plus.length; i<countI; i++) {
+                    item = plus[i];
+                    create = !groups.has(item[1]);
                     if (create) {
                         // constructClone ensures that the equivalence classes
                         // are the same type as the input.  It is shimmed on
@@ -755,7 +793,7 @@ function makeGroupMapBlockObserver(observeCollection, observeRelation) {
                     if (create) {
                         groups.set(item[1], group);
                     }
-                });
+                }
             }
 
             var cancelRangeChange = observeRangeChange(input, rangeChange, scope);
@@ -1349,7 +1387,7 @@ function makeReplacingEntriesObserver(observeCollection) {
 exports.observeEntries = observeEntries;
 function observeEntries(collection, emit, scope) {
     var items = [];
-    var keyToEntry = Map();
+    var keyToEntry = new Map();
     var cancel = emit(items);
     // TODO observe addition and deletion with separate observers
     function mapChange(value, key, collection) {
@@ -1414,12 +1452,15 @@ function makeToMapObserver(observeObject) {
             if (object.addRangeChangeListener) { // array/collection of items
                 return observeUniqueEntries(function (entries) {
                     function rangeChange(plus, minus) {
-                        minus.forEach(function (entry) {
-                            map["delete"](entry[0]);
-                        });
-                        plus.forEach(function (entry) {
-                            map.set(entry[0], entry[1]);
-                        });
+
+                        var i, countI;
+                        for(i=0, countI = minus.length; i<countI; i++) {
+                            map["delete"](minus[i][0]);
+                        }
+
+                        for(i=0, countI = plus.length; i<countI; i++) {
+                            map.set(plus[i][0], plus[i][1]);
+                        }
                     }
                     return observeRangeChange(entries, rangeChange, scope);
                 }, scope.nest(object));
@@ -1498,7 +1539,16 @@ function makeComputerObserver(observeArgs, compute, thisp) {
         emit = makeUniq(emit);
         return observeArgs(function replaceArgs(args) {
             if (!args || !args.every(Operators.defined)) return;
-            return emit(compute.apply(thisp, args));
+            if(args.length === 1) {
+                return emit(compute.call(thisp, args[0]));
+            }
+            else if(args.length === 2) {
+                return emit(compute.call(thisp, args[0], args[1]));
+            }
+            else {
+                return emit(compute.apply(thisp, args));
+            }
+
         }, scope);
     };
 }
@@ -1556,7 +1606,17 @@ var merge = require("./merge").merge;
 // that only gets emitted once.
 function makeNonReplacing(wrapped) { // alt makeNonReplacingObserverMaker
     return function makeNonReplacingObserver() {
-        var observe = wrapped.apply(this, arguments);
+        var observe;
+        if(arguments.length === 1) {
+            observe = wrapped.call(this, arguments[0]);
+        }
+        else if(arguments.length === 2) {
+            observe = wrapped.call(this, arguments[0], arguments[1]);
+        }
+        else {
+            observe = wrapped.apply(this, arguments);
+        }
+
         return function observeArrayWithoutReplacing(emit, scope) {
             var output = [];
             var cancelObserver = observe(function (input) {
@@ -1590,7 +1650,17 @@ function makeUniq(emit) {
     var previous;
     return function uniqEmit(next) {
         if (next !== previous) {
-            var result = emit.apply(this, arguments);
+            var result;
+            if(arguments.length === 1) {
+                result = emit.call(this, arguments[0]);
+            }
+            else if(arguments.length === 2) {
+                result = emit.apply(this, arguments[0], arguments[1]);
+            }
+            else {
+                result = emit.apply(this, arguments);
+            }
+
             previous = next;
             return result;
         }
@@ -1615,9 +1685,20 @@ function cancelEach(cancelers) {
 exports.autoCancelPrevious = autoCancelPrevious;
 function autoCancelPrevious(emit) {
     var cancelPrevious;
-    return function replaceObserver(value) {
+    return function replaceObserver() {
         if (cancelPrevious) cancelPrevious();
-        cancelPrevious = emit.apply(this, arguments);
+        if(arguments.length === 1) {
+            cancelPrevious = emit.call(this,arguments[0]);
+        }
+        else if(arguments.length === 2) {
+            cancelPrevious = emit.call(this,arguments[0],arguments[1]);
+        }
+        else if(arguments.length === 3) {
+            cancelPrevious = emit.call(this,arguments[0],arguments[1],arguments[2]);
+        }
+        else {
+            cancelPrevious = emit.apply(this, arguments);
+        }
         return function cancelObserver() {
             if (cancelPrevious) cancelPrevious();
             cancelPrevious = void 0;
@@ -1717,4 +1798,3 @@ function swap(array, start, minusLength, plus) {
     }
     array.length = newLength;
 }
-

@@ -42,7 +42,16 @@ function observe(source, expression, descriptorOrFunction) {
     return observe(autoCancelPrevious(function (value) {
         if (!value) {
         } else if (typeof contentChange !== "function") {
-            return descriptor.change.apply(source, arguments);
+            if(arguments.length === 1) {
+                return descriptor.change.call(null, arguments[0]);
+            }
+            else if(arguments.length === 2) {
+                return descriptor.change.call(null, arguments[0], arguments[1]);
+            }
+            else {
+                return descriptor.change.apply(source, arguments);
+            }
+
         } else if (typeof contentChange === "function") {
             value.addRangeChangeListener(contentChange);
             return function () {
@@ -53,4 +62,3 @@ function observe(source, expression, descriptorOrFunction) {
 }
 
 var empty = {};
-

@@ -275,4 +275,3 @@ function bindRangeContent(
         cancelSourceObserver();
     };
 }
-

@@ -1,9 +1,9 @@
 
-var Map = require("collections/map");
-var bind = require("./bind");
-var compute = require("./compute");
-var observe = require("./observe");
-var stringify = require("./stringify");
+var Map = require("collections/map"),
+    bind = require("./bind"),
+    compute = require("./compute"),
+    observe = require("./observe"),
+    stringify = require("./stringify");
 
 var bindingsForObject = new Map();
 var owns = Object.prototype.hasOwnProperty;
@@ -29,6 +29,7 @@ function defineBinding(object, name, descriptor, commonDescriptor) {
         throw new Error("Can't bind to already bound target, " + JSON.stringify(name));
     }
     if ("<-" in descriptor || "<->" in descriptor || "compute" in descriptor) {
+        bindingsForName[name] = descriptor;
         descriptor.target = object;
         descriptor.parameters = descriptor.parameters || commonDescriptor.parameters;
         descriptor.document = descriptor.document || commonDescriptor.document;
@@ -38,7 +39,6 @@ function defineBinding(object, name, descriptor, commonDescriptor) {
         } else {
             descriptor.cancel = bind(object, name, descriptor);
         }
-        bindingsForName[name] = descriptor;
         exports.count++;
     } else {
         if (!("get" in descriptor) && !("set" in descriptor) && !("writable" in descriptor)) {
@@ -88,10 +88,9 @@ function cancelBinding(object, name) {
         binding.cancel();
         delete bindings[name];
         exports.count--;
-        for (var name in bindings) {
-            return; // if there are any remaining bindings, short-circuit
+
+        if (bindings.size < 1) {
+            bindingsForObject["delete"](object);
         }
-        bindingsForObject["delete"](object);
     }
 }
-
