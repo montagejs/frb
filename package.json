@@ -30,7 +30,7 @@
   },
   "main": "bindings",
   "dependencies": {
-    "collections": "~5.0.x"
+    "collections": "montagejs/collections#master"
   },
   "devDependencies": {
     "jasmine-node": "montagestudio/jasmine-node#master",
