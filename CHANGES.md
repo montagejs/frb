@@ -1,3 +1,6 @@
+# v3.0.1
+
+-   Performance improvements reducing closure lookup and caching constants
 
 # v3.0.0
 
