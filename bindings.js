@@ -5,8 +5,16 @@ var Map = require("collections/map"),
     observe = require("./observe"),
     stringify = require("./stringify");
 
-var bindingsForObject = new Map();
-var owns = Object.prototype.hasOwnProperty;
+var bindingsForObject = new Map(),
+    owns = Object.prototype.hasOwnProperty,
+    ONE_WAY = "<-",
+    TWO_WAY = "<->",
+    COMPUTE = "compute",
+    GET = "get",
+    SET = "set",
+    WRITABLE = "writable",
+    CONFIGURABLE = "configurable",
+    ENUMERABLE = "enumerable";
 
 exports.count = 0;
 exports.bindings = bindingsForObject;
@@ -23,44 +31,46 @@ function defineBindings(object, descriptors, commonDescriptor) {
 
 exports.defineBinding = defineBinding;
 function defineBinding(object, name, descriptor, commonDescriptor) {
-    commonDescriptor = commonDescriptor || Object.empty;
-    var bindingsForName = getBindings(object);
+    commonDescriptor = commonDescriptor || defineBinding.empty;
+    var bindingsForName = defineBinding.getBindings(object);
     if (owns.call(bindingsForName, name)) {
         throw new Error("Can't bind to already bound target, " + JSON.stringify(name));
     }
-    if ("<-" in descriptor || "<->" in descriptor || "compute" in descriptor) {
+    else if (ONE_WAY in descriptor || TWO_WAY in descriptor || COMPUTE in descriptor) {
         bindingsForName[name] = descriptor;
         descriptor.target = object;
         descriptor.parameters = descriptor.parameters || commonDescriptor.parameters;
         descriptor.document = descriptor.document || commonDescriptor.document;
         descriptor.components = descriptor.components || commonDescriptor.components;
-        if ("compute" in descriptor) {
-            descriptor.cancel = compute(object, name, descriptor);
-        } else {
-            descriptor.cancel = bind(object, name, descriptor);
-        }
+
+        descriptor.cancel = (COMPUTE in descriptor)
+            ? defineBinding.compute(object, name, descriptor)
+            : defineBinding.bind(object, name, descriptor);
+
         exports.count++;
     } else {
-        if (!("get" in descriptor) && !("set" in descriptor) && !("writable" in descriptor)) {
+        if (!(GET in descriptor) && !(SET in descriptor) && !(WRITABLE in descriptor)) {
             descriptor.writable = true;
         }
-        if (!("configurable" in descriptor)) {
+        if (!(CONFIGURABLE in descriptor)) {
             descriptor.configurable = true;
         }
-        if (!("enumerable" in descriptor)) {
+        if (!(ENUMERABLE in descriptor)) {
             descriptor.enumerable = true;
         }
         Object.defineProperty(object, name, descriptor);
     }
     return object;
 }
+defineBinding.empty = Object.empty;
+defineBinding.getBindings = getBindings;
+defineBinding.compute = compute;
+defineBinding.bind = bind;
 
 exports.getBindings = getBindings;
 function getBindings(object) {
-    if (!bindingsForObject.has(object)) {
-        bindingsForObject.set(object, {});
-    }
-    return bindingsForObject.get(object);
+    var value;
+    return bindingsForObject.get(object) || (bindingsForObject.set(object, ( value = {})) && value);
 }
 
 exports.getBinding = getBinding;
