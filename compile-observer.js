@@ -1,6 +1,13 @@
 
-var Observers = require("./observers");
-var Operators = require("./operators");
+var Observers = require("./observers"),
+    Operators = require("./operators"),
+    LITERAL = "literal",
+    VALUE = "value",
+    PARAMETERS = "parameters",
+    ELEMENT = "element",
+    COMPONENT = "component",
+    RECORD = "record";
+
 
 module.exports = compile;
 function compile(syntax) {
@@ -65,19 +72,20 @@ var semantics = compile.semantics = {
         asArray: Observers.makeToArrayObserver // XXX deprecated
     },
 
-    compile: function (syntax) {
-        var compilers = this.compilers;
-        if (syntax.type === "literal") {
+    compile: function compile(syntax) {
+        var compilers = this.compilers,
+            syntaxType = syntax.type;
+        if (syntax.type === LITERAL) {
             return Observers.makeLiteralObserver(syntax.value);
-        } else if (syntax.type === "value") {
+        } else if (syntaxType === VALUE) {
             return Observers.observeValue;
-        } else if (syntax.type === "parameters") {
+        } else if (syntaxType === PARAMETERS) {
             return Observers.observeParameters;
-        } else if (syntax.type === "element") {
+        } else if (syntaxType === ELEMENT) {
             return Observers.makeElementObserver(syntax.id);
-        } else if (syntax.type === "component") {
+        } else if (syntaxType === COMPONENT) {
             return Observers.makeComponentObserver(syntax.label, syntax);
-        } else if (syntax.type === "record") {
+        } else if (syntaxType === RECORD) {
             var observers = {},
                 args = syntax.args,
                 names = Object.keys(args);
@@ -86,21 +94,20 @@ var semantics = compile.semantics = {
             }
             return Observers.makeObjectObserver(observers);
         } else {
-            if (!compilers.hasOwnProperty(syntax.type)) {
-                compilers[syntax.type] = Observers.makeMethodObserverMaker(syntax.type);
-            }
-            var argObservers = syntax.args.map(this.compile, this);
-
-            if(argObservers.length === 1) {
-                return compilers[syntax.type].call(null, argObservers[0]);
-            }
-            else if(argObservers.length === 2) {
-                return compilers[syntax.type].call(null, argObservers[0], argObservers[1]);
-            }
-            else {
-                return compilers[syntax.type].apply(null, argObservers);
+            if (!compilers.hasOwnProperty(syntaxType)) {
+                compilers[syntaxType] = Observers.makeMethodObserverMaker(syntaxType);
             }
 
+            var argObservers = [];
+            for(var i=0, args = syntax.args, countI = args.length;i<countI;i++) {
+                argObservers[i] = this.compile(args[i]);
+            }
+
+            return (countI === 1)
+                ? compilers[syntaxType].call(null, argObservers[0])
+                : (countI === 2)
+                    ? compilers[syntaxType].call(null, argObservers[0], argObservers[1])
+                    : compilers[syntaxType].apply(null, argObservers);
         }
     }
 
