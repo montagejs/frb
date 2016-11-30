@@ -426,9 +426,18 @@ function makeReplacingMapBlockObserver(observeCollection, observeRelation) {
             }
 
             function rangeChange(plus, minus, index) {
-                swap(indexRefs, index, minus.length, plus.map(function (value, offset) {
-                    return {index: index + offset};
-                }));
+                var i,
+                    countI,
+                    // plusMapped = plus.map(function (value, offset) {
+                    //     return {index: index + offset};
+                    // })),
+                    plusMapped = [];
+
+                for(i=0, countI = plus.length;i<countI;i++) {
+                    plusMapped[i] = {index: index + i}
+                }
+
+                swap(indexRefs, index, minus.length, plusMapped);
                 update(index + plus.length);
                 var initialized;
                 var initial = [];
@@ -440,9 +449,12 @@ function makeReplacingMapBlockObserver(observeCollection, observeRelation) {
                     cancel = cancelers[at];
                     if (cancel) cancel();
                 }
-                swap(cancelers, index, minus.length, plus.map(function (value, offset) {
+
+
+                function cancelerMapper(value, offset, index, indexRefs, output, initial, observeRelation, scope) {
                     var indexRef = indexRefs[index + offset];
-                    return observeRelation(function replaceRelationOutput(value) {
+
+                    function replaceRelationOutput(value) {
                         if (initialized) {
                             output.set(indexRef.index, value);
                         } else {
@@ -450,8 +462,16 @@ function makeReplacingMapBlockObserver(observeCollection, observeRelation) {
                             // does not dispatch changes.
                             initial[offset] = value;
                         }
-                    }, scope.nest(value));
-                }));
+                    };
+
+                    return observeRelation(replaceRelationOutput, scope.nest(value));
+                };
+
+                for(i=0, countI = plus.length;i<countI;i++) {
+                    plusMapped[i] = cancelerMapper(plus[i],i,index,indexRefs, output, initial, observeRelation, scope);
+                }
+
+                swap(cancelers, index, minus.length, /*plus.map(cancelerMapper)*/plusMapped);
                 initialized = true;
                 output.swap(index, minus.length, initial);
             }
