@@ -203,7 +203,7 @@ function bindRangeContent(
                 source.swap(0, source.length, target);
                 isActive = false;
                 cancel = establishRangeContentBinding();
-            } else if (!source && !isActive) {
+            } else if (!source && !isActive && target.clone) {
                 trace && console.log("RANGE CONTENT TARGET INITIALIZED TO COPY OF SOURCE", trace.targetPath, "<-", tarce.sourcePath, "WITH", source);
                 assignSource(target.clone(), sourceScope);
             }
@@ -223,7 +223,7 @@ function bindRangeContent(
                 target.swap(0, target.length, source);
                 isActive = false;
                 cancel = establishRangeContentBinding();
-            } else if (!target) {
+            } else if (!target && source.clone) {
                 assignTarget(source.clone(), targetScope);
             }
         }

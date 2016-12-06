@@ -30,6 +30,12 @@
 -   Fix the `has` operator for map collections.
 -   Support for contenteditable in the DOM shim (@cesine)
 
+# v0.2.18
+
+-   Add support for `slice(start, end)` bindings on arrays. Strings worked
+    previously as a consequence of method dispatch. Arrays now work, but with
+    caveats.
+
 # v0.2.17
 
 -   Fix evaluator for ternary conditional operator to match the behavior of the

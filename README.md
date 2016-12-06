@@ -734,6 +734,86 @@ controller.index.add(0);
 expect(controller.view).toEqual([5, 6, 7]);
 ```
 
+Because `view(start, length)` is optimized by FRB to make minimal changes to the
+output array when `start` or `length` change,  in most cases it is better than a
+hypothetical `slice(start, start + length)` operator. There is no `slice`
+operator for arrays in FRB.
+
+### Slice
+
+**Reactive support for arrays added in version 0.2.18**
+
+The slice operator operates on both strings and arrays and produces a window
+from a `start` offset up to but not including an `end` offset.
+This operator is unusual in FRB because it operates on either arrays and
+strings.
+
+```javascript
+var object = Bindings.defineBindings({
+    start: 2,
+    end: 4
+}, {
+    slice: {"<-": "cake.slice(start, end)"}
+});
+
+object.cake = "abcdefg";
+expect(object.slice).toBe("cd");
+
+object.cake = [1, 2, 3, 4, 5, 6, 7];
+expect(object.slice).toEqual([3, 4]);
+```
+
+The behavior for strings is unimaginative.
+If the source string, or either the start index or end index changes, the target
+will be replaced with that slice of the source.
+
+The behavior for arrays is nuanced.
+To avoid these nuances, you should generally use the `view(start, length)`
+operator directly.
+It is better suited for viewing a sliding window of an array, allowing
+the position and size of the window to change orthogonally.
+
+However, if you happen to use the `slice` operator on an array, you can expect
+it to deviate from the norm.
+Most FRB operators that produce arrays will only emit that array once, even if
+the value of the input changes.
+This is beneficial because one can attach change listeners once to an output
+array knowing that these change listeners will continue to react until the
+binding is canceled, even if the input temporarily null or is replaced.
+Because the `slice` operator may have either a string or an array as its input,
+the output value will change if ever the input value is replaced and may switch
+between being an array or string depending on the input type.
+
+Altering the content of the source does not change the value of the output.
+
+```javascript
+// Continued from above...
+var original = object.slice;
+object.cake.shift();
+expect(object.slice).toEqual([4, 5]);
+expect(object.slice).toBe(original);
+```
+
+Altering the `start` or `end` parameters will also only change the content of
+the output.
+
+```javascript
+// Continued from above...
+object.start--;
+object.end++;
+expect(object.cake).toEqual([2, 3, 4, 5, 6, 7]);
+expect(object.slice).toEqual([3, 4, 5, 6]);
+expect(object.slice).toBe(original);
+```
+
+But replacing the input will produce a new output value.
+```javascript
+// Continued from above...
+object.cake = [7, 6, 5, 4, 3, 2, 1, 0];
+expect(object.slice).toEqual([6, 5, 4, 3]);
+expect(object.slice).not.toBe(original);
+```
+
 ### Enumerate
 
 An enumeration observer produces `[index, value]` pairs.  You can bind
@@ -2131,6 +2211,7 @@ Bindings.defineBindings({
 }, {
     b: {
         "<-": "a + 1",
+        trace: true
     }
 });
 ```
