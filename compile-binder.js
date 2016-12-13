@@ -104,7 +104,12 @@ compile.semantics = {
             return syntaxTypeCompile.call(this,syntax);
         }
         else if (compilers.hasOwnProperty(syntax.type)) {
-            var argObservers = syntax.args.map(compileObserver, compileObserver.semantics);
+            var argObservers = [],
+                semantics = compileObserver.semantics;
+            for(var i=0, countI = syntax.args.length;i<countI;i++) {
+                argObservers.push(compileObserver.call(semantics,syntax.args[i]));
+            }
+            // var argObservers = syntax.args.map(compileObserver, compileObserver.semantics);
 
             if(argObservers.length === 1) {
                 return compilers[syntax.type].call(null, argObservers[0]);
