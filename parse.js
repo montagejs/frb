@@ -2,10 +2,11 @@
 require("collections/shim");
 var grammar = require("./grammar");
 
-var memo = {}; // could be Dict
+var memo = new Map(); // could be Dict
 
 module.exports = parse;
 function parse(text, options) {
+    var cache;
     if (Array.isArray(text)) {
         return {
             type: "tuple",
@@ -13,13 +14,13 @@ function parse(text, options) {
                 return parse(text, options);
             })
         };
-    } else if (!options && Object.prototype.hasOwnProperty.call(memo, text)) {
-        return memo[text];
+    } else if (!options && (cache = memo.get(text))) {
+        return cache;
     } else {
         try {
             var syntax = grammar.parse(text, options || Object.empty);
             if (!options) {
-                memo[text] = syntax;
+                memo.set(text,syntax);
             }
             return syntax;
         } catch (error) {
