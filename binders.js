@@ -43,14 +43,15 @@ function makePropertyBinder(observeObject, observeKey) {
     return function bindProperty(observeValue, source, target, descriptor, trace) {
         return observeKey(autoCancelPrevious(function replaceKey(key) {
             if (key == null) return;
-            return observeObject(autoCancelPrevious(function replaceObject(object) {
-                if (object == null) return;
-                if (object.bindProperty) {
-                    return object.bindProperty(key, observeValue, source, descriptor, trace);
-                } else {
-                    return _bindProperty(object, key, observeValue, source, descriptor, trace);
-                }
-            }), target);
+            function replaceObject(object) {
+                return (object == null)
+                        ? void 0
+                        : (object.bindProperty)
+                            ? object.bindProperty(key, observeValue, source, descriptor, trace)
+                            : replaceObject.bindProperty(object, key, observeValue, source, descriptor, trace);
+            };
+            replaceObject.bindProperty = _bindProperty;
+            return observeObject(autoCancelPrevious(replaceObject), target);
         }), target);
     };
 }
@@ -77,10 +78,15 @@ function makeGetBinder(observeCollection, observeKey) {
     return function bindGet(observeValue, source, target, descriptor, trace) {
         return observeCollection(autoCancelPrevious(function replaceCollection(collection) {
             if (!collection) return;
-            return observeKey(autoCancelPrevious(function replaceKey(key) {
-                if (key == null) return;
-                return _bindGet(collection, key, observeValue, source, descriptor, trace);
-            }), target);
+
+            function replaceKey(key) {
+                return (key == null)
+                        ?  void 0
+                        : replaceKey.bindGet(collection, key, observeValue, source, descriptor, trace);
+            };
+            replaceKey.bindGet = _bindGet;
+
+            return observeKey(autoCancelPrevious(replaceKey), target);
         }), target);
     };
 }
@@ -92,21 +98,24 @@ function makeHasBinder(observeSet, observeValue) {
             if (!set) return;
             return observeValue(autoCancelPrevious(function replaceHasBindingValue(value) {
                 if (value == null) return;
-                return observeHas(autoCancelPrevious(function changeWhetherSetHas(has) {
+
+                function changeWhetherSetHas(has) {
                     // wait for the initial value to be updated by the
                     // other-way binding
                     if (has) { // should be in set
-                        if (!(set.has || set.contains).call(set, value)) {
+                        if (!changeWhetherSetHas.set.has(value)) {
                             trace && console.log("ADD", value, "TO", trace.targetPath, "BECAUSE", trace.sourcePath, getStackTrace());
-                            set.add(value);
+                            changeWhetherSetHas.set.add(value);
                         }
                     } else { // should not be in set
-                        while ((set.has || set.contains).call(set, value)) {
+                        while (changeWhetherSetHas.set.has(value)) {
                             trace && console.log("REMOVE", value, "FROM", trace.targetPath, "BECAUSE", trace.sourcePath, getStackTrace());
-                            (set.remove || set['delete']).call(set, value);
+                            changeWhetherSetHas.set.delete(value);
                         }
                     }
-                }), source);
+                };
+                changeWhetherSetHas.set = set;
+                return observeHas(autoCancelPrevious(changeWhetherSetHas), source);
             }), target);
         }), target);
     };
@@ -140,12 +149,17 @@ function makeEveryBlockBinder(observeCollection, bindCondition, observeValue) {
                 if (!collection) return;
                 var cancelers = [];
                 function rangeChange(plus, minus, index) {
-                    cancelEach(cancelers.slice(index, index + minus.length));
-                    cancelers.swap(index, minus.length, plus.map(function (value, offset) {
-                        var scope = target.nest(value);
-                        return bindCondition(observeValue, scope, scope, descriptor, trace);
-                    }));
-                }
+                    rangeChange.cancelEach(cancelers.slice(index, index + minus.length));
+                    var plusMapped = [];
+                    for(var i=0, countI = plus.length, scope;i<countI;i++) {
+                        scope = target.nest(plus[i]);
+                        plusMapped.push(rangeChange.bindCondition(observeValue, scope, scope, descriptor, trace));
+                    }
+                    cancelers.swap(index, minus.length, plusMapped);
+                };
+                rangeChange.cancelEach = cancelEach;
+                rangeChange.bindCondition = bindCondition;
+
                 var cancelRangeChange = observeRangeChange(collection, rangeChange, target);
                 return function cancelEveryBinding() {
                     cancelEach(cancelers);
@@ -300,7 +314,7 @@ function makeRangeContentBinder(observeTarget, bindTarget) {
                         for(i=0, countI = plus.length, item;(item = plus[i]); i++) {
                             target.add(item);
                         }
-                        
+
                         deleteMethod = target.remove || target["delete"];
                         for(i=0, countI = minus.length, item;(item = minus[i]); i++) {
                             target.deleteMethod(item);
