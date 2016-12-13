@@ -84,14 +84,19 @@ function makePropertyObserver(observeObject, observeKey) {
     return function observeProperty(emit, scope) {
         return observeKey(function replaceKey(key) {
             if (typeof key !== "string" && typeof key !== "number") return emit();
-            return observeObject(function replaceObject(object) {
-                if (object == null) return emit();
-                if (object.observeProperty) {
-                    return object.observeProperty(key, emit, scope);
-                } else {
-                    return _observeProperty(object, key, emit, scope);
-                }
-            }, scope);
+
+            function replaceObject(object) {
+                return (object == null)
+                    ? replaceObject.emit()
+                    : object.observeProperty
+                        ? object.observeProperty(key, replaceObject.emit, replaceObject.scope)
+                        : replaceObject.observeProperty(object, key, replaceObject.emit, replaceObject.scope);
+            };
+            replaceObject.observeProperty = _observeProperty;
+            replaceObject.emit = emit;
+            replaceObject.scope = scope;
+
+            return observeObject(replaceObject, scope);
         }, scope);
     };
 }
@@ -121,16 +126,20 @@ function makeGetObserver(observeCollection, observeKey) {
     return function observeGet(emit, scope) {
         return observeCollection(function replaceCollection(collection) {
             if (!collection) return emit();
-            return observeKey(function replaceKey(key) {
+
+            function replaceKey(key) {
                 if (key == null) return emit();
                 if (collection.observeGet) {
                     // polymorphic override
                     return collection.observeGet(key, emit, scope);
                 } else {
                     // common case
-                    return _observeGet(collection, key, emit, scope);
+                    return replaceKey.observeGet(collection, key, emit, scope);
                 }
-            }, scope);
+            };
+            replaceKey.observeGet = _observeGet;
+
+            return observeKey(replaceKey, scope);
         }, scope);
     };
 }
@@ -171,9 +180,9 @@ function makeHasObserver(observeSet, observeValue) {
 exports.makeObserversObserver = makeObserversObserver;
 function makeObserversObserver(observers) {
     return function observeObservers(emit, scope) {
-        var output = [];
-        var cancelers = [];
-        for (var index = 0; index < observers.length; index++) {
+        var output = [],
+            cancelers = [];
+        for (var index = 0, indexCount = observers.length; index < indexCount; index++) {
             output[index] = void 0;
             cancelers[index] = (function captureIndex(observe, index) {
                 return observe(function replaceValueAtIndex(value) {
@@ -184,7 +193,7 @@ function makeObserversObserver(observers) {
         var cancel = emit(output);
         return function cancelObserversObserver() {
             if (cancel) cancel();
-            for (var index = 0; index < cancelers.length; index++) {
+            for (var index = 0, indexCount = cancelers.length; index < indexCount; index++) {
                 cancel = cancelers[index];
                 if (cancel) cancel();
             }
@@ -339,11 +348,9 @@ exports.makeAndObserver = makeAndObserver;
 function makeAndObserver(observeLeft, observeRight) {
     return function observeAnd(emit, scope) {
         return observeLeft(function replaceLeft(left) {
-            if (!left) {
-                return emit(left);
-            } else {
-                return observeRight(emit, scope);
-            }
+            return (!left)
+                    ? emit(left)
+                    : observeRight(emit, scope);
         }, scope);
     };
 }
@@ -352,11 +359,9 @@ exports.makeOrObserver = makeOrObserver;
 function makeOrObserver(observeLeft, observeRight) {
     return function observeOr(emit, scope) {
         return observeLeft(function replaceLeft(left) {
-            if (left) {
-                return emit(left);
-            } else {
-                return observeRight(emit, scope);
-            }
+            return left
+                    ? emit(left)
+                    : observeRight(emit, scope);
         }, scope);
     };
 }
@@ -1223,21 +1228,19 @@ var observeNullString = makeLiteralObserver("");
 
 exports.observeRangeChange = observeRangeChange;
 function observeRangeChange(collection, emit, scope) {
-    if (!collection)
-        return Function.noop;
-    var cancel;
-    if (!collection.toArray) {
+    if ((!collection) || (!collection.toArray) || (!collection.addRangeChangeListener)) {
         return Function.noop;
     }
-    if (!collection.addRangeChangeListener) {
-        return Function.noop;
-    }
+
+    var cancel, cancelRangeChange;
+
     function rangeChange(plus, minus, index) {
         if (cancel) cancel();
         cancel = emit(plus, minus, index);
     }
-    rangeChange(collection.toArray(), [], 0);
-    var cancelRangeChange = collection.addRangeChangeListener(
+    rangeChange(Array.isArray(collection) ? collection : collection.toArray(), Array.empty, 0);
+
+    cancelRangeChange = collection.addRangeChangeListener(
         rangeChange,
         null,
         scope.beforeChange
@@ -1339,6 +1342,8 @@ function observeOne(collection, emit, scope) {
 exports.makeRangeContentObserver = makeRangeContentObserver;
 function makeRangeContentObserver(observeCollection) {
     return function observeContent(emit, scope) {
+        //Add scope variable closer
+        //emit and scope are always together? worth inlining them?
         return observeCollection(function (collection) {
             if (!collection || !collection.addRangeChangeListener) {
                 return emit(collection);
@@ -1708,16 +1713,20 @@ function autoCancelPrevious(emit) {
     return function replaceObserver() {
         if (cancelPrevious) cancelPrevious();
         if(arguments.length === 1) {
-            cancelPrevious = emit.call(this,arguments[0]);
+            cancelPrevious = emit.call(void 0,arguments[0]);
         }
         else if(arguments.length === 2) {
-            cancelPrevious = emit.call(this,arguments[0],arguments[1]);
+            cancelPrevious = emit.call(void 0,arguments[0],arguments[1]);
         }
         else if(arguments.length === 3) {
-            cancelPrevious = emit.call(this,arguments[0],arguments[1],arguments[2]);
+            cancelPrevious = emit.call(void 0,arguments[0],arguments[1],arguments[2]);
         }
         else {
-            cancelPrevious = emit.apply(this, arguments);
+            var args = new Array(arguments.length);
+            for (var i = 0, l = arguments.length; i < l; i++) {
+                args[i] = arguments[i];
+            }
+            cancelPrevious = emit.apply(void 0, args);
         }
         return function cancelObserver() {
             if (cancelPrevious) cancelPrevious();
