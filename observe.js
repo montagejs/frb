@@ -43,10 +43,10 @@ function observe(source, expression, descriptorOrFunction) {
         if (!value) {
         } else if (typeof contentChange !== "function") {
             if(arguments.length === 1) {
-                return descriptor.change.call(null, arguments[0]);
+                return descriptor.change.call(source, arguments[0]);
             }
             else if(arguments.length === 2) {
-                return descriptor.change.call(null, arguments[0], arguments[1]);
+                return descriptor.change.call(source, arguments[0], arguments[1]);
             }
             else {
                 return descriptor.change.apply(source, arguments);
