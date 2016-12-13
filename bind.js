@@ -1,39 +1,41 @@
 
-var parse = require("./parse");
-var solve = require("./algebra");
-var stringify = require("./stringify");
-var compileObserver = require("./compile-observer");
-var compileBinder = require("./compile-binder");
-var compileAssigner = require("./compile-assigner");
-var Observers = require("./observers");
-var observeRangeChange = Observers.observeRangeChange;
-var Binders = require("./binders");
-var Scope = require("./scope");
+var parse = require("./parse"),
+    solve = require("./algebra"),
+    stringify = require("./stringify"),
+    compileObserver = require("./compile-observer"),
+    compileBinder = require("./compile-binder"),
+    compileAssigner = require("./compile-assigner"),
+    Observers = require("./observers"),
+    observeRangeChange = Observers.observeRangeChange,
+    Binders = require("./binders"),
+    Scope = require("./scope"),
+    ONE_WAY = "<-",
+    ONE_WAY_RIGHT = "->",
+    TWO_WAY = "<->";
+
 
 module.exports = bind;
 function bind(target, targetPath, descriptor) {
 
     descriptor.target = target;
     descriptor.targetPath = targetPath;
-    var source = descriptor.source = descriptor.source || target;
-
-    var sourcePath = descriptor["<-"] || descriptor["<->"] || "";
-    var twoWay = descriptor.twoWay = "<->" in descriptor;
-    descriptor.sourcePath = sourcePath;
-    var value = descriptor.value;
-    var parameters = descriptor.parameters = descriptor.parameters || source;
-    var document = descriptor.document;
-    var components = descriptor.components;
-    var trace = descriptor.trace;
+    var source = descriptor.source = descriptor.source || target,
+        twoWay = descriptor.twoWay = TWO_WAY in descriptor,
+        sourcePath = descriptor.sourcePath = !twoWay ? descriptor[ONE_WAY] : descriptor[TWO_WAY] || "",
+        parameters = descriptor.parameters = descriptor.parameters || source,
+        document = descriptor.document,
+        components = descriptor.components,
+        trace = descriptor.trace,
 
     // TODO: consider the possibility that source and target have intrinsic
     // scope properties
 
-    var sourceScope = descriptor.sourceScope = new Scope(source);
+        sourceScope = /*descriptor.sourceScope =*/ new Scope(source),
+        targetScope = /*descriptor.targetScope =*/ new Scope(target);
+
     sourceScope.parameters = parameters;
     sourceScope.document = document;
     sourceScope.components = components;
-    var targetScope = descriptor.targetScope = new Scope(target);
     targetScope.parameters = parameters;
     targetScope.document = document;
     targetScope.components = components;
@@ -86,7 +88,7 @@ function bind(target, targetPath, descriptor) {
     }
 
     // <- source to target
-    trace && console.log("DEFINE BINDING", targetPath, "<-", sourcePath, target);
+    trace && console.log("DEFINE BINDING", targetPath, ONE_WAY, sourcePath, target);
     var cancelSourceToTarget = bindOneWay(
         targetScope,
         targetSyntax,
@@ -105,7 +107,7 @@ function bind(target, targetPath, descriptor) {
     // -> target to source
     var cancelTargetToSource = Function.noop;
     if (twoWay) {
-        trace && console.log("DEFINE BINDING", targetPath, "->", sourcePath, source);
+        trace && console.log("DEFINE BINDING", targetPath, ONE_WAY_RIGHT, sourcePath, source);
         cancelTargetToSource = bindOneWay(
             sourceScope,
             sourceSyntax,
@@ -198,13 +200,13 @@ function bindRangeContent(
         if (_target && _target.addRangeChangeListener) {
             target = _target;
             if (source && target) {
-                trace && console.log("RANGE CONTENT TARGET REPLACES SOURCE", trace.targetPath, "->", trace.sourcePath, "WITH", target);
+                trace && console.log("RANGE CONTENT TARGET REPLACES SOURCE", trace.targetPath, ONE_WAY_RIGHT, trace.sourcePath, "WITH", target);
                 isActive = true;
                 source.swap(0, source.length, target);
                 isActive = false;
                 cancel = establishRangeContentBinding();
             } else if (!source && !isActive) {
-                trace && console.log("RANGE CONTENT TARGET INITIALIZED TO COPY OF SOURCE", trace.targetPath, "<-", tarce.sourcePath, "WITH", source);
+                trace && console.log("RANGE CONTENT TARGET INITIALIZED TO COPY OF SOURCE", trace.targetPath, ONE_WAY, tarce.sourcePath, "WITH", source);
                 assignSource(target.clone(), sourceScope);
             }
         }
@@ -218,7 +220,7 @@ function bindRangeContent(
         if (_source && _source.addRangeChangeListener) {
             source = _source;
             if (target && source) {
-                trace && console.log("RANGE CONTENT SOURCE REPLACES TARGET", trace.targetPath, "<-", trace.sourcePath, "WITH", source);
+                trace && console.log("RANGE CONTENT SOURCE REPLACES TARGET", trace.targetPath, ONE_WAY, trace.sourcePath, "WITH", source);
                 isActive = true;
                 target.swap(0, target.length, source);
                 isActive = false;
@@ -238,7 +240,7 @@ function bindRangeContent(
     function sourceRangeChange(plus, minus, index) {
         if (!isActive) {
             isActive = true;
-            trace && console.log("RANGE CONTENT PROPAGATED", trace.targetPath, "<-", trace.sourcePath, "PLUS", plus, "MINUS", minus, "AT", index);
+            trace && console.log("RANGE CONTENT PROPAGATED", trace.targetPath, ONE_WAY, trace.sourcePath, "PLUS", plus, "MINUS", minus, "AT", index);
             target.swap(index, minus.length, plus);
             isActive = false;
         }
@@ -247,7 +249,7 @@ function bindRangeContent(
     function targetRangeChange(plus, minus, index) {
         if (!isActive) {
             isActive = true;
-            trace && console.log("RANGE CONTENT PROPAGATED", trace.targetPath, "->", trace.sourcePath, "PLUS", plus, "MINUS", minus, "AT", index);
+            trace && console.log("RANGE CONTENT PROPAGATED", trace.targetPath, ONE_WAY_RIGHT, trace.sourcePath, "PLUS", plus, "MINUS", minus, "AT", index);
             source.swap(index, minus.length, plus);
             isActive = false;
         }
@@ -257,13 +259,13 @@ function bindRangeContent(
         if (source === target) {
             return;
         }
-        trace && console.log("RANGE CONTENT BOUND", trace.targetPath, "<->", trace.sourcePath);
+        trace && console.log("RANGE CONTENT BOUND", trace.targetPath, TWO_WAY, trace.sourcePath);
         isActive = true;
         var cancelSourceRangeChangeObserver = observeRangeChange(source, sourceRangeChange, sourceScope);
         var cancelTargetRangeChangeObserver = observeRangeChange(target, targetRangeChange, targetScope);
         isActive = false;
         return function cancelRangeContentBinding() {
-            trace && console.log("RANGE CONTENT UNBOUND", trace.targetPath, "<->", trace.sourcePath);
+            trace && console.log("RANGE CONTENT UNBOUND", trace.targetPath, TWO_WAY, trace.sourcePath);
             cancelSourceRangeChangeObserver();
             cancelTargetRangeChangeObserver();
         };
