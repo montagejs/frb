@@ -1461,7 +1461,7 @@ describe("Bindings", function () {
 
         // continued
         Bindings.cancelBindings(object);
-        expect(Bindings.getBindings(object)).toEqual({});
+        expect(Bindings.getBindings(object)).toEqual(new Map());
     });
 
     it("Converters", function () {

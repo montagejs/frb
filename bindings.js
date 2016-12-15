@@ -32,15 +32,19 @@ function defineBindings(object, descriptors, commonDescriptor) {
 exports.defineBinding = defineBinding;
 function defineBinding(object, name, descriptor, commonDescriptor) {
     commonDescriptor = commonDescriptor || defineBinding.empty;
-    var bindingsForName = defineBinding.getBindings(object);
-    if (owns.call(bindingsForName, name)) {
+    var bindingsForName = defineBinding.getBindings(object),
+        parameters, document;
+
+    if (bindingsForName.has(name)) {
         throw new Error("Can't bind to already bound target, " + JSON.stringify(name));
     }
     else if (ONE_WAY in descriptor || TWO_WAY in descriptor || COMPUTE in descriptor) {
-        bindingsForName[name] = descriptor;
+        bindingsForName.set(name,descriptor);
         descriptor.target = object;
-        descriptor.parameters = descriptor.parameters || commonDescriptor.parameters;
-        descriptor.document = descriptor.document || commonDescriptor.document;
+        if((parameters = descriptor.parameters || commonDescriptor.parameters))
+            descriptor.parameters = parameters;
+        if((document = descriptor.document || commonDescriptor.document))
+            descriptor.document = document;
         descriptor.components = descriptor.components || commonDescriptor.components;
 
         descriptor.cancel = (COMPUTE in descriptor)
@@ -70,37 +74,45 @@ defineBinding.bind = bind;
 exports.getBindings = getBindings;
 function getBindings(object) {
     var value;
-    return bindingsForObject.get(object) || (bindingsForObject.set(object, ( value = {})) && value);
+    return bindingsForObject.get(object) || (bindingsForObject.set(object, ( value = new Map)) && value);
 }
 
 exports.getBinding = getBinding;
 function getBinding(object, name) {
     var bindingsForName = getBindings(object);
-    return bindingsForName[name];
+    return bindingsForName.get(name);
 }
 
 exports.cancelBindings = cancelBindings;
 function cancelBindings(object) {
-    var bindings = getBindings(object);
-    for (var name in bindings) {
-        cancelBinding(object, name);
-    }
+    var bindings = getBindings(object),
+        mapIter = bindings.keys();
+
+        while (name = mapIter.next().value) {
+            cancelBinding(object, name, bindings);
+        }
+
+    // for (var name in bindings) {
+    //     cancelBinding(object, name);
+    // }
 }
 
 exports.cancelBinding = cancelBinding;
-function cancelBinding(object, name) {
-    var bindings = getBindings(object);
-    if (!bindings[name]) {
-        throw new Error("Can't cancel non-existent binding to " + JSON.stringify(name));
+function cancelBinding(object, name, bindings/*private argument to call from cancelBindings*/) {
+    if(!bindings) {
+        bindings = getBindings(object);
+        if (!bindings.has(name)) {
+            throw new Error("Can't cancel non-existent binding to " + JSON.stringify(name));
+        }
     }
-    var binding = bindings[name];
+    var binding = bindings.get(name);
     if (binding && binding.cancel) {
         binding.cancel();
-        delete bindings[name];
+        bindings.delete(name);
         exports.count--;
 
         if (bindings.size < 1) {
-            bindingsForObject["delete"](object);
+            bindingsForObject.delete(object);
         }
     }
 }
