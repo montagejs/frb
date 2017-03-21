@@ -1,3 +1,12 @@
+
+# v4.0.1
+-   Fixes a missing Map require needede for IE10/11
+
+# v4.0.0
+-   Performance improvements
+-   backward incompatible update that makes getBindings return a Map instead of an object
+
+
 # v3.0.1
 
 -   Performance improvements reducing closure lookup and caching constants
