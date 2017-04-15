@@ -674,28 +674,7 @@ produces a `Map` data structure and does not waste any time, but does
 not produce range change events.  The `entries()` observer projects the
 map of classes into the nested array data structure.
 
-You can use the `groupMap` block directly.
-
-```javascript
-Bindings.cancelBinding(store, "clothingByColor");
-Bindings.defineBindings(store, {
-    "clothingByColor": {"<-": "clothing.groupMap{color}"}
-});
-var blueClothes = store.clothingByColor.get('blue');
-expect(blueClothes).toEqual([
-    {type: 'shirt', color: 'blue'},
-    {type: 'blazer', color: 'blue'}
-]);
-
-store.clothing.push({type: 'gloves', color: 'blue'});
-expect(blueClothes).toEqual([
-    {type: 'shirt', color: 'blue'},
-    {type: 'blazer', color: 'blue'},
-    {type: 'gloves', color: 'blue'}
-]);
-```
-
-The `group` and `groupMap` blocks both respect the type of the source
+The `group` block respects the type of the source
 collection.  If instead of an array you were to use a `SortedSet`, the
 equivalence classes would each be sorted sets.  This is useful because
 replacing values in a sorted set can be performed with much less waste
