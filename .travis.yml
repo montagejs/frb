@@ -3,8 +3,7 @@ node_js:
   - "4.8.0"
 script: npm run $COMMAND
 env:
-  - COMMAND=test
-  - CXX=g++-4.8
+  - CXX=g++-4.8 COMMAND=test
 addons:
   apt:
     sources:
