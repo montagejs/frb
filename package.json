@@ -11,8 +11,8 @@
   ],
   "author": "Kris Kowal <kris@cixar.com> (http://github.com/kriskowal/)",
   "contributors": [
-      "Kris Kowal <kris@cixar.com> (http://github.com/kriskowal/)",
-      "Benoit Marchant <benoit@montagestudio.com> (http://github.com/marchant/)"
+    "Kris Kowal <kris@cixar.com> (http://github.com/kriskowal/)",
+    "Benoit Marchant <benoit@montagestudio.com> (http://github.com/marchant/)"
   ],
   "bugs": {
     "mail": "benoit@montagestudio.com",
@@ -24,6 +24,7 @@
       "url": "http://github.com/montagejs/frb/raw/master/LICENSE.md"
     }
   ],
+  "license": "BSD-3-Clause",
   "repository": {
     "type": "git",
     "url": "http://github.com/montagejs/frb.git"
@@ -34,8 +35,8 @@
   },
   "devDependencies": {
     "jasmine-node": "montagestudio/jasmine-node#master",
-    "pegjs": "git://github.com/dmajda/pegjs.git",
-    "memwatch-next": "*"
+    "memwatch-next": "^0.3.0",
+    "pegjs": "git://github.com/dmajda/pegjs.git"
   },
   "scripts": {
     "test": "jasmine-node spec",
