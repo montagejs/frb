@@ -1,6 +1,6 @@
 {
   "name": "frb",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Functional reactive bindings",
   "keywords": [
     "functional",
@@ -31,7 +31,7 @@
   },
   "main": "bindings",
   "dependencies": {
-    "collections": "~5.0.x"
+    "collections": "^5.1.2"
   },
   "devDependencies": {
     "jasmine-node": "montagestudio/jasmine-node#master",
