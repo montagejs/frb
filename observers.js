@@ -206,27 +206,30 @@ function makeObserversObserver(observers) {
 // {type: "record", args: {a: {type: "literal", value: 10 ...
 exports.makeRecordObserver = makeObjectObserver; // deprecated
 exports.makeObjectObserver = makeObjectObserver;
+function observeObject_setOutput_canceler(output, cancelers, name, observe, scope) {
+    // To ensure that the property exists, even if the observer
+    // fails to emit:
+    output[name] = void 0;
+    cancelers[name] = observe(function (value) {
+        output[name] = value;
+    }, scope);
+}
+
 function makeObjectObserver(observers) {
     return function observeObject(emit, scope) {
         var cancelers = {},
             output = {},
             names = Object.keys(observers),
+            name,
             i;
 
         for (i=0;(name=names[i]);i++) {
-            (function (name, observe) {
-                // To ensure that the property exists, even if the observer
-                // fails to emit:
-                output[name] = void 0;
-                cancelers[name] = observe(function (value) {
-                    output[name] = value;
-                }, scope);
-            })(name, observers[name]);
+            observeObject_setOutput_canceler(output, cancelers, name, observers[name],scope);
         }
         var cancel = emit(output);
         return function cancelRecordObserver() {
             if (cancel) cancel();
-            var names = Object.keys(cancelers),i;
+            var names = Object.keys(cancelers),i,name;
 
             for (i=0;(name=names[i]);i++) {
                 cancel = cancelers[name];

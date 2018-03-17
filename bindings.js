@@ -74,14 +74,15 @@ defineBinding.bind = bind;
 exports.getBindings = getBindings;
 function getBindings(object) {
     var value;
-    return bindingsForObject.get(object) || (bindingsForObject.set(object, ( value = new Map)) && value);
+    return getBindings.bindingsForObject.get(object) || (getBindings.bindingsForObject.set(object, ( value = new Map)) && value);
 }
+getBindings.bindingsForObject  = bindingsForObject;
 
 exports.getBinding = getBinding;
 function getBinding(object, name) {
-    var bindingsForName = getBindings(object);
-    return bindingsForName.get(name);
+    return getBinding.getBindings(object).get(name);
 }
+getBinding.getBindings = getBindings;
 
 exports.cancelBindings = cancelBindings;
 function cancelBindings(object) {
@@ -89,18 +90,20 @@ function cancelBindings(object) {
         mapIter = bindings.keys();
 
         while (name = mapIter.next().value) {
-            cancelBinding(object, name, bindings);
+            cancelBindings.cancelBinding(object, name, bindings);
         }
 
     // for (var name in bindings) {
     //     cancelBinding(object, name);
     // }
 }
+cancelBindings.getBindings = getBindings;
+cancelBindings.cancelBinding = cancelBinding;
 
 exports.cancelBinding = cancelBinding;
 function cancelBinding(object, name, bindings/*private argument to call from cancelBindings*/) {
     if(!bindings) {
-        bindings = getBindings(object);
+        bindings = cancelBinding.getBindings(object);
         if (!bindings.has(name)) {
             throw new Error("Can't cancel non-existent binding to " + JSON.stringify(name));
         }
@@ -112,7 +115,9 @@ function cancelBinding(object, name, bindings/*private argument to call from can
         exports.count--;
 
         if (bindings.size < 1) {
-            bindingsForObject.delete(object);
+            cancelBinding.bindingsForObject.delete(object);
         }
     }
 }
+cancelBinding.getBindings = getBindings;
+cancelBinding.bindingsForObject = bindingsForObject;

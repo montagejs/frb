@@ -62,16 +62,16 @@ function bind(target, targetPath, descriptor) {
     var convert = descriptor.convert;
     var revert = descriptor.revert;
 
-    var sourceSyntax = descriptor.sourceSyntax = parse(sourcePath);
-    var targetSyntax = descriptor.targetSyntax = parse(targetPath);
+    var sourceSyntax = descriptor.sourceSyntax = bind.parse(sourcePath);
+    var targetSyntax = descriptor.targetSyntax = bind.parse(targetPath);
 
-    var solution = solve(targetSyntax, sourceSyntax);
+    var solution = bind.solve(targetSyntax, sourceSyntax);
     targetSyntax = solution[0];
     sourceSyntax = solution[1];
 
     if (twoWay) {
         if (targetSyntax.type === "rangeContent") {
-            return bindRangeContent(
+            return bind.bindRangeContent(
                 targetScope,
                 targetSyntax.args[0],
                 sourceScope,
@@ -87,9 +87,14 @@ function bind(target, targetPath, descriptor) {
         }
     }
 
+    var cancel = function cancel() {
+        cancel.cancelSourceToTarget();
+        cancel.cancelTargetToSource();
+    };
+
     // <- source to target
     trace && console.log("DEFINE BINDING", targetPath, ONE_WAY, sourcePath, target);
-    var cancelSourceToTarget = bindOneWay(
+    cancel.cancelSourceToTarget = bind.bindOneWay(
         targetScope,
         targetSyntax,
         sourceScope,
@@ -100,7 +105,7 @@ function bind(target, targetPath, descriptor) {
     );
 
     // flip the arrow
-    var solution = solve(sourceSyntax, targetSyntax);
+    var solution = bind.solve(sourceSyntax, targetSyntax);
     sourceSyntax = solution[0];
     targetSyntax = solution[1];
 
@@ -108,7 +113,7 @@ function bind(target, targetPath, descriptor) {
     var cancelTargetToSource = Function.noop;
     if (twoWay) {
         trace && console.log("DEFINE BINDING", targetPath, ONE_WAY_RIGHT, sourcePath, source);
-        cancelTargetToSource = bindOneWay(
+        cancelTargetToSource = bind.bindOneWay(
             sourceScope,
             sourceSyntax,
             targetScope,
@@ -118,13 +123,15 @@ function bind(target, targetPath, descriptor) {
             trace
         );
     }
+    cancel.cancelTargetToSource = cancelTargetToSource;
 
-    return function cancel() {
-        cancelSourceToTarget();
-        cancelTargetToSource();
-    };
-
+    return cancel;
 }
+
+bind.parse = parse;
+bind.solve = solve;
+bind.bindOneWay = bindOneWay;
+bind.bindRangeContent = bindRangeContent;
 
 function bindOneWay(
     targetScope,
@@ -136,7 +143,7 @@ function bindOneWay(
     trace
 ) {
 
-    var observeSource = compileObserver(sourceSyntax);
+    var observeSource = bindOneWay.compileObserver(sourceSyntax);
     if (convert) {
         observeSource = Observers.makeConverterObserver(
             observeSource,
@@ -145,7 +152,7 @@ function bindOneWay(
         );
     }
 
-    var bindTarget = compileBinder(targetSyntax);
+    var bindTarget = bindOneWay.compileBinder(targetSyntax);
     return bindTarget(
         observeSource,
         sourceScope,
@@ -158,6 +165,8 @@ function bindOneWay(
     );
 
 }
+bindOneWay.compileObserver = compileObserver;
+bindOneWay.compileBinder = compileBinder;
 
 function bindRangeContent(
     targetScope,
@@ -170,10 +179,10 @@ function bindRangeContent(
     trace
 ) {
 
-    var observeSource = compileObserver(sourceSyntax);
-    var observeTarget = compileObserver(targetSyntax);
-    var assignSource = compileAssigner(sourceSyntax);
-    var assignTarget = compileAssigner(targetSyntax);
+    var observeSource = bindRangeContent.compileObserver(sourceSyntax);
+    var observeTarget = bindRangeContent.compileObserver(targetSyntax);
+    var assignSource = bindRangeContent.compileAssigner(sourceSyntax);
+    var assignTarget = bindRangeContent.compileAssigner(targetSyntax);
 
     var cancel = Function.noop;
 
@@ -193,7 +202,7 @@ function bindRangeContent(
     // prevent the target from overwriting an existing source.
 
     isActive = true;
-    var cancelTargetObserver = observeTarget(function replaceRangeContentTarget(_target) {
+    cancelRangeContentBinding.cancelTargetObserver = observeTarget(function replaceRangeContentTarget(_target) {
         cancel();
         cancel = Function.noop;
         trace && console.log("RANGE CONTENT TARGET", trace.targetPath, "SET TO", _target);
@@ -213,7 +222,7 @@ function bindRangeContent(
     }, targetScope);
     isActive = false;
 
-    var cancelSourceObserver = observeSource(function replaceRangeContentSource(_source) {
+    cancelRangeContentBinding.cancelSourceObserver = observeSource(function replaceRangeContentSource(_source) {
         cancel();
         cancel = Function.noop;
         trace && console.log("RANGE CONTENT SOURCE", trace.sourcePath, "SET TO", _source);
@@ -261,19 +270,27 @@ function bindRangeContent(
         }
         trace && console.log("RANGE CONTENT BOUND", trace.targetPath, TWO_WAY, trace.sourcePath);
         isActive = true;
-        var cancelSourceRangeChangeObserver = observeRangeChange(source, sourceRangeChange, sourceScope);
-        var cancelTargetRangeChangeObserver = observeRangeChange(target, targetRangeChange, targetScope);
+        cancelRangeContentBinding.cancelSourceRangeChangeObserver = observeRangeChange(source, sourceRangeChange, sourceScope);
+        cancelRangeContentBinding.cancelTargetRangeChangeObserver = observeRangeChange(target, targetRangeChange, targetScope);
         isActive = false;
-        return function cancelRangeContentBinding() {
+
+        function cancelRangeContentBinding() {
             trace && console.log("RANGE CONTENT UNBOUND", trace.targetPath, TWO_WAY, trace.sourcePath);
-            cancelSourceRangeChangeObserver();
-            cancelTargetRangeChangeObserver();
+            cancelRangeContentBinding.cancelSourceRangeChangeObserver();
+            cancelRangeContentBinding.cancelTargetRangeChangeObserver();
         };
+
+        return cancelRangeContentBinding;
     }
 
-    return function cancelRangeContentBinding() {
+    function cancelRangeContentBinding() {
         cancel();
-        cancelTargetObserver();
-        cancelSourceObserver();
+        cancelRangeContentBinding.cancelTargetObserver();
+        cancelRangeContentBinding.cancelSourceObserver();
     };
+
+    return cancelRangeContentBinding;
 }
+bindRangeContent.compileObserver = compileObserver;
+bindRangeContent.compileAssigner = compileAssigner;
+
