@@ -299,44 +299,55 @@ var semantics = compile.semantics = {
         } else {
             if (!operators.hasOwnProperty(syntax.type)) {
                 operators[syntax.type] = function (object) {
-                    var args = Array.prototype.slice.call(arguments, 1);
                     if (!object[syntax.type])
                         throw new TypeError("Can't call " + JSON.stringify(syntax.type) + " of " + object);
 
-                    if(args.length === 1) {
-                        return object[syntax.type].call(object, args[0]);
+                    if(arguments.length === 2) {
+                        return object[syntax.type].call(object, arguments[1]);
                     }
-                    else if(args.length === 2) {
-                        return object[syntax.type].call(object, args[0], args[1]);
+                    else if(arguments.length === 3) {
+                        return object[syntax.type].call(object, arguments[1], arguments[2]);
                     }
                     else {
+                        var args = Array.prototype.slice.call(arguments, 1);
                         return object[syntax.type].apply(object, args);
                     }
 
                 };
             }
-            var operator = operators[syntax.type];
-            var argEvaluators = syntax.args.map(this.compile, this);
-            return function (scope) {
-                var args = argEvaluators.map(function (evaluateArg) {
-                    return evaluateArg(scope);
-                });
-                if (!args.every(Operators.defined))
-                    return;
+            var compiledSyntax = function compiledSyntax(scope) {
+                var args = [], i, iArg,
+                    argEvaluators = compiledSyntax.argEvaluators,
+                    argEvaluator = compiledSyntax.argEvaluator,
+                    evaluatedArg;
+
+                for(i=0;(iArg = argEvaluators[i]);i++) {
+                    evaluatedArg = iArg(scope);
+                    if(Operators.defined(evaluatedArg)) {
+                        args[i] = (iArg(scope));
+                    }
+                    else {
+                        return;
+                    }
+                }
 
                 if(args.length === 1) {
-                    return operator.call(null, args[0]);
+                    return compiledSyntax.operator.call(null, args[0]);
                 }
                 else if(args.length === 2) {
-                    return operator.call(null, args[0], args[1]);
+                    return compiledSyntax.operator.call(null, args[0], args[1]);
                 }
                 else {
-                    return operator.apply(null, args);
+                    return compiledSyntax.operator.apply(null, args);
                 }
 
             };
+            compiledSyntax.operator = operators[syntax.type];
+            compiledSyntax.argEvaluators = syntax.args.map(this.compile, this);
+            compiledSyntax.argEvaluator = this.argEvaluator;
+
+            return compiledSyntax;
         }
 
     }
-
 };
