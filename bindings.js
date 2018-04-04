@@ -38,7 +38,8 @@ function defineBinding(object, name, descriptor, commonDescriptor) {
     if (bindingsForName.has(name)) {
         throw new Error("Can't bind to already bound target, " + JSON.stringify(name));
     }
-    else if (ONE_WAY in descriptor || TWO_WAY in descriptor || COMPUTE in descriptor) {
+    //Replaced (ONE_WAY in descriptor[ONE_WAY] || TWO_WAY in descriptor || COMPUTE in descriptor)
+    else if (descriptor[ONE_WAY] || descriptor[TWO_WAY] || descriptor[COMPUTE]) {
         bindingsForName.set(name,descriptor);
         descriptor.target = object;
         if((parameters = descriptor.parameters || commonDescriptor.parameters))
@@ -46,8 +47,8 @@ function defineBinding(object, name, descriptor, commonDescriptor) {
         if((document = descriptor.document || commonDescriptor.document))
             descriptor.document = document;
         descriptor.components = descriptor.components || commonDescriptor.components;
-
-        descriptor.cancel = (COMPUTE in descriptor)
+        //Replaced (COMPUTE in descriptor)
+        descriptor.cancel = (descriptor[COMPUTE])
             ? defineBinding.compute(object, name, descriptor)
             : defineBinding.bind(object, name, descriptor);
 
