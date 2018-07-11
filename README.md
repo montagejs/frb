@@ -1,8 +1,10 @@
 <img src="frb.png" align="right" alt="FRB Logo">
 
-[![Build Status](https://travis-ci.org/montagejs/frb.png?branch=master)](http://travis-ci.org/montagejs/frb)
-
 # Functional Reactive Bindings
+
+[![npm version](https://img.shields.io/npm/v/collections.svg?style=flat)](https://www.npmjs.com/package/collections)
+
+[![Build Status](https://travis-ci.org/montagejs/frb.png?branch=master)](http://travis-ci.org/montagejs/frb)
 
 In their simplest form, bindings provide the illusion that two objects
 have the same property.  Changing the property on one object causes the
