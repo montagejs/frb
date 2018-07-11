@@ -1,4 +1,10 @@
 
+# v4.0.3 
+- Update to collections ^5.1.3
+
+# v4.0.2
+- Update to collections ^5.1.2
+
 # v4.0.1
 -   Fixes a missing Map require needede for IE10/11
 
