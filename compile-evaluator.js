@@ -75,46 +75,60 @@ var argCompilers = {
 
     mapBlock: function (evaluateCollection, evaluateRelation) {
         return function (scope) {
-            return evaluateCollection(scope)
-            .map(function (value) {
-                return evaluateRelation(scope.nest(value));
-            });
+            var  result = evaluateCollection(scope);
+            return result
+                ?  result.map(function (value) {
+                    return evaluateRelation(scope.nest(value));
+                })
+                : result;
         };
     },
 
     filterBlock: function (evaluateCollection, evaluatePredicate) {
         return function (scope) {
-            return evaluateCollection(scope)
-            .filter(function (value) {
-                return evaluatePredicate(scope.nest(value));
-            });
+            var  result = evaluateCollection(scope);
+
+            return result
+                ? result.filter(function (value) {
+                    return evaluatePredicate(scope.nest(value));
+                })
+                : result;
         };
     },
 
     someBlock: function (evaluateCollection, evaluatePredicate) {
         return function (scope) {
-            return evaluateCollection(scope)
-            .some(function (value) {
-                return evaluatePredicate(scope.nest(value));
-            });
+            var  result = evaluateCollection(scope);
+
+            return result
+                ?  result.some(function (value) {
+                    return evaluatePredicate(scope.nest(value));
+                })
+                : result;
         };
     },
 
     everyBlock: function (evaluateCollection, evaluatePredicate) {
         return function (scope) {
-            return evaluateCollection(scope)
-            .every(function (value) {
-                return evaluatePredicate(scope.nest(value));
-            });
+            var  result = evaluateCollection(scope);
+
+            return result
+                ? result.every(function (value) {
+                    return evaluatePredicate(scope.nest(value));
+                })
+                : result;
         };
     },
 
     sortedBlock: function (evaluateCollection, evaluateRelation) {
         return function (scope) {
-            return evaluateCollection(scope)
-            .sorted(Function.by(function (value) {
-                return evaluateRelation(scope.nest(value));
-            }));
+            var  result = evaluateCollection(scope);
+
+            return result
+                ? result.sorted(Function.by(function (value) {
+                    return evaluateRelation(scope.nest(value));
+                }))
+                : result;
         };
     },
 
@@ -139,10 +153,13 @@ var argCompilers = {
 
     groupBlock: function (evaluateCollection, evaluateRelation) {
         return function (scope) {
-            return evaluateCollection(scope)
-            .group(function (value) {
+            var  result = evaluateCollection(scope);
+
+            return result
+                ? result.group(function (value) {
                 return evaluateRelation(scope.nest(value));
-            });
+                })
+                : result;
         };
     },
 
@@ -157,19 +174,26 @@ var argCompilers = {
 
     minBlock: function (evaluateCollection, evaluateRelation) {
         return function (scope) {
-            return evaluateCollection(scope)
-            .min(Function.by(function (value) {
-                return evaluateRelation(scope.nest(value));
-            }))
+            var  result = evaluateCollection(scope);
+
+            return result
+                ? result.min(Function.by(function (value) {
+                    return evaluateRelation(scope.nest(value));
+                }))
+                : result;
         };
     },
 
     maxBlock: function (evaluateCollection, evaluateRelation) {
         return function (scope) {
-            return evaluateCollection(scope)
-            .max(Function.by(function (value) {
+            var  result = evaluateCollection(scope);
+
+            return result
+                ? result.max(Function.by(function (value) {
                 return evaluateRelation(scope.nest(value));
             }))
+            : result;
+
         };
     },
 

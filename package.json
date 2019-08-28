@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "jasmine-node": "montagestudio/jasmine-node#master",
-    "memwatch-next": "^0.3.0",
+    "@airbnb/node-memwatch": "^1.0.2",
     "pegjs": "git://github.com/dmajda/pegjs.git"
   },
   "scripts": {
