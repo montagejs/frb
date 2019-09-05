@@ -1728,6 +1728,11 @@ function autoCancelPrevious(emit) {
             }
             cancelPrevious = emit.apply(void 0, args);
         }
+
+        if (typeof cancelPrevious !== "function" && cancelPrevious !== void 0) {
+            throw new Error("A handler method can only return a function or undefined");
+        }
+
         return function cancelObserver() {
             if (cancelPrevious) cancelPrevious();
             cancelPrevious = void 0;
