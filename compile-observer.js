@@ -73,9 +73,8 @@ var semantics = compile.semantics = {
     },
 
     compile: function compile(syntax) {
-        var compilers = this.compilers,
-            syntaxType = syntax.type;
-        if (syntax.type === LITERAL) {
+        var syntaxType = syntax.type;
+        if (syntaxType === LITERAL) {
             return Observers.makeLiteralObserver(syntax.value);
         } else if (syntaxType === VALUE) {
             return Observers.observeValue;
@@ -94,20 +93,28 @@ var semantics = compile.semantics = {
             }
             return Observers.makeObjectObserver(observers);
         } else {
-            if (!compilers.hasOwnProperty(syntaxType)) {
-                compilers[syntaxType] = Observers.makeMethodObserverMaker(syntaxType);
+            if (!this.compilers.hasOwnProperty(syntaxType)) {
+                this.compilers[syntaxType] = Observers.makeMethodObserverMaker(syntaxType);
             }
 
-            var argObservers = [];
-            for(var i=0, args = syntax.args, countI = args.length;i<countI;i++) {
-                argObservers[i] = this.compile(args[i]);
+            var args = syntax.args,
+                countI = args.length;
+            if (countI === 1) {
+                return this.compilers[syntaxType].call(null, this.compile(args[0]));
             }
-
-            return (countI === 1)
-                ? compilers[syntaxType].call(null, argObservers[0])
-                : (countI === 2)
-                    ? compilers[syntaxType].call(null, argObservers[0], argObservers[1])
-                    : compilers[syntaxType].apply(null, argObservers);
+            else if (countI === 2) {
+                return  this.compilers[syntaxType].call(null, this.compile(args[0]), this.compile(args[1]));
+            }
+            else if (countI === 3) {
+                return  this.compilers[syntaxType].call(null, this.compile(args[0]), this.compile(args[1]), this.compile(args[2]));
+            }
+            else {
+                var argObservers = [];
+                for(var i=0;i<countI;i++) {
+                    argObservers[i] = this.compile(args[i]);
+                }
+                return this.compilers[syntaxType].apply(null, argObservers);
+            }
         }
     }
 
